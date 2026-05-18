@@ -1,789 +1,645 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
-  <meta name="apple-mobile-web-app-capable" content="yes"/>
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
-  <meta name="theme-color" content="#000000"/>
-  <title>UMM — Controle Hora a Hora</title>
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { background: #0d0d0d; font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; }
-    select option { background: #222; color: #fff; }
-  </style>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black"/>
+<meta name="theme-color" content="#000"/>
+<title>UMM — Hora a Hora</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d0d0d;font-family:-apple-system,"Helvetica Neue",Arial,sans-serif;-webkit-text-size-adjust:100%}
+#root{min-height:100vh}
+select option{background:#222;color:#fff}
+</style>
 </head>
 <body>
-  <div id="root"></div>
+<div id="root"><div style="color:#fff;padding:40px;text-align:center;font-family:sans-serif;font-size:16px">Carregando...</div></div>
+<script src="https://cdn.jsdelivr.net/npm/react@18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/react-dom@18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script>
+var storage={get:async function(k){try{var v=localStorage.getItem(k);return v?{value:v}:null;}catch(e){return null;}},set:async function(k,v){try{localStorage.setItem(k,String(v));return{key:k,value:v};}catch(e){return null;}}};
+window._XLSX=window.XLSX;
+var useState=React.useState,useEffect=React.useEffect,useCallback=React.useCallback,useRef=React.useRef;
+</script>
+<script>
+"use strict";
+var XLSX=window._XLSX;
+function _typeof(o){return typeof o;}
+function _objectSpread(e){for(var r=1;r<arguments.length;r++){var t=null!=arguments[r]?arguments[r]:{};r%2?Object.keys(Object(t)).forEach(function(r){_defineProperty(e,r,t[r]);}):Object.getOwnPropertyDescriptors?Object.defineProperties(e,Object.getOwnPropertyDescriptors(t)):Object.keys(Object(t)).forEach(function(r){Object.defineProperty(e,r,Object.getOwnPropertyDescriptor(t,r));});}return e;}
+function _defineProperty(e,r,t){return r in e?Object.defineProperty(e,r,{value:t,enumerable:!0,configurable:!0,writable:!0}):e[r]=t,e;}
+function _toConsumableArray(r){return Array.isArray(r)?r.slice():Array.from(r);}
+function _slicedToArray(r,e){return Array.isArray(r)?r:Array.from(r);}
+function _asyncToGenerator(fn){return function(){var self=this,args=arguments;return new Promise(function(resolve,reject){var gen=fn.apply(self,args);function step(key,arg){try{var info=gen[key](arg),value=info.value;}catch(e){reject(e);return;}info.done?resolve(value):Promise.resolve(value).then(function(v){step("next",v);},function(v){step("throw",v);});}step("next");});};}
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+var CATALOG_BASE=[{"id":"10239440","caps":{"C18":70}},{"id":"10239928","caps":{"C23":130}},{"id":"10239932","caps":{"C23":130}},{"id":"10333268","caps":{"C16":142,"C17":142}},{"id":"10333270","caps":{"C16":142}},{"id":"10356878","caps":{"C23":130}},{"id":"10356879","caps":{"C23":130}},{"id":"10356885","caps":{"C16":142,"C17":142}},{"id":"10363369","caps":{"C23":100,"C26":100}},{"id":"10363370","caps":{"C26":100}},{"id":"10363371","caps":{"C26":100}},{"id":"10414784","caps":{"C23":130}},{"id":"10421679","caps":{"C16":142,"C17":142}},{"id":"10423304","caps":{"C16":142}},{"id":"10457663","caps":{"C23":130}},{"id":"10457665","caps":{"C16":142,"C23":138}},{"id":"10457675","caps":{"C16":142,"C23":138}},{"id":"10457681","caps":{"C16":142,"C23":138}},{"id":"10457683","caps":{}},{"id":"10459147","caps":{"C16":142,"C17":142}},{"id":"10459151","caps":{"C16":142}},{"id":"10461184","caps":{"C23":130}},{"id":"10461185","caps":{"C23":120}},{"id":"10463686","caps":{"C16":142,"C17":142}},{"id":"10463687","caps":{"C16":142}},{"id":"10463688","caps":{"C16":142,"C17":142}},{"id":"10463689","caps":{"C16":142,"C17":142}},{"id":"10463690","caps":{"C16":142}},{"id":"10463691","caps":{"C16":142}},{"id":"10464003","caps":{"C16":142,"C17":142}},{"id":"10464004","caps":{"C16":142}},{"id":"10464009","caps":{"C16":142,"C17":142}},{"id":"10464010","caps":{"C16":142}},{"id":"10476179","caps":{"C23":130}},{"id":"10476180","caps":{"C23":120}},{"id":"10489649","caps":{"C23":130}},{"id":"10489650","caps":{"C23":120}},{"id":"10502230","caps":{"C23":130}},{"id":"10517769","caps":{"C23":120}},{"id":"10517771","caps":{"C23":120}},{"id":"10524642","caps":{"C16":142,"C17":142}},{"id":"10524644","caps":{"C16":142}},{"id":"10526442","caps":{}},{"id":"10526444","caps":{}},{"id":"10529875","caps":{"C23":138,"C27":107}},{"id":"10529876","caps":{"C23":138,"C27":107}},{"id":"20003016","caps":{"C16":142,"C17":142}},{"id":"20003018","caps":{"C16":142}},{"id":"10553891","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10553881","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10553895","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10553893","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10553875","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10553889","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10394851","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10553883","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10420996","caps":{}},{"id":"10432915","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10432917","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10432919","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10432921","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10432923","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10432925","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10432927","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10432931","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10432933","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10432935","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10432937","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10453968","caps":{"C22":106,"C24":111,"C25":111}},{"id":"10453970","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10453972","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10453974","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10457939","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10457941","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10523131","caps":{}},{"id":"10523161","caps":{"C19":70}},{"id":"10533873","caps":{}},{"id":"10535217","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10535219","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10535221","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10535223","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10535225","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10535227","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10535229","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10535231","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10535237","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10535239","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10535251","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10535253","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10553877","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10553879","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10553885","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10553887","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10553899","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10432919-E","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10432921-E","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10432931-E","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10432933-E","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10432935-E","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10432937-E","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10452931-E","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10452933-E","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10535213-E","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10535215-E","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10535225-E","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10535227-E","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10535229-E","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10535231-E","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10553897","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10322924","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10322925","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10324075","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10324879","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10327634","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10358836","caps":{"C19":100}},{"id":"10358839","caps":{"C19":100}},{"id":"10448319","caps":{"C19":100}},{"id":"10458581","caps":{"C23":100,"C26":100}},{"id":"10497457","caps":{"C19":100}},{"id":"10536719","caps":{"C26":100}},{"id":"10536721","caps":{"C26":100}},{"id":"10536951","caps":{"C26":100}},{"id":"10536953","caps":{"C26":100}},{"id":"10358400","caps":{"C27":106}},{"id":"10358407","caps":{"C27":106}},{"id":"10358408","caps":{"C27":106}},{"id":"10390100","caps":{"C27":106}},{"id":"10516378","caps":{"C27":92}},{"id":"10516380","caps":{"C27":87}},{"id":"20009488","caps":{"C26":106}},{"id":"10494539-E","caps":{"C16":142,"C17":142}},{"id":"10494537","caps":{"C17":142}},{"id":"10494538","caps":{"C16":142}},{"id":"10494539","caps":{"C16":142,"C17":142}},{"id":"10494540","caps":{"C16":142}},{"id":"10507197","caps":{"C21":92}},{"id":"10507199","caps":{"C21":92}},{"id":"10514266","caps":{"C21":92}},{"id":"10514268","caps":{"C21":92}},{"id":"10526447","caps":{"C17":142}},{"id":"10526449","caps":{"C16":142}},{"id":"10526457","caps":{"C21":92}},{"id":"10526458","caps":{"C21":92}},{"id":"10548231","caps":{"C16":142}},{"id":"10548233","caps":{"C16":142,"C17":142}},{"id":"10548235","caps":{"C16":142}},{"id":"10548239","caps":{"C16":142}},{"id":"10514266-E","caps":{"C21":92}},{"id":"10514268-E","caps":{"C21":92}},{"id":"10548225","caps":{"C16":142,"C17":142}},{"id":"10548227","caps":{"C16":142}},{"id":"10279274","caps":{"C21":96}},{"id":"10318522","caps":{"C21":96}},{"id":"10333685","caps":{"C21":96}},{"id":"10507962","caps":{"C21":96}},{"id":"10507964","caps":{"C21":96}},{"id":"10510140","caps":{"C21":96}},{"id":"10510142","caps":{"C21":96}},{"id":"10510496","caps":{"C21":96}},{"id":"10510498","caps":{"C21":96}},{"id":"10520621","caps":{"C27":92}},{"id":"10520623","caps":{"C27":92}},{"id":"10557731","caps":{"C16":142,"C17":142}},{"id":"20010453","caps":{"C21":92}},{"id":"20010458","caps":{"C21":92}},{"id":"20015005","caps":{"C21":92}},{"id":"20015007","caps":{"C21":92}},{"id":"10520621-E","caps":{"C27":92}},{"id":"20015005-E","caps":{"C21":92}},{"id":"20015007-E","caps":{"C21":92}},{"id":"10407936","caps":{"C25":106}},{"id":"10504956","caps":{"C14":99}},{"id":"10521463","caps":{"C11":85}},{"id":"10521465","caps":{"C11":85}},{"id":"10532343","caps":{"C11":100,"C22":100}},{"id":"10532345","caps":{"C11":94,"C22":94}},{"id":"10532349","caps":{"C11":100,"C22":100}},{"id":"10532351","caps":{"C11":94,"C22":94}},{"id":"10532355","caps":{"C11":100,"C22":100}},{"id":"10532357","caps":{"C11":94,"C22":94}},{"id":"10532361","caps":{"C11":100,"C22":100}},{"id":"10532363","caps":{"C11":94,"C22":94}},{"id":"10544719","caps":{"C11":85}},{"id":"10544721","caps":{"C11":85}},{"id":"20000987","caps":{"C14":99}},{"id":"20008027","caps":{"C14":85,"C25":107}},{"id":"20008039","caps":{"C14":85,"C25":107}},{"id":"10532355-R","caps":{"C14":100}},{"id":"10532361-R","caps":{"C14":100}},{"id":"10366109","caps":{"C18":113,"C20":120}},{"id":"10366110","caps":{"C18":113,"C20":120}},{"id":"10393568","caps":{"C25":106,"C26":106,"C27":106}},{"id":"10473250","caps":{"C18":70}},{"id":"10488933","caps":{"C25":112,"C26":112,"C27":112}},{"id":"10488934","caps":{"C13":106,"C25":106,"C26":106,"C27":106}},{"id":"10509485","caps":{"C20":60}},{"id":"10518900","caps":{"C25":112,"C26":112,"C27":112}},{"id":"10518902","caps":{"C25":106,"C26":106,"C27":106}},{"id":"10534118","caps":{"C13":112,"C25":112,"C26":112,"C27":112}},{"id":"10534267","caps":{"C13":106,"C25":106,"C26":106,"C27":106}},{"id":"20005544","caps":{"C26":112,"C27":112}},{"id":"20005548","caps":{"C26":106,"C27":106}},{"id":"20005552","caps":{"C13":112,"C25":112,"C26":112,"C27":112}},{"id":"20005555","caps":{"C27":106}},{"id":"20005588","caps":{"C20":120}},{"id":"20005591","caps":{"C20":120}},{"id":"20011576","caps":{"C13":112,"C25":112,"C26":112,"C27":112}},{"id":"20012534","caps":{"C20":60}},{"id":"20012542","caps":{"C26":112,"C27":112}},{"id":"20012545","caps":{"C26":112,"C27":112}},{"id":"10393568-1","caps":{"C13":106,"C25":106,"C26":106,"C27":106}},{"id":"20011576-1","caps":{"C13":112,"C25":112,"C26":112,"C27":112}}];
 
-  <script>
-    // localStorage wrapper
-    const storage = {
-      get: async (key) => {
-        try { const v = localStorage.getItem(key); return v ? {value: v} : null; }
-        catch(e) { return null; }
-      },
-      set: async (key, value) => {
-        try { localStorage.setItem(key, value); return {key, value}; }
-        catch(e) { return null; }
-      }
-    };
-
-    // Make React hooks available globally for Babel transpiled code
-    const { useState, useEffect, useCallback, useRef } = React;
-    const XLSX_LIB = XLSX;
-  </script>
-
-  <script type="text/babel" data-presets="react">
-    // Remap XLSX to the global
-    const XLSX = XLSX_LIB;
-
-
-const CATALOG_BASE = [{"id":"10239440","caps":{"C18":70}},{"id":"10239928","caps":{"C23":130}},{"id":"10239932","caps":{"C23":130}},{"id":"10333268","caps":{"C16":142,"C17":142}},{"id":"10333270","caps":{"C16":142}},{"id":"10356878","caps":{"C23":130}},{"id":"10356879","caps":{"C23":130}},{"id":"10356885","caps":{"C16":142,"C17":142}},{"id":"10363369","caps":{"C23":100,"C26":100}},{"id":"10363370","caps":{"C26":100}},{"id":"10363371","caps":{"C26":100}},{"id":"10414784","caps":{"C23":130}},{"id":"10421679","caps":{"C16":142,"C17":142}},{"id":"10423304","caps":{"C16":142}},{"id":"10457663","caps":{"C23":130}},{"id":"10457665","caps":{"C16":142,"C23":138}},{"id":"10457675","caps":{"C16":142,"C23":138}},{"id":"10457681","caps":{"C16":142,"C23":138}},{"id":"10457683","caps":{}},{"id":"10459147","caps":{"C16":142,"C17":142}},{"id":"10459151","caps":{"C16":142}},{"id":"10461184","caps":{"C23":130}},{"id":"10461185","caps":{"C23":120}},{"id":"10463686","caps":{"C16":142,"C17":142}},{"id":"10463687","caps":{"C16":142}},{"id":"10463688","caps":{"C16":142,"C17":142}},{"id":"10463689","caps":{"C16":142,"C17":142}},{"id":"10463690","caps":{"C16":142}},{"id":"10463691","caps":{"C16":142}},{"id":"10464003","caps":{"C16":142,"C17":142}},{"id":"10464004","caps":{"C16":142}},{"id":"10464009","caps":{"C16":142,"C17":142}},{"id":"10464010","caps":{"C16":142}},{"id":"10476179","caps":{"C23":130}},{"id":"10476180","caps":{"C23":120}},{"id":"10489649","caps":{"C23":130}},{"id":"10489650","caps":{"C23":120}},{"id":"10502230","caps":{"C23":130}},{"id":"10517769","caps":{"C23":120}},{"id":"10517771","caps":{"C23":120}},{"id":"10524642","caps":{"C16":142,"C17":142}},{"id":"10524644","caps":{"C16":142}},{"id":"10526442","caps":{}},{"id":"10526444","caps":{}},{"id":"10529875","caps":{"C23":138,"C27":107}},{"id":"10529876","caps":{"C23":138,"C27":107}},{"id":"20003016","caps":{"C16":142,"C17":142}},{"id":"20003018","caps":{"C16":142}},{"id":"10553891","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10553881","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10553895","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10553893","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10553875","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10553889","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10394851","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10553883","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10420996","caps":{}},{"id":"10432915","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10432917","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10432919","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10432921","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10432923","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10432925","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10432927","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10432931","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10432933","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10432935","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10432937","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10453968","caps":{"C22":106,"C24":111,"C25":111}},{"id":"10453970","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10453972","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10453974","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10457939","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10457941","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10523131","caps":{}},{"id":"10523161","caps":{"C19":70}},{"id":"10533873","caps":{}},{"id":"10535217","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10535219","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10535221","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10535223","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10535225","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10535227","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10535229","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10535231","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10535237","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10535239","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10535251","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10535253","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10553877","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10553879","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10553885","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10553887","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10553899","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10432919-E","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10432921-E","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10432931-E","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10432933-E","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10432935-E","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10432937-E","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10452931-E","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10452933-E","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10535213-E","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10535215-E","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10535225-E","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10535227-E","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10535229-E","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10535231-E","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10553897","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10322924","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10322925","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10324075","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10324879","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10327634","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10358836","caps":{"C19":100}},{"id":"10358839","caps":{"C19":100}},{"id":"10448319","caps":{"C19":100}},{"id":"10458581","caps":{"C23":100,"C26":100}},{"id":"10497457","caps":{"C19":100}},{"id":"10536719","caps":{"C26":100}},{"id":"10536721","caps":{"C26":100}},{"id":"10536951","caps":{"C26":100}},{"id":"10536953","caps":{"C26":100}},{"id":"10358400","caps":{"C27":106}},{"id":"10358407","caps":{"C27":106}},{"id":"10358408","caps":{"C27":106}},{"id":"10390100","caps":{"C27":106}},{"id":"10516378","caps":{"C27":92}},{"id":"10516380","caps":{"C27":87}},{"id":"20009488","caps":{"C26":106}},{"id":"10494539-E","caps":{"C16":142,"C17":142}},{"id":"10494537","caps":{"C17":142}},{"id":"10494538","caps":{"C16":142}},{"id":"10494539","caps":{"C16":142,"C17":142}},{"id":"10494540","caps":{"C16":142}},{"id":"10507197","caps":{"C21":92}},{"id":"10507199","caps":{"C21":92}},{"id":"10514266","caps":{"C21":92}},{"id":"10514268","caps":{"C21":92}},{"id":"10526447","caps":{"C17":142}},{"id":"10526449","caps":{"C16":142}},{"id":"10526457","caps":{"C21":92}},{"id":"10526458","caps":{"C21":92}},{"id":"10548231","caps":{"C16":142}},{"id":"10548233","caps":{"C16":142,"C17":142}},{"id":"10548235","caps":{"C16":142}},{"id":"10548239","caps":{"C16":142}},{"id":"10514266-E","caps":{"C21":92}},{"id":"10514268-E","caps":{"C21":92}},{"id":"10548225","caps":{"C16":142,"C17":142}},{"id":"10548227","caps":{"C16":142}},{"id":"10279274","caps":{"C21":96}},{"id":"10318522","caps":{"C21":96}},{"id":"10333685","caps":{"C21":96}},{"id":"10507962","caps":{"C21":96}},{"id":"10507964","caps":{"C21":96}},{"id":"10510140","caps":{"C21":96}},{"id":"10510142","caps":{"C21":96}},{"id":"10510496","caps":{"C21":96}},{"id":"10510498","caps":{"C21":96}},{"id":"10520621","caps":{"C27":92}},{"id":"10520623","caps":{"C27":92}},{"id":"10557731","caps":{"C16":142,"C17":142}},{"id":"20010453","caps":{"C21":92}},{"id":"20010458","caps":{"C21":92}},{"id":"20015005","caps":{"C21":92}},{"id":"20015007","caps":{"C21":92}},{"id":"10520621-E","caps":{"C27":92}},{"id":"20015005-E","caps":{"C21":92}},{"id":"20015007-E","caps":{"C21":92}},{"id":"10407936","caps":{"C25":106}},{"id":"10504956","caps":{"C14":99}},{"id":"10521463","caps":{"C11":85}},{"id":"10521465","caps":{"C11":85}},{"id":"10532343","caps":{"C11":100,"C22":100}},{"id":"10532345","caps":{"C11":94,"C22":94}},{"id":"10532349","caps":{"C11":100,"C22":100}},{"id":"10532351","caps":{"C11":94,"C22":94}},{"id":"10532355","caps":{"C11":100,"C22":100}},{"id":"10532357","caps":{"C11":94,"C22":94}},{"id":"10532361","caps":{"C11":100,"C22":100}},{"id":"10532363","caps":{"C11":94,"C22":94}},{"id":"10544719","caps":{"C11":85}},{"id":"10544721","caps":{"C11":85}},{"id":"20000987","caps":{"C14":99}},{"id":"20008027","caps":{"C14":85,"C25":107}},{"id":"20008039","caps":{"C14":85,"C25":107}},{"id":"10532355-R","caps":{"C14":100}},{"id":"10532361-R","caps":{"C14":100}},{"id":"10366109","caps":{"C18":113,"C20":120}},{"id":"10366110","caps":{"C18":113,"C20":120}},{"id":"10393568","caps":{"C25":106,"C26":106,"C27":106}},{"id":"10473250","caps":{"C18":70}},{"id":"10488933","caps":{"C25":112,"C26":112,"C27":112}},{"id":"10488934","caps":{"C13":106,"C25":106,"C26":106,"C27":106}},{"id":"10509485","caps":{"C20":60}},{"id":"10518900","caps":{"C25":112,"C26":112,"C27":112}},{"id":"10518902","caps":{"C25":106,"C26":106,"C27":106}},{"id":"10534118","caps":{"C13":112,"C25":112,"C26":112,"C27":112}},{"id":"10534267","caps":{"C13":106,"C25":106,"C26":106,"C27":106}},{"id":"20005544","caps":{"C26":112,"C27":112}},{"id":"20005548","caps":{"C26":106,"C27":106}},{"id":"20005552","caps":{"C13":112,"C25":112,"C26":112,"C27":112}},{"id":"20005555","caps":{"C27":106}},{"id":"20005588","caps":{"C20":120}},{"id":"20005591","caps":{"C20":120}},{"id":"20011576","caps":{"C13":112,"C25":112,"C26":112,"C27":112}},{"id":"20012534","caps":{"C20":60}},{"id":"20012542","caps":{"C26":112,"C27":112}},{"id":"20012545","caps":{"C26":112,"C27":112}},{"id":"10393568-1","caps":{"C13":106,"C25":106,"C26":106,"C27":106}},{"id":"20011576-1","caps":{"C13":112,"C25":112,"C26":112,"C27":112}}];
-
-const CELLS=['C11','C13','C14','C15','C16','C17','C18','C19','C20','C21','C22','C23','C24','C25','C26','C27'];
-const R='#CC0000';
-
-const SHIFTS={
-  '3t':{label:'3° Turno',start:'23:00',end:'06:35',startMin:1380,totalMins:455,periods:[
-    {id:0,lbl:'23:00 → 00:00',s:0,  e:60, pm:60, ev:'📋'},
-    {id:1,lbl:'00:00 → 01:00',s:60, e:120,pm:60, ev:''},
-    {id:2,lbl:'01:00 → 02:00',s:120,e:180,pm:60, ev:'🤝'},
-    {id:3,lbl:'02:00 → 03:00',s:180,e:240,pm:30, ev:'🍽️'},
-    {id:4,lbl:'03:00 → 04:00',s:240,e:300,pm:42, ev:'🍽️',refCont:true},
-    {id:5,lbl:'04:00 → 05:00',s:300,e:360,pm:60, ev:''},
-    {id:6,lbl:'05:00 → 06:00',s:360,e:420,pm:60, ev:'🤸'},
-    {id:7,lbl:'06:00 → 06:35',s:420,e:455,pm:35, ev:'🧹'},
-  ]},
-  '1t':{label:'1° Turno',start:'06:35',end:'14:56',startMin:395,totalMins:501,periods:[
-    {id:0,lbl:'06:35 → 08:00',s:0,  e:85, pm:85, ev:'📋'},
-    {id:1,lbl:'08:00 → 09:00',s:85, e:145,pm:60, ev:''},
-    {id:2,lbl:'09:00 → 10:00',s:145,e:205,pm:60, ev:'🤝'},
-    {id:3,lbl:'10:00 → 11:00',s:205,e:265,pm:60, ev:''},
-    {id:4,lbl:'11:00 → 12:00',s:265,e:325,pm:30, ev:'🍽️'},
-    {id:5,lbl:'12:00 → 13:00',s:325,e:385,pm:50, ev:'🍽️',refCont:true},
-    {id:6,lbl:'13:00 → 14:00',s:385,e:445,pm:60, ev:'🤸'},
-    {id:7,lbl:'14:00 → 14:56',s:445,e:501,pm:56, ev:'🧹'},
-  ]},
-  '2t':{label:'2° Turno',start:'14:56',end:'23:00',startMin:896,totalMins:484,periods:[
-    {id:0,lbl:'14:56 → 16:00',s:0,  e:64, pm:64, ev:'📋'},
-    {id:1,lbl:'16:00 → 17:00',s:64, e:124,pm:60, ev:''},
-    {id:2,lbl:'17:00 → 18:00',s:124,e:184,pm:60, ev:'🤝'},
-    {id:3,lbl:'18:00 → 19:00',s:184,e:244,pm:60, ev:''},
-    {id:4,lbl:'19:00 → 20:00',s:244,e:304,pm:60, ev:''},
-    {id:5,lbl:'20:00 → 21:00',s:304,e:364,pm:20, ev:'🍽️'},
-    {id:6,lbl:'21:00 → 22:00',s:364,e:424,pm:60, ev:'🤸'},
-    {id:7,lbl:'22:00 → 23:00',s:424,e:484,pm:60, ev:'🧹'},
-  ]},
+var CELLS=['C11','C13','C14','C15','C16','C17','C18','C19','C20','C21','C22','C23','C24','C25','C26','C27'];
+var R='#CC0000';
+var SHIFTS={
+'3t':{label:'3° Turno',start:'23:00',end:'06:35',startMin:1380,totalMins:455,periods:[
+{id:0,lbl:'23:00 → 00:00',s:0,e:60,pm:60,ev:'📋'},{id:1,lbl:'00:00 → 01:00',s:60,e:120,pm:60,ev:''},
+{id:2,lbl:'01:00 → 02:00',s:120,e:180,pm:60,ev:'🤝'},{id:3,lbl:'02:00 → 03:00',s:180,e:240,pm:30,ev:'🍽️'},
+{id:4,lbl:'03:00 → 04:00',s:240,e:300,pm:42,ev:'🍽️',refCont:true},{id:5,lbl:'04:00 → 05:00',s:300,e:360,pm:60,ev:''},
+{id:6,lbl:'05:00 → 06:00',s:360,e:420,pm:60,ev:'🤸'},{id:7,lbl:'06:00 → 06:35',s:420,e:455,pm:35,ev:'🧹'}]},
+'1t':{label:'1° Turno',start:'06:35',end:'14:56',startMin:395,totalMins:501,periods:[
+{id:0,lbl:'06:35 → 08:00',s:0,e:85,pm:85,ev:'📋'},{id:1,lbl:'08:00 → 09:00',s:85,e:145,pm:60,ev:''},
+{id:2,lbl:'09:00 → 10:00',s:145,e:205,pm:60,ev:'🤝'},{id:3,lbl:'10:00 → 11:00',s:205,e:265,pm:60,ev:''},
+{id:4,lbl:'11:00 → 12:00',s:265,e:325,pm:30,ev:'🍽️'},{id:5,lbl:'12:00 → 13:00',s:325,e:385,pm:50,ev:'🍽️',refCont:true},
+{id:6,lbl:'13:00 → 14:00',s:385,e:445,pm:60,ev:'🤸'},{id:7,lbl:'14:00 → 14:56',s:445,e:501,pm:56,ev:'🧹'}]},
+'2t':{label:'2° Turno',start:'14:56',end:'23:00',startMin:896,totalMins:484,periods:[
+{id:0,lbl:'14:56 → 16:00',s:0,e:64,pm:64,ev:'📋'},{id:1,lbl:'16:00 → 17:00',s:64,e:124,pm:60,ev:''},
+{id:2,lbl:'17:00 → 18:00',s:124,e:184,pm:60,ev:'🤝'},{id:3,lbl:'18:00 → 19:00',s:184,e:244,pm:60,ev:''},
+{id:4,lbl:'19:00 → 20:00',s:244,e:304,pm:60,ev:''},{id:5,lbl:'20:00 → 21:00',s:304,e:364,pm:20,ev:'🍽️'},
+{id:6,lbl:'21:00 → 22:00',s:364,e:424,pm:60,ev:'🤸'},{id:7,lbl:'22:00 → 23:00',s:424,e:484,pm:60,ev:'🧹'}]}
 };
 
-const mkPart=()=>({partId:'',cap:'',startTime:''});
-const mkCell=()=>({operators:1,extraRef:0,parts:[mkPart(),mkPart(),mkPart()]});
-const mkShift=(sk,date)=>({id:Date.now(),shiftKey:sk,date,createdAt:new Date().toISOString(),
-  cells:Object.fromEntries(CELLS.map(c=>[c,mkCell()])),
-  reals:Object.fromEntries(CELLS.map(c=>[c,Array(8).fill('')]))});
+var mkPart=function(){return{partId:'',cap:'',startTime:''};};
+var mkCell=function(){return{operators:1,extraRef:0,parts:[mkPart(),mkPart(),mkPart()]};};
+var mkShift=function(sk,date){return{id:Date.now(),shiftKey:sk,date:date,createdAt:new Date().toISOString(),cells:Object.fromEntries(CELLS.map(function(c){return[c,mkCell()];})),reals:Object.fromEntries(CELLS.map(function(c){return[c,Array(8).fill('')];}))};}; 
 
-function t2m(t,sm){if(!t||!t.includes(':'))return null;const[h,m]=t.split(':').map(Number);if(isNaN(h)||isNaN(m))return null;return((h*60+m-sm)+1440)%1440;}
-function getLookup(id,cellId,catalog){const e=catalog.find(x=>x.id===String(id||'').trim());return e?(e.caps[cellId]??null):null;}
+function t2m(t,sm){if(!t||!t.includes(':'))return null;var parts=t.split(':').map(Number),h=parts[0],m=parts[1];if(isNaN(h)||isNaN(m))return null;return(h*60+m-sm+1440)%1440;}
+
+function getLookup(id,cellId,catalog){var e=catalog.find(function(x){return x.id===String(id||'').trim();});return e?( e.caps[cellId]!==undefined?e.caps[cellId]:null):null;}
 
 function calcMeta(cell,period,sk,catalog){
-  const sh=SHIFTS[sk]; let pm=period.pm;
-  if(period.refCont&&Number(cell.extraRef)>0)pm=Math.max(0,pm-Number(cell.extraRef));
-  const dur=period.e-period.s; if(!dur)return 0;
-  let total=0;
-  for(let i=0;i<3;i++){
-    const p=cell.parts?.[i]; const cap=Number(p?.cap); if(!cap)continue;
-    let ps=i===0?(t2m(p.startTime,sh.startMin)??0):t2m(p.startTime,sh.startMin);
-    if(ps===null)continue;
-    let pe=sh.totalMins;
-    for(let j=i+1;j<3;j++){const np=cell.parts?.[j];if(np?.startTime){const nm=t2m(np.startTime,sh.startMin);if(nm!==null){pe=nm;break;}}}
-    total+=cap*(Math.max(0,Math.min(pe,period.e)-Math.max(ps,period.s))/dur)*pm/60;
-  }
-  return Math.round(total);
+var sh=SHIFTS[sk],pm=period.pm;
+if(period.refCont&&Number(cell.extraRef)>0)pm=Math.max(0,pm-Number(cell.extraRef));
+var dur=period.e-period.s;if(!dur)return 0;
+var total=0;
+for(var i=0;i<3;i++){
+var p=cell.parts&&cell.parts[i];
+var cap=Number(p&&p.cap);if(!cap)continue;
+var ps=i===0?(t2m(p.startTime,sh.startMin)||0):t2m(p.startTime,sh.startMin);
+if(ps===null)continue;
+var pe=sh.totalMins;
+for(var j=i+1;j<3;j++){var np=cell.parts&&cell.parts[j];if(np&&np.startTime){var nm=t2m(np.startTime,sh.startMin);if(nm!==null){pe=nm;break;}}}
+total+=cap*(Math.max(0,Math.min(pe,period.e)-Math.max(ps,period.s))/dur)*pm/60;
 }
-function allMetas(shift,catalog){const sh=SHIFTS[shift.shiftKey];return Object.fromEntries(CELLS.map(c=>[c,sh.periods.map(p=>calcMeta(shift.cells[c]||mkCell(),p,shift.shiftKey,catalog))]));}
-function eficTotal(cid,metas,reals){let rs=0,ms=0;for(let i=0;i<8;i++){const m=(metas[cid]||[])[i]||0,r=(reals[cid]||[])[i];if(r!==''&&r!==null&&r!==undefined&&m>0){rs+=Number(r);ms+=m;}}return ms>0?rs/ms:null;}
-function capH(cid,metas,sk){const sh=SHIFTS[sk],ms=metas[cid]||[];let mt=0,mint=0;sh.periods.forEach((p,i)=>{if((ms[i]||0)>0){mt+=ms[i];mint+=p.pm;}});return mint>0?Math.round(mt*60/mint):0;}
-const sc=e=>e===null?'#444':e>=0.9?'#4caf50':e>=0.75?'#ff9800':'#f44336';
-const sb=e=>e===null?'#1a1a1a':e>=0.9?'#0a1e0f':e>=0.75?'#1a1100':'#1a0008';
-const sl=e=>e===null?'—':e>=0.9?'✅':e>=0.75?'⚠️':'🔴';
-const iSt={background:'#0d0d0d',border:'1px solid #3a3a3a',borderRadius:8,padding:'10px 12px',color:'#fff',fontSize:14,outline:'none',width:'100%',boxSizing:'border-box',marginTop:4};
-const bSt={padding:'12px 18px',borderRadius:10,border:'none',cursor:'pointer',fontWeight:700,fontSize:14,color:'#fff'};
+return Math.round(total);
+}
+
+function allMetas(shift,catalog){
+var sh=SHIFTS[shift.shiftKey];
+return Object.fromEntries(CELLS.map(function(c){return[c,sh.periods.map(function(p){return calcMeta(shift.cells[c]||mkCell(),p,shift.shiftKey,catalog);})];})
+);}
+
+function eficTotal(cid,metas,reals){
+var rs=0,ms=0;
+for(var i=0;i<8;i++){var m=(metas[cid]||[])[i]||0,r=(reals[cid]||[])[i];if(r!==''&&r!==null&&r!==undefined&&m>0){rs+=Number(r);ms+=m;}}
+return ms>0?rs/ms:null;
+}
+
+function capH(cid,metas,sk){
+var sh=SHIFTS[sk],ms=metas[cid]||[],mt=0,mint=0;
+sh.periods.forEach(function(p,i){if((ms[i]||0)>0){mt+=ms[i];mint+=p.pm;}});
+return mint>0?Math.round(mt*60/mint):0;
+}
+
+var sc=function(e){return e===null?'#444':e>=0.9?'#4caf50':e>=0.75?'#ff9800':'#f44336';};
+var sb=function(e){return e===null?'#1a1a1a':e>=0.9?'#0a1e0f':e>=0.75?'#1a1100':'#1a0008';};
+var sl=function(e){return e===null?'—':e>=0.9?'✅':e>=0.75?'⚠️':'🔴';};
+
+var iSt={background:'#0d0d0d',border:'1px solid #3a3a3a',borderRadius:8,padding:'10px 12px',color:'#fff',fontSize:14,outline:'none',width:'100%',boxSizing:'border-box',marginTop:4};
+var bSt={padding:'12px 18px',borderRadius:10,border:'none',cursor:'pointer',fontWeight:700,fontSize:14,color:'#fff'};
+
+var CELL_COLS={'C11':'D','C13':'E','C14':'F','C15':'G','C16':'H','C17':'I','C18':'J','C19':'K','C20':'L','C21':'M','C22':'N','C23':'O','C24':'P','C25':'Q','C26':'R','C27':'S'};
+var REAL_ROWS=[19,21,23,25,27,29,31,33];
+
+function exportPlanilha(shift,catalog){
+var wb=XLSX.utils.book_new();
+var sh=SHIFTS[shift.shiftKey];
+var mts=allMetas(shift,catalog);
+var data={};
+var set=function(col,row,val){data[col+row]=val;};
+CELLS.forEach(function(c){
+var col=CELL_COLS[c];
+var cell=(shift.cells&&shift.cells[c])||mkCell();
+var ch=capH(c,mts,shift.shiftKey);
+if(ch>0)set(col,6,ch);
+if(cell.operators)set(col,8,Number(cell.operators));
+if(cell.extraRef&&Number(cell.extraRef)>0)set(col,16,Number(cell.extraRef));
+cell.parts&&cell.parts.forEach(function(p,i){
+var pRow=10+i*2,tRow=10+i*2+1;
+if(p&&p.partId)set(col,pRow,p.partId);
+if(p&&p.startTime)set(col,tRow,p.startTime);
+});
+REAL_ROWS.forEach(function(row,pi){
+var r=shift.reals&&shift.reals[c]&&shift.reals[c][pi];
+if(r!==''&&r!==null&&r!==undefined)set(col,row,Number(r));
+});
+});
+var maxRow=40,cols='ABCDEFGHIJKLMNOPQRSTU'.split(''),aoa=[];
+for(var r=1;r<=maxRow;r++){var row=[];for(var ci=0;ci<cols.length;ci++){var key=cols[ci]+r;row.push(data[key]!==undefined?data[key]:null);}aoa.push(row);}
+var labels={5:'📋 DISPONIBILIDADE',6:'⚡ CAPACIDADE / HORA',7:'🎯 META OEE 90%',8:'👤 Nº OPERADORES DL',9:'📊 pç/HH (cap ÷ DL)',10:'🟢 PEÇA 1',11:'⏰ INÍCIO 1',12:'🟡 PEÇA 2',13:'⏰ INÍCIO 2',14:'🔴 PEÇA 3',15:'⏰ INÍCIO 3',16:'⏱️ EXTRA REFEIÇÃO (min)'};
+Object.entries(labels).forEach(function(pair){aoa[Number(pair[0])-1][0]=pair[1];});
+CELLS.forEach(function(c){aoa[3][cols.indexOf(CELL_COLS[c])]=c;});
+sh.periods.forEach(function(p,i){var mr=18+i*2-1,rr=mr+1;if(aoa[mr]){aoa[mr][0]='META';aoa[mr][1]=p.lbl;aoa[mr][2]=p.pm;}if(aoa[rr]){aoa[rr][0]='REAL';}});
+aoa[0]=['Controle Hora a Hora — '+sh.label+' — '+shift.date];
+aoa[1]=['Gerado pelo app UMM em '+new Date().toLocaleString('pt-BR')];
+var ws2=XLSX.utils.aoa_to_sheet(aoa);
+var sheetName=sh.label.replace('°','').replace(' ','_');
+XLSX.utils.book_append_sheet(wb,ws2,sheetName);
+var justRows=[['Período','Célula','Justificativa']];
+if(shift.justificativas){Object.entries(shift.justificativas).forEach(function(pair){var pi=pair[0],cells=pair[1];Object.entries(cells).forEach(function(pair2){var c=pair2[0],txt=pair2[1];if(txt)justRows.push([(sh.periods[pi]&&sh.periods[pi].lbl)||('Período '+(Number(pi)+1)),c,txt]);});});}
+if(justRows.length>1){XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(justRows),'Justificativas');}
+XLSX.writeFile(wb,'UMM_'+sheetName+'_'+shift.date+'.xlsx');
+}
 
 function App(){
-  const[tab,setTab]=useState('dash');
-  const[shift,setShift]=useState(null);
-  const[history,setHistory]=useState([]);
-  const[catalog,setCatalog]=useState(CATALOG_BASE);
-  const[loading,setLoading]=useState(true);
+var tabState=useState('dash'),tab=tabState[0],setTab=tabState[1];
+var shiftState=useState(null),shift=shiftState[0],setShift=shiftState[1];
+var histState=useState([]),history=histState[0],setHistory=histState[1];
+var catState=useState(CATALOG_BASE),catalog=catState[0],setCatalog=catState[1];
+var loadState=useState(true),loading=loadState[0],setLoading=loadState[1];
 
-  useEffect(()=>{(async()=>{
-    try{
-      const s=await storage.get('hah2_shift'); if(s)setShift(JSON.parse(s.value));
-      const h=await storage.get('hah2_hist');  if(h)setHistory(JSON.parse(h.value));
-      const c=await storage.get('hah2_cat');   if(c)setCatalog(JSON.parse(c.value));
-    }catch(e){}
-    setLoading(false);
-  })();},[]);
+useEffect(function(){
+(async function(){
+try{
+var s=await storage.get('hah2_shift');if(s)setShift(JSON.parse(s.value));
+var h=await storage.get('hah2_hist');if(h)setHistory(JSON.parse(h.value));
+var c=await storage.get('hah2_cat');if(c)setCatalog(JSON.parse(c.value));
+}catch(e){}
+setLoading(false);
+})();
+},[]);
 
-  const sv =useCallback(async s=>{setShift(s);  try{await storage.set('hah2_shift',JSON.stringify(s));}catch(e){}},[]);
-  const svH=useCallback(async h=>{setHistory(h);try{await storage.set('hah2_hist',JSON.stringify(h));}catch(e){}},[]);
-  const svC=useCallback(async c=>{setCatalog(c);try{await storage.set('hah2_cat',JSON.stringify(c));}catch(e){}},[]);
+var sv=useCallback(async function(s){
+setShift(s);
+try{await storage.set('hah2_shift',JSON.stringify(s));}catch(e){}
+},[]);
 
-  const close=useCallback(async()=>{if(!shift)return;await svH([{...shift,closedAt:new Date().toISOString()},...history].slice(0,50));await sv(null);setTab('dash');},[shift,history,sv,svH]);
+var svH=useCallback(async function(h){
+setHistory(h);
+try{await storage.set('hah2_hist',JSON.stringify(h));}catch(e){}
+},[]);
 
-  if(loading)return (<div style={{background:'#0a0a0a',height:'100vh',display:'flex',alignItems:'center',justifyContent:'center',color:'#fff',fontSize:18}}>Carregando...</div>);
+var svC=useCallback(async function(c){
+setCatalog(c);
+try{await storage.set('hah2_cat',JSON.stringify(c));}catch(e){}
+},[]);
 
-  const TABS=[{id:'dash',icon:'⬛',lbl:'Principal'},{id:'launch',icon:'✏️',lbl:'Lançar'},{id:'cells',icon:'⚙️',lbl:'Células'},{id:'hist',icon:'📋',lbl:'Histórico'}];
+var close=useCallback(async function(){
+if(!shift)return;
+await svH([Object.assign({},shift,{closedAt:new Date().toISOString()})].concat(history).slice(0,50));
+await sv(null);
+setTab('dash');
+},[shift,history,sv,svH]);
 
-  return(
-    <div style={{fontFamily:"'Helvetica Neue',Arial,sans-serif",background:'#0d0d0d',minHeight:'100vh',maxWidth:680,margin:'0 auto',display:'flex',flexDirection:'column',height:'100vh'}}>
-      <div style={{background:'#000',padding:'12px 16px',display:'flex',alignItems:'center',justifyContent:'space-between',borderBottom:`2px solid ${R}`}}>
-        <div><div style={{color:R,fontWeight:900,fontSize:20,letterSpacing:3}}>UMM</div><div style={{color:'#444',fontSize:9,letterSpacing:2,textTransform:'uppercase'}}>Controle Hora a Hora</div></div>
-        {shift&&<div style={{textAlign:'right'}}><div style={{color:'#fff',fontWeight:700,fontSize:14}}>{SHIFTS[shift.shiftKey]?.label}</div><div style={{color:'#555',fontSize:11}}>{shift.date}</div></div>}
-      </div>
-      <div style={{flex:1,overflowY:'auto',paddingBottom:64}}>
-        {tab==='dash'   &&<Dash   shift={shift} sv={sv} close={close} catalog={catalog}/>}
-        {tab==='launch' &&(shift?<Launch shift={shift} sv={sv} catalog={catalog}/>:<NoS/>)}
-        {tab==='cells'  &&(shift?<Cells  shift={shift} sv={sv} catalog={catalog} svC={svC}/>:<NoS/>)}
-        {tab==='hist'   &&<Hist   history={history} catalog={catalog}/>}
-      </div>
-      <nav style={{position:'fixed',bottom:0,left:'50%',transform:'translateX(-50%)',width:'100%',maxWidth:680,background:'#141414',borderTop:'1px solid #222',display:'flex',zIndex:100}}>
-        {TABS.map(t=><button key={t.id} onClick={()=>setTab(t.id)} style={{flex:1,padding:'10px 0',display:'flex',flexDirection:'column',alignItems:'center',background:'none',border:'none',cursor:'pointer',color:tab===t.id?R:'#555'}}><span style={{fontSize:18}}>{t.icon}</span><span style={{fontSize:10,marginTop:2,fontWeight:600}}>{t.lbl}</span></button>)}
-      </nav>
-    </div>
-  );
+if(loading)return React.createElement('div',{style:{background:'#0a0a0a',height:'100vh',display:'flex',alignItems:'center',justifyContent:'center',color:'#fff',fontSize:18}},'Carregando...');
+
+var TABS=[{id:'dash',icon:'⬛',lbl:'Principal'},{id:'launch',icon:'✏️',lbl:'Lançar'},{id:'cells',icon:'⚙️',lbl:'Células'},{id:'hist',icon:'📋',lbl:'Histórico'}];
+
+return React.createElement('div',{style:{fontFamily:"'Helvetica Neue',Arial,sans-serif",background:'#0d0d0d',minHeight:'100vh',maxWidth:680,margin:'0 auto',display:'flex',flexDirection:'column',height:'100vh'}},
+React.createElement('div',{style:{background:'#000',padding:'12px 16px',display:'flex',alignItems:'center',justifyContent:'space-between',borderBottom:'2px solid '+R}},
+React.createElement('div',null,
+React.createElement('div',{style:{color:R,fontWeight:900,fontSize:20,letterSpacing:3}},'UMM'),
+React.createElement('div',{style:{color:'#444',fontSize:9,letterSpacing:2,textTransform:'uppercase'}},'Controle Hora a Hora')),
+shift&&React.createElement('div',{style:{textAlign:'right'}},
+React.createElement('div',{style:{color:'#fff',fontWeight:700,fontSize:14}},SHIFTS[shift.shiftKey]&&SHIFTS[shift.shiftKey].label),
+React.createElement('div',{style:{color:'#555',fontSize:11}},shift.date))),
+React.createElement('div',{style:{flex:1,overflowY:'auto',paddingBottom:64}},
+tab==='dash'&&React.createElement(Dash,{shift:shift,sv:sv,close:close,catalog:catalog}),
+tab==='launch'&&(shift?React.createElement(Launch,{shift:shift,sv:sv,catalog:catalog}):React.createElement(NoS,null)),
+tab==='cells'&&(shift?React.createElement(Cells,{shift:shift,sv:sv,catalog:catalog,svC:svC}):React.createElement(NoS,null)),
+tab==='hist'&&React.createElement(Hist,{history:history,catalog:catalog})),
+React.createElement('nav',{style:{position:'fixed',bottom:0,left:'50%',transform:'translateX(-50%)',width:'100%',maxWidth:680,background:'#141414',borderTop:'1px solid #222',display:'flex',zIndex:100}},
+TABS.map(function(t){return React.createElement('button',{key:t.id,onClick:function(){setTab(t.id);},style:{flex:1,padding:'10px 0',display:'flex',flexDirection:'column',alignItems:'center',background:'none',border:'none',cursor:'pointer',color:tab===t.id?R:'#555'}},
+React.createElement('span',{style:{fontSize:18}},t.icon),
+React.createElement('span',{style:{fontSize:10,marginTop:2,fontWeight:600}},t.lbl));})));
 }
 
-const NoS=()=><div style={{padding:40,textAlign:'center',color:'#555'}}><div style={{fontSize:48,marginBottom:12}}>⚠️</div><div>Inicie um turno na aba Principal.</div></div>;
-const Card=({children,style})=><div style={{background:'#161616',borderRadius:12,padding:16,border:'1px solid #252525',...style}}>{children}</div>;
-const Lbl=({children,style})=><div style={{color:'#555',fontSize:11,fontWeight:700,letterSpacing:.5,textTransform:'uppercase',marginBottom:2,...style}}>{children}</div>;
-const Sec=({children})=><div style={{color:'#444',fontSize:10,letterSpacing:1.5,textTransform:'uppercase',margin:'14px 0 8px'}}>{children}</div>;
-const Stat=({lbl,val,accent})=><div style={{background:'#161616',borderRadius:10,padding:'12px 8px',textAlign:'center',border:'1px solid #222'}}><div style={{color:'#444',fontSize:10,textTransform:'uppercase',letterSpacing:.5}}>{lbl}</div><div style={{color:accent||'#fff',fontWeight:800,fontSize:17,marginTop:4}}>{val}</div></div>;
+var NoS=function(){return React.createElement('div',{style:{padding:40,textAlign:'center',color:'#555'}},React.createElement('div',{style:{fontSize:48,marginBottom:12}},'⚠️'),React.createElement('div',null,'Inicie um turno na aba Principal.'));};
+var Card=function(props){return React.createElement('div',{style:Object.assign({background:'#161616',borderRadius:12,padding:16,border:'1px solid #252525'},props.style)},props.children);};
+var Lbl=function(props){return React.createElement('div',{style:Object.assign({color:'#555',fontSize:11,fontWeight:700,letterSpacing:.5,textTransform:'uppercase',marginBottom:2},props.style)},props.children);};
+var Sec=function(props){return React.createElement('div',{style:{color:'#444',fontSize:10,letterSpacing:1.5,textTransform:'uppercase',margin:'14px 0 8px'}},props.children);};
+var Stat=function(props){return React.createElement('div',{style:{background:'#161616',borderRadius:10,padding:'12px 8px',textAlign:'center',border:'1px solid #222'}},React.createElement('div',{style:{color:'#444',fontSize:10,textTransform:'uppercase',letterSpacing:.5}},props.lbl),React.createElement('div',{style:{color:props.accent||'#fff',fontWeight:800,fontSize:17,marginTop:4}},props.val));};
 
-// ─── EXPORT TO PLANILHA ──────────────────────────────────────────────────────
-// Columns D-S map to cells C11,C13,...,C27
-const CELL_COLS = {
-  'C11':'D','C13':'E','C14':'F','C15':'G','C16':'H','C17':'I','C18':'J','C19':'K',
-  'C20':'L','C21':'M','C22':'N','C23':'O','C24':'P','C25':'Q','C26':'R','C27':'S'
+function Dash(props){
+var shift=props.shift,sv=props.sv,close=props.close,catalog=props.catalog;
+var dateState=useState(new Date().toISOString().slice(0,10)),date=dateState[0],setDate=dateState[1];
+var skState=useState('3t'),sk=skState[0],setSk=skState[1];
+
+if(!shift)return React.createElement('div',{style:{padding:20}},
+React.createElement('div',{style:{color:'#fff',fontWeight:700,fontSize:18,marginBottom:14}},'Iniciar Turno'),
+React.createElement(Card,null,
+React.createElement(Lbl,null,'Data'),
+React.createElement('input',{type:'date',value:date,onChange:function(e){setDate(e.target.value);},style:iSt}),
+React.createElement(Lbl,{style:{marginTop:14}},'Turno'),
+React.createElement('div',{style:{display:'flex',gap:8,marginTop:6}},
+Object.entries(SHIFTS).map(function(pair){var k=pair[0],v=pair[1];return React.createElement('button',{key:k,onClick:function(){setSk(k);},style:{flex:1,padding:'11px 0',borderRadius:8,border:'none',cursor:'pointer',fontWeight:700,fontSize:13,background:sk===k?R:'#252525',color:'#fff'}},v.label);})),
+React.createElement('button',{onClick:function(){sv(mkShift(sk,date));},style:Object.assign({},bSt,{marginTop:18,width:'100%',background:R})},'🚀 Iniciar Turno')));
+
+var mts=allMetas(shift,catalog),sh=SHIFTS[shift.shiftKey];
+var tM=CELLS.reduce(function(a,c){return(mts[c]||[]).reduce(function(x,y){return x+y;},0)+a;},0);
+var tR=CELLS.reduce(function(a,c){return((shift.reals&&shift.reals[c])||[]).reduce(function(x,r){return x+(r===''?0:Number(r));},0)+a;},0);
+var ef=tM>0?tR/tM:null;
+
+return React.createElement('div',{style:{padding:16}},
+React.createElement('div',{style:{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:8,marginBottom:14}},
+React.createElement(Stat,{lbl:'Meta',val:tM.toLocaleString('pt-BR')}),
+React.createElement(Stat,{lbl:'Real',val:tR.toLocaleString('pt-BR'),accent:R}),
+React.createElement(Stat,{lbl:'Eficiência',val:ef!==null?(ef*100).toFixed(1)+'%':'—',accent:sc(ef)})),
+React.createElement(Sec,null,'Células'),
+React.createElement('div',{style:{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:5,marginBottom:14}},
+CELLS.map(function(c){
+var ef2=eficTotal(c,mts,shift.reals||{});
+var ch=capH(c,mts,shift.shiftKey);
+var rT=((shift.reals&&shift.reals[c])||[]).reduce(function(a,r){return a+(r===''?0:Number(r));},0);
+var mT=(mts[c]||[]).reduce(function(a,b){return a+b;},0);
+var has=((shift.reals&&shift.reals[c])||[]).some(function(r){return r!=='';});
+return React.createElement('div',{key:c,style:{background:sb(has?ef2:null),borderRadius:9,padding:'9px 6px',border:'1px solid '+(has?sc(ef2):'#222'),textAlign:'center'}},
+React.createElement('div',{style:{color:'#666',fontSize:10,fontWeight:700}},c),
+ch>0&&React.createElement('div',{style:{color:'#333',fontSize:9}},ch,' pç/h'),
+has?React.createElement(React.Fragment,null,
+React.createElement('div',{style:{color:'#fff',fontSize:14,fontWeight:800}},rT.toLocaleString()),
+React.createElement('div',{style:{color:'#333',fontSize:8}},'/'+mT.toLocaleString()),
+React.createElement('div',{style:{color:sc(ef2),fontSize:11,fontWeight:700}},ef2!==null?(ef2*100).toFixed(0)+'%':sl(ef2))):
+React.createElement('div',{style:{color:'#2a2a2a',fontSize:10,marginTop:4}},'—'));})),
+React.createElement(Sec,null,'Períodos'),
+React.createElement('div',{style:{display:'flex',flexDirection:'column',gap:4,marginBottom:14}},
+sh.periods.map(function(p,i){
+var pM=CELLS.reduce(function(s,c){return s+((mts[c]&&mts[c][i])||0);},0);
+var has=CELLS.some(function(c){return shift.reals&&shift.reals[c]&&shift.reals[c][i]!=='';});
+var pR=has?CELLS.reduce(function(s,c){var v=(shift.reals&&shift.reals[c]&&shift.reals[c][i]);return s+((!v||v==='')?0:Number(v));},0):null;
+var ef2=pM>0&&pR!==null?pR/pM:null;
+return React.createElement('div',{key:i,style:{display:'flex',alignItems:'center',gap:10,padding:'9px 14px',background:'#141414',borderRadius:8,border:'1px solid '+(has?sc(ef2):'#1e1e1e')}},
+React.createElement('div',{style:{color:'#555',fontSize:11,minWidth:100}},p.lbl),
+React.createElement('div',{style:{flex:1,height:3,background:'#222',borderRadius:2,overflow:'hidden'}},
+has&&React.createElement('div',{style:{height:'100%',background:sc(ef2),width:Math.min(100,(ef2||0)*100)+'%',transition:'width .4s'}})),
+React.createElement('div',{style:{minWidth:50,textAlign:'right',color:has?sc(ef2):'#2a2a2a',fontWeight:700,fontSize:13}},
+has?pR.toLocaleString():p.ev||'–'));})),
+React.createElement('div',{style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8,marginTop:14}},
+React.createElement('button',{onClick:function(){exportPlanilha(shift,catalog);},style:Object.assign({},bSt,{background:'#1a3a6b',border:'1px solid #2E75B6',fontSize:13})},'📊 Exportar Planilha'),
+React.createElement('button',{onClick:close,style:Object.assign({},bSt,{background:'#161616',color:'#f44336',border:'1px solid #f44336',fontSize:13})},'Encerrar Turno')));
+}
+
+function Launch(props){
+var shift=props.shift,sv=props.sv,catalog=props.catalog;
+var selState=useState(null),sel=selState[0],setSel=selState[1];
+var inpState=useState({}),inp=inpState[0],setInp=inpState[1];
+var justState=useState({}),just=justState[0],setJust=justState[1];
+var sh=SHIFTS[shift.shiftKey];
+var mts=allMetas(shift,catalog);
+
+var open=function(i){
+var c={};
+CELLS.forEach(function(c2){c[c2]=(shift.reals&&shift.reals[c2]&&shift.reals[c2][i]!==undefined)?shift.reals[c2][i]:'';});
+setInp(c);
+setJust((shift.justificativas&&shift.justificativas[i])||{});
+setSel(i);
 };
 
-// REAL rows per shift: 3t=[19,21,23,25,27,29,31,33], same for 1t and 2t
-const REAL_ROWS = [19,21,23,25,27,29,31,33];
+var save=async function(){
+var nr=Object.assign({},shift.reals);
+CELLS.forEach(function(c){if(!nr[c])nr[c]=Array(8).fill('');nr[c]=nr[c].slice();nr[c][sel]=inp[c]!==undefined?inp[c]:'';});
+var nj=Object.assign({},shift.justificativas||{});
+var pj={};
+Object.entries(just).forEach(function(pair){if(pair[1].trim())pj[pair[0]]=pair[1].trim();});
+if(Object.keys(pj).length>0)nj[sel]=pj;else delete nj[sel];
+await sv(Object.assign({},shift,{reals:nr,justificativas:nj}));
+setSel(null);
+};
 
-function exportPlanilha(shift, catalog) {
-  const wb = XLSX.utils.book_new();
-  const sh = SHIFTS[shift.shiftKey];
-  const mts = allMetas(shift, catalog);
-
-  // Build sheet data as array of arrays (rows 1-40)
-  // We'll create a flat data object: { "D6": value, "F10": value, ... }
-  const data = {};
-  const set = (col, row, val) => { data[`${col}${row}`] = val; };
-
-  CELLS.forEach(c => {
-    const col = CELL_COLS[c];
-    const cell = shift.cells?.[c] || mkCell();
-
-    // Row 6: Capacidade/hora
-    const ch = capH(c, mts, shift.shiftKey);
-    if (ch > 0) set(col, 6, ch);
-
-    // Row 8: Operadores
-    if (cell.operators) set(col, 8, Number(cell.operators));
-
-    // Row 16: Extra refeição
-    if (cell.extraRef && Number(cell.extraRef) > 0) set(col, 16, Number(cell.extraRef));
-
-    // Parts: rows 10-15
-    cell.parts?.forEach((p, i) => {
-      const pRow = 10 + i * 2;      // 10, 12, 14
-      const tRow = 10 + i * 2 + 1;  // 11, 13, 15
-      if (p?.partId) set(col, pRow, p.partId);
-      if (p?.startTime) set(col, tRow, p.startTime);
-    });
-
-    // REAL rows 19,21,23,25,27,29,31,33
-    REAL_ROWS.forEach((row, pi) => {
-      const r = shift.reals?.[c]?.[pi];
-      if (r !== '' && r !== null && r !== undefined) set(col, row, Number(r));
-    });
-  });
-
-  // Build the worksheet as aoa (array of arrays) rows 1-40
-  const maxRow = 40;
-  const cols = 'ABCDEFGHIJKLMNOPQRSTU'.split('');
-  const aoa = [];
-  for (let r = 1; r <= maxRow; r++) {
-    const row = [];
-    for (let ci = 0; ci < cols.length; ci++) {
-      const key = `${cols[ci]}${r}`;
-      row.push(data[key] !== undefined ? data[key] : null);
-    }
-    aoa.push(row);
-  }
-
-  // Add labels in col A
-  const labels = {
-    5: '📋 DISPONIBILIDADE', 6: '⚡ CAPACIDADE / HORA', 7: '🎯 META OEE 90%',
-    8: '👤 Nº OPERADORES DL', 9: '📊 pç/HH (cap ÷ DL)',
-    10: '🟢 PEÇA 1', 11: '⏰ INÍCIO 1', 12: '🟡 PEÇA 2', 13: '⏰ INÍCIO 2',
-    14: '🔴 PEÇA 3', 15: '⏰ INÍCIO 3', 16: '⏱️ EXTRA REFEIÇÃO (min)',
-  };
-  Object.entries(labels).forEach(([r, lbl]) => { aoa[Number(r)-1][0] = lbl; });
-
-  // Row 4: cell headers
-  CELLS.forEach(c => { aoa[3][cols.indexOf(CELL_COLS[c])] = c; });
-
-  // Period labels in col B + META row labels
-  sh.periods.forEach((p, i) => {
-    const mr = 18 + i * 2 - 1; // META rows: 17,19... → index 16,18...
-    const rr = mr + 1;
-    if (aoa[mr]) { aoa[mr][0] = 'META'; aoa[mr][1] = p.lbl; aoa[mr][2] = p.pm; }
-    if (aoa[rr]) { aoa[rr][0] = 'REAL'; }
-  });
-
-  // Title rows
-  aoa[0] = [`Controle Hora a Hora — ${sh.label} — ${shift.date}`];
-  aoa[1] = [`Gerado pelo app UMM em ${new Date().toLocaleString('pt-BR')}`];
-
-  const ws2 = XLSX.utils.aoa_to_sheet(aoa);
-  const sheetName = sh.label.replace('°','').replace(' ','_');
-  XLSX.utils.book_append_sheet(wb, ws2, sheetName);
-
-  // Justificativas sheet
-  const justRows = [['Período', 'Célula', 'Justificativa']];
-  if (shift.justificativas) {
-    Object.entries(shift.justificativas).forEach(([pi, cells]) => {
-      Object.entries(cells).forEach(([c, txt]) => {
-        if (txt) justRows.push([sh.periods[pi]?.lbl || `Período ${Number(pi)+1}`, c, txt]);
-      });
-    });
-  }
-  if (justRows.length > 1) {
-    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(justRows), 'Justificativas');
-  }
-
-  XLSX.writeFile(wb, `UMM_${sheetName}_${shift.date}.xlsx`);
+if(sel!==null){
+var p=sh.periods[sel];
+return React.createElement('div',{style:{padding:16}},
+React.createElement('div',{style:{display:'flex',alignItems:'center',gap:12,marginBottom:16}},
+React.createElement('button',{onClick:function(){setSel(null);},style:{background:'#252525',border:'none',color:'#fff',borderRadius:8,padding:'8px 14px',cursor:'pointer',fontSize:13}},'← Voltar'),
+React.createElement('div',null,React.createElement('div',{style:{color:'#fff',fontWeight:700,fontSize:15}},p.lbl),React.createElement('div',{style:{color:'#444',fontSize:11}},p.ev+' · '+p.pm+' min'))),
+React.createElement('div',{style:{display:'flex',flexDirection:'column',gap:8}},
+CELLS.map(function(c){
+var m=(mts[c]&&mts[c][sel])||0,r=inp[c]||'';
+var ef=m>0&&r!==''?Number(r)/m:null;
+var ch=capH(c,mts,shift.shiftKey);
+var below=ef!==null&&ef<0.9;
+return React.createElement('div',{key:c,style:{background:'#141414',borderRadius:10,padding:'10px 14px',border:'1px solid '+(ef!==null?sc(ef):'#252525')}},
+React.createElement('div',{style:{display:'flex',alignItems:'center',gap:10}},
+React.createElement('div',{style:{minWidth:34,color:'#777',fontWeight:700,fontSize:12}},c),
+React.createElement('div',{style:{color:'#333',fontSize:11,minWidth:55}},'Meta:',React.createElement('span',{style:{color:'#555',marginLeft:4}},m)),
+ch>0&&React.createElement('div',{style:{color:'#2a2a2a',fontSize:10,minWidth:45}},ch+'pç/h'),
+React.createElement('input',{type:'number',min:0,value:r,placeholder:'Real',onChange:function(e){setInp(function(prev){var n=Object.assign({},prev);n[c]=e.target.value;return n;});},style:{flex:1,background:'#0a0a0a',border:'2px solid '+(ef!==null?sc(ef):'#333'),borderRadius:8,padding:'9px 8px',color:'#fff',fontSize:18,textAlign:'center',outline:'none'}}),
+ef!==null&&React.createElement('div',{style:{minWidth:28,textAlign:'center',color:sc(ef),fontWeight:700,fontSize:14}},sl(ef))),
+(below||(just[c]&&just[c].trim()))&&m>0&&React.createElement('div',{style:{marginTop:8}},
+React.createElement('div',{style:{color:below?'#ff9800':'#555',fontSize:10,fontWeight:700,marginBottom:4}},below?'⚠️ Justificativa':'📝 Justificativa'),
+React.createElement('textarea',{value:just[c]||'',onChange:function(e){setJust(function(prev){var n=Object.assign({},prev);n[c]=e.target.value;return n;});},placeholder:'Causa do desvio...',rows:2,style:{width:'100%',background:'#0a0a0a',border:'1px solid '+(below?'#ff9800':'#333'),borderRadius:8,padding:'8px',color:'#fff',fontSize:12,outline:'none',resize:'none',boxSizing:'border-box',fontFamily:'inherit'}})));})),
+React.createElement('button',{onClick:save,style:Object.assign({},bSt,{marginTop:14,width:'100%',background:R})},'💾 Salvar'));
 }
 
-function Dash({shift,sv,close,catalog}){
-  const[date,setDate]=useState(new Date().toISOString().slice(0,10));
-  const[sk,setSk]=useState('3t');
-
-  if(!shift)return(
-    <div style={{padding:20}}>
-      <div style={{color:'#fff',fontWeight:700,fontSize:18,marginBottom:14}}>Iniciar Turno</div>
-      <Card>
-        <Lbl>Data</Lbl><input type="date" value={date} onChange={e=>setDate(e.target.value)} style={iSt}/>
-        <Lbl style={{marginTop:14}}>Turno</Lbl>
-        <div style={{display:'flex',gap:8,marginTop:6}}>
-          {Object.entries(SHIFTS).map(([k,v])=><button key={k} onClick={()=>setSk(k)} style={{flex:1,padding:'11px 0',borderRadius:8,border:'none',cursor:'pointer',fontWeight:700,fontSize:13,background:sk===k?R:'#252525',color:'#fff'}}>{v.label}</button>)}
-        </div>
-        <button onClick={()=>sv(mkShift(sk,date))} style={{...bSt,marginTop:18,width:'100%',background:R}}>🚀 Iniciar Turno</button>
-      </Card>
-    </div>
-  );
-
-  const mts=allMetas(shift,catalog),sh=SHIFTS[shift.shiftKey];
-  const tM=CELLS.reduce((a,c)=>(mts[c]||[]).reduce((x,y)=>x+y,0)+a,0);
-  const tR=CELLS.reduce((a,c)=>(shift.reals?.[c]||[]).reduce((x,r)=>x+(r===''?0:Number(r)),0)+a,0);
-  const ef=tM>0?tR/tM:null;
-
-  return(
-    <div style={{padding:16}}>
-      <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:8,marginBottom:14}}>
-        <Stat lbl="Meta"       val={tM.toLocaleString('pt-BR')}/>
-        <Stat lbl="Real"       val={tR.toLocaleString('pt-BR')} accent={R}/>
-        <Stat lbl="Eficiência" val={ef!==null?`${(ef*100).toFixed(1)}%`:'—'} accent={sc(ef)}/>
-      </div>
-      <Sec>Células</Sec>
-      <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:5,marginBottom:14}}>
-        {CELLS.map(c=>{
-          const ef=eficTotal(c,mts,shift.reals||{});
-          const ch=capH(c,mts,shift.shiftKey);
-          const rT=(shift.reals?.[c]||[]).reduce((a,r)=>a+(r===''?0:Number(r)),0);
-          const mT=(mts[c]||[]).reduce((a,b)=>a+b,0);
-          const has=(shift.reals?.[c]||[]).some(r=>r!=='');
-          return(
-            <div key={c} style={{background:sb(has?ef:null),borderRadius:9,padding:'9px 6px',border:`1px solid ${has?sc(ef):'#222'}`,textAlign:'center'}}>
-              <div style={{color:'#666',fontSize:10,fontWeight:700}}>{c}</div>
-              {ch>0&&<div style={{color:'#333',fontSize:9}}>{ch} pç/h</div>}
-              {has?<><div style={{color:'#fff',fontSize:14,fontWeight:800}}>{rT.toLocaleString()}</div><div style={{color:'#333',fontSize:8}}>/{mT.toLocaleString()}</div><div style={{color:sc(ef),fontSize:11,fontWeight:700}}>{ef!==null?`${(ef*100).toFixed(0)}%`:sl(ef)}</div></>
-                  :<div style={{color:'#2a2a2a',fontSize:10,marginTop:4}}>—</div>}
-            </div>
-          );
-        })}
-      </div>
-      <Sec>Períodos</Sec>
-      <div style={{display:'flex',flexDirection:'column',gap:4,marginBottom:14}}>
-        {sh.periods.map((p,i)=>{
-          const pM=CELLS.reduce((s,c)=>s+(mts[c]?.[i]||0),0);
-          const has=CELLS.some(c=>shift.reals?.[c]?.[i]!=='');
-          const pR=has?CELLS.reduce((s,c)=>s+(((shift.reals?.[c]?.[i]||'')==='')? 0:Number(shift.reals?.[c]?.[i]||0)),0):null;
-          const ef=pM>0&&pR!==null?pR/pM:null;
-          return(
-            <div key={i} style={{display:'flex',alignItems:'center',gap:10,padding:'9px 14px',background:'#141414',borderRadius:8,border:`1px solid ${has?sc(ef):'#1e1e1e'}`}}>
-              <div style={{color:'#555',fontSize:11,minWidth:100}}>{p.lbl}</div>
-              <div style={{flex:1,height:3,background:'#222',borderRadius:2,overflow:'hidden'}}>{has&&<div style={{height:'100%',background:sc(ef),width:`${Math.min(100,(ef||0)*100)}%`,transition:'width .4s'}}/>}</div>
-              <div style={{minWidth:50,textAlign:'right',color:has?sc(ef):'#2a2a2a',fontWeight:700,fontSize:13}}>{has?pR.toLocaleString():p.ev||'–'}</div>
-            </div>
-          );
-        })}
-      </div>
-      <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8,marginTop:14}}>
-        <button onClick={()=>exportPlanilha(shift,catalog)} style={{...bSt,background:'#1a3a6b',border:'1px solid #2E75B6',fontSize:13}}>📊 Exportar Planilha</button>
-        <button onClick={close} style={{...bSt,background:'#161616',color:'#f44336',border:'1px solid #f44336',fontSize:13}}>Encerrar Turno</button>
-      </div>
-    </div>
-  );
+return React.createElement('div',{style:{padding:16}},
+React.createElement('div',{style:{color:'#fff',fontWeight:700,fontSize:18,marginBottom:14}},'Lançar REAL'),
+React.createElement('div',{style:{display:'flex',flexDirection:'column',gap:8}},
+sh.periods.map(function(p,i){
+var has=CELLS.some(function(c){return shift.reals&&shift.reals[c]&&shift.reals[c][i]!=='';});
+var pM=CELLS.reduce(function(s,c){return s+((mts[c]&&mts[c][i])||0);},0);
+var pR=has?CELLS.reduce(function(s,c){var v=shift.reals&&shift.reals[c]&&shift.reals[c][i];return s+((!v||v==='')?0:Number(v));},0):null;
+var ef=pM>0&&pR!==null?pR/pM:null;
+return React.createElement('button',{key:i,onClick:function(){open(i);},style:{display:'flex',alignItems:'center',gap:12,background:'#141414',border:'1px solid '+(has?sc(ef):'#1e1e1e'),borderRadius:12,padding:'14px 16px',cursor:'pointer',textAlign:'left',width:'100%'}},
+React.createElement('div',{style:{fontSize:18,minWidth:22}},p.ev||'⏱'),
+React.createElement('div',{style:{flex:1}},React.createElement('div',{style:{color:'#fff',fontWeight:700,fontSize:14}},p.lbl),React.createElement('div',{style:{color:'#3a3a3a',fontSize:11}},p.pm+' min · Meta: '+pM.toLocaleString())),
+has?React.createElement('div',{style:{textAlign:'right'}},React.createElement('div',{style:{color:sc(ef),fontWeight:800,fontSize:15}},pR!==null?pR.toLocaleString():''),React.createElement('div',{style:{color:sc(ef),fontSize:11}},ef!==null?(ef*100).toFixed(0)+'%':'')):
+React.createElement('div',{style:{color:'#3a3a3a',fontSize:12}},'Lançar →'));})));
 }
 
-function Launch({shift,sv,catalog}){
-  const[sel,setSel]=useState(null);
-  const[inp,setInp]=useState({});
-  const[just,setJust]=useState({}); // {cellId: text}
-  const sh=SHIFTS[shift.shiftKey];
-  const mts=allMetas(shift,catalog);
+function Cells(props){
+var shift=props.shift,sv=props.sv,catalog=props.catalog,svC=props.svC;
+var selState=useState(null),sel=selState[0],setSel=selState[1];
+var cdState=useState(null),cd=cdState[0],setCd=cdState[1];
+var catState=useState(false),showCat=catState[0],setShowCat=catState[1];
+var fileRef=useRef();
 
-  const open=i=>{
-    const c={};CELLS.forEach(c2=>{c[c2]=shift.reals?.[c2]?.[i]??'';});
-    setInp(c);
-    setJust(shift.justificativas?.[i]||{});
-    setSel(i);
-  };
-  const save=async()=>{
-    const nr={...shift.reals};
-    CELLS.forEach(c=>{if(!nr[c])nr[c]=Array(8).fill('');nr[c]=[...nr[c]];nr[c][sel]=inp[c]??'';});
-    const nj={...(shift.justificativas||{})};
-    const pj={};
-    Object.entries(just).forEach(([c,t])=>{ if(t.trim()) pj[c]=t.trim(); });
-    if(Object.keys(pj).length>0) nj[sel]=pj; else delete nj[sel];
-    await sv({...shift,reals:nr,justificativas:nj});setSel(null);
-  };
+var open=function(c){
+setCd(JSON.parse(JSON.stringify((shift.cells&&shift.cells[c])||mkCell())));
+setSel(c);
+};
 
-  if(sel!==null){
-    const p=sh.periods[sel];
-    return(
-      <div style={{padding:16}}>
-        <div style={{display:'flex',alignItems:'center',gap:12,marginBottom:16}}>
-          <button onClick={()=>setSel(null)} style={{background:'#252525',border:'none',color:'#fff',borderRadius:8,padding:'8px 14px',cursor:'pointer',fontSize:13}}>← Voltar</button>
-          <div><div style={{color:'#fff',fontWeight:700,fontSize:15}}>{p.lbl}</div><div style={{color:'#444',fontSize:11}}>{p.ev} · {p.pm} min</div></div>
-        </div>
-        <div style={{display:'flex',flexDirection:'column',gap:8}}>
-          {CELLS.map(c=>{
-            const m=mts[c]?.[sel]||0,r=inp[c]||'';
-            const ef=m>0&&r!==''?Number(r)/m:null;
-            const ch=capH(c,mts,shift.shiftKey);
-            const below=ef!==null&&ef<0.9;
-            return(
-              <div key={c} style={{background:'#141414',borderRadius:10,padding:'10px 14px',border:`1px solid ${ef!==null?sc(ef):'#252525'}`}}>
-                <div style={{display:'flex',alignItems:'center',gap:10}}>
-                  <div style={{minWidth:34,color:'#777',fontWeight:700,fontSize:12}}>{c}</div>
-                  <div style={{color:'#333',fontSize:11,minWidth:55}}>Meta:<span style={{color:'#555',marginLeft:4}}>{m}</span></div>
-                  {ch>0&&<div style={{color:'#2a2a2a',fontSize:10,minWidth:45}}>{ch}pç/h</div>}
-                  <input type="number" min={0} value={r} placeholder="Real"
-                    onChange={e=>setInp(prev=>({...prev,[c]:e.target.value}))}
-                    style={{flex:1,background:'#0a0a0a',border:`2px solid ${ef!==null?sc(ef):'#333'}`,borderRadius:8,padding:'9px 8px',color:'#fff',fontSize:18,textAlign:'center',outline:'none'}}/>
-                  {ef!==null&&<div style={{minWidth:28,textAlign:'center',color:sc(ef),fontWeight:700,fontSize:14}}>{sl(ef)}</div>}
-                </div>
-                {(below||(just[c]&&just[c].trim()))&&m>0&&(
-                  <div style={{marginTop:8}}>
-                    <div style={{color:below?'#ff9800':'#555',fontSize:10,fontWeight:700,marginBottom:4}}>
-                      {below?'⚠️ Justificativa':'📝 Justificativa'}
-                    </div>
-                    <textarea value={just[c]||''} onChange={e=>setJust(prev=>({...prev,[c]:e.target.value}))}
-                      placeholder="Causa do desvio..."
-                      rows={2}
-                      style={{width:'100%',background:'#0a0a0a',border:`1px solid ${below?'#ff9800':'#333'}`,borderRadius:8,padding:'8px',color:'#fff',fontSize:12,outline:'none',resize:'none',boxSizing:'border-box',fontFamily:'inherit'}}/>
-                  </div>
-                )}
-                {!below&&m>0&&!(just[c]&&just[c].trim())&&r!==''&&ef!==null&&ef>=0.9&&(
-                  <div style={{marginTop:6}}>
-                    <button onClick={()=>setJust(prev=>({...prev,[c]:' '}))}
-                      style={{background:'none',border:'1px solid #252525',color:'#444',borderRadius:6,padding:'4px 8px',cursor:'pointer',fontSize:10}}>
-                      + Adicionar nota
-                    </button>
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
-        <button onClick={save} style={{...bSt,marginTop:14,width:'100%',background:R}}>💾 Salvar</button>
-      </div>
-    );
-  }
+var saveCell=async function(){
+await sv(Object.assign({},shift,{cells:Object.assign({},shift.cells,{[sel]:cd})}));
+setSel(null);
+};
 
-  return(
-    <div style={{padding:16}}>
-      <div style={{color:'#fff',fontWeight:700,fontSize:18,marginBottom:14}}>Lançar REAL</div>
-      <div style={{display:'flex',flexDirection:'column',gap:8}}>
-        {sh.periods.map((p,i)=>{
-          const has=CELLS.some(c=>shift.reals?.[c]?.[i]!=='');
-          const pM=CELLS.reduce((s,c)=>s+(mts[c]?.[i]||0),0);
-          const pR=has?CELLS.reduce((s,c)=>s+(((shift.reals?.[c]?.[i]||'')==='')? 0:Number(shift.reals?.[c]?.[i]||0)),0):null;
-          const ef=pM>0&&pR!==null?pR/pM:null;
-          return(
-            <button key={i} onClick={()=>open(i)} style={{display:'flex',alignItems:'center',gap:12,background:'#141414',border:`1px solid ${has?sc(ef):'#1e1e1e'}`,borderRadius:12,padding:'14px 16px',cursor:'pointer',textAlign:'left',width:'100%'}}>
-              <div style={{fontSize:18,minWidth:22}}>{p.ev||'⏱'}</div>
-              <div style={{flex:1}}><div style={{color:'#fff',fontWeight:700,fontSize:14}}>{p.lbl}</div><div style={{color:'#3a3a3a',fontSize:11}}>{p.pm} min · Meta: {pM.toLocaleString()}</div></div>
-              {has?<div style={{textAlign:'right'}}><div style={{color:sc(ef),fontWeight:800,fontSize:15}}>{pR?.toLocaleString()}</div><div style={{color:sc(ef),fontSize:11}}>{ef!==null?`${(ef*100).toFixed(0)}%`:''}</div></div>:<div style={{color:'#3a3a3a',fontSize:12}}>Lançar →</div>}
-            </button>
-          );
-        })}
-      </div>
-    </div>
-  );
+var setP=function(i,f,v){
+setCd(function(prev){
+var parts=prev.parts.slice();
+parts[i]=Object.assign({},parts[i],{[f]:v});
+return Object.assign({},prev,{parts:parts});
+});
+};
+
+var onPartId=function(i,v){
+setP(i,'partId',v);
+var cap=getLookup(v,sel,catalog);
+if(cap!==null)setP(i,'cap',String(cap));
+else if(v&&cap===null)setP(i,'cap','');
+};
+
+var importExcel=function(e){
+var file=e.target.files[0];if(!file)return;
+var reader=new FileReader();
+reader.onload=function(ev){
+try{
+var wb=XLSX.read(ev.target.result,{type:'array'});
+var ws=wb.Sheets['LISTA DE PEÇAS'];
+if(!ws){alert('Aba "LISTA DE PEÇAS" não encontrada.');return;}
+var rows=XLSX.utils.sheet_to_json(ws,{header:1});
+var hdrs=rows[0].slice(1);
+var nc=[];
+for(var r=1;r<rows.length;r++){
+var row=rows[r];if(!row[0])continue;
+var id=String(row[0]).trim();
+var caps={};
+hdrs.forEach(function(h,idx){if(row[idx+1])caps[h]=Number(row[idx+1]);});
+nc.push({id:id,caps:caps});
+}
+svC(nc);alert(nc.length+' peças importadas!');
+}catch(err){alert('Erro: '+err.message);}
+};
+reader.readAsArrayBuffer(file);
+e.target.value='';
+};
+
+if(showCat)return React.createElement(CatScreen,{catalog:catalog,svC:svC,onBack:function(){setShowCat(false);},fileRef:fileRef,importExcel:importExcel});
+
+if(sel&&cd){
+var colors=['#276221','#9C5700','#9C0006'];
+var lbls=['🟢 PEÇA 1','🟡 PEÇA 2','🔴 PEÇA 3'];
+return React.createElement('div',{style:{padding:16}},
+React.createElement('div',{style:{display:'flex',alignItems:'center',gap:12,marginBottom:16}},
+React.createElement('button',{onClick:function(){setSel(null);},style:{background:'#252525',border:'none',color:'#fff',borderRadius:8,padding:'8px 14px',cursor:'pointer',fontSize:13}},'← Voltar'),
+React.createElement('div',{style:{color:'#fff',fontWeight:700,fontSize:18}},'Célula '+sel)),
+React.createElement(Card,null,
+React.createElement('div',{style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10}},
+React.createElement('div',null,React.createElement(Lbl,null,'Operadores'),React.createElement('input',{type:'number',value:cd.operators,onChange:function(e){setCd(function(p){return Object.assign({},p,{operators:e.target.value});});},style:iSt})),
+React.createElement('div',null,React.createElement(Lbl,null,'Extra Refeição (min)'),React.createElement('input',{type:'number',value:cd.extraRef,onChange:function(e){setCd(function(p){return Object.assign({},p,{extraRef:e.target.value});});},style:iSt})))),
+[0,1,2].map(function(i){
+var p=cd.parts[i]||mkPart();
+var found=p.partId?getLookup(p.partId,sel,catalog):null;
+var isStop=!p.cap&&p.startTime&&i>0;
+return React.createElement(Card,{key:i,style:{marginTop:10,borderLeft:'3px solid '+colors[i]}},
+React.createElement('div',{style:{color:colors[i],fontWeight:700,fontSize:13,marginBottom:10}},lbls[i]),
+React.createElement('div',{style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8}},
+React.createElement('div',null,
+React.createElement(Lbl,null,'Nº da Peça'),
+React.createElement('input',{value:p.partId||'',placeholder:i===0?'Ex: 20000987':'Vazio = não usar',onChange:function(e){onPartId(i,e.target.value);},style:iSt}),
+p.partId&&found!==null&&React.createElement('div',{style:{color:'#276221',fontSize:10,marginTop:3}},'✅ '+found+' pç/h'),
+p.partId&&found===null&&React.createElement('div',{style:{color:'#9C5700',fontSize:10,marginTop:3}},'⚠️ Não encontrado para '+sel)),
+React.createElement('div',null,
+React.createElement(Lbl,null,'Capacidade (pç/h)'),
+React.createElement('input',{type:'number',value:p.cap||'',placeholder:'pç/h',onChange:function(e){setP(i,'cap',e.target.value);},style:iSt}),
+p.partId&&found!==null&&p.cap==String(found)&&React.createElement('div',{style:{color:'#333',fontSize:10,marginTop:3}},'auto do catálogo'))),
+React.createElement(Lbl,{style:{marginTop:10}},i===0?'Horário início (vazio = padrão do turno)':'Horário entrada / parada'),
+React.createElement('input',{type:'time',value:p.startTime||'',onChange:function(e){setP(i,'startTime',e.target.value);},style:iSt}),
+isStop&&React.createElement('div',{style:{color:'#9C5700',fontSize:10,marginTop:4}},'⏹ Parada às '+p.startTime+' (sem peça = stop)'));}),
+React.createElement('button',{onClick:saveCell,style:Object.assign({},bSt,{marginTop:16,width:'100%',background:R})},'💾 Salvar Célula'));
 }
 
-function Cells({shift,sv,catalog,svC}){
-  const[sel,setSel]=useState(null);
-  const[cd,setCd]=useState(null);
-  const[showCat,setShowCat]=useState(false);
-  const fileRef=useRef();
-
-  const open=c=>{setCd(JSON.parse(JSON.stringify(shift.cells?.[c]||mkCell())));setSel(c);};
-  const saveCell=async()=>{await sv({...shift,cells:{...shift.cells,[sel]:cd}});setSel(null);};
-  const setP=(i,f,v)=>setCd(prev=>{const parts=[...prev.parts];parts[i]={...parts[i],[f]:v};return{...prev,parts};});
-
-  const onPartId=(i,v)=>{
-    setP(i,'partId',v);
-    const cap=getLookup(v,sel,catalog);
-    if(cap!==null) setP(i,'cap',String(cap));
-    else if(v&&!cap) setP(i,'cap','');
-  };
-
-  const importExcel=e=>{
-    const file=e.target.files[0];if(!file)return;
-    const reader=new FileReader();
-    reader.onload=ev=>{
-      try{
-        const wb=XLSX.read(ev.target.result,{type:'array'});
-        const ws=wb.Sheets['LISTA DE PEÇAS'];
-        if(!ws){alert('Aba "LISTA DE PEÇAS" não encontrada.');return;}
-        const rows=XLSX.utils.sheet_to_json(ws,{header:1});
-        const hdrs=rows[0].slice(1);
-        const nc=[];
-        for(let r=1;r<rows.length;r++){const row=rows[r];if(!row[0])continue;const id=String(row[0]).trim();const caps={};hdrs.forEach((h,idx)=>{if(row[idx+1])caps[h]=Number(row[idx+1]);});nc.push({id,caps});}
-        svC(nc);alert(`${nc.length} peças importadas!`);
-      }catch(err){alert('Erro: '+err.message);}
-    };
-    reader.readAsArrayBuffer(file);e.target.value='';
-  };
-
-  if(showCat)return (<CatScreen catalog={catalog} svC={svC} onBack={()=>setShowCat(false)} fileRef={fileRef} importExcel={importExcel}/>);
-
-  if(sel&&cd){
-    const colors=['#276221','#9C5700','#9C0006'];
-    const lbls=['🟢 PEÇA 1','🟡 PEÇA 2','🔴 PEÇA 3'];
-    return(
-      <div style={{padding:16}}>
-        <div style={{display:'flex',alignItems:'center',gap:12,marginBottom:16}}>
-          <button onClick={()=>setSel(null)} style={{background:'#252525',border:'none',color:'#fff',borderRadius:8,padding:'8px 14px',cursor:'pointer',fontSize:13}}>← Voltar</button>
-          <div style={{color:'#fff',fontWeight:700,fontSize:18}}>Célula {sel}</div>
-        </div>
-        <Card>
-          <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10}}>
-            <div><Lbl>Operadores</Lbl><input type="number" value={cd.operators} onChange={e=>setCd(p=>({...p,operators:e.target.value}))} style={iSt}/></div>
-            <div><Lbl>Extra Refeição (min)</Lbl><input type="number" value={cd.extraRef} onChange={e=>setCd(p=>({...p,extraRef:e.target.value}))} style={iSt}/></div>
-          </div>
-        </Card>
-        {[0,1,2].map(i=>{
-          const p=cd.parts[i]||mkPart();
-          const found=p.partId?getLookup(p.partId,sel,catalog):null;
-          const isStop=!p.cap&&p.startTime&&i>0;
-          return(
-            <Card key={i} style={{marginTop:10,borderLeft:`3px solid ${colors[i]}`}}>
-              <div style={{color:colors[i],fontWeight:700,fontSize:13,marginBottom:10}}>{lbls[i]}</div>
-              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8}}>
-                <div>
-                  <Lbl>Nº da Peça</Lbl>
-                  <input value={p.partId||''} placeholder={i===0?'Ex: 20000987':'Vazio = não usar'}
-                    onChange={e=>onPartId(i,e.target.value)} style={iSt}/>
-                  {p.partId&&found!==null&&<div style={{color:'#276221',fontSize:10,marginTop:3}}>✅ {found} pç/h</div>}
-                  {p.partId&&found===null&&<div style={{color:'#9C5700',fontSize:10,marginTop:3}}>⚠️ Não encontrado para {sel}</div>}
-                </div>
-                <div>
-                  <Lbl>Capacidade (pç/h)</Lbl>
-                  <input type="number" value={p.cap||''} placeholder="pç/h"
-                    onChange={e=>setP(i,'cap',e.target.value)} style={iSt}/>
-                  {p.partId&&found!==null&&p.cap==String(found)&&<div style={{color:'#333',fontSize:10,marginTop:3}}>auto do catálogo</div>}
-                </div>
-              </div>
-              <Lbl style={{marginTop:10}}>{i===0?'Horário início (vazio = padrão do turno)':'Horário entrada / parada'}</Lbl>
-              <input type="time" value={p.startTime||''} onChange={e=>setP(i,'startTime',e.target.value)} style={iSt}/>
-              {isStop&&<div style={{color:'#9C5700',fontSize:10,marginTop:4}}>⏹ Parada às {p.startTime} (sem peça = stop)</div>}
-            </Card>
-          );
-        })}
-        <button onClick={saveCell} style={{...bSt,marginTop:16,width:'100%',background:R}}>💾 Salvar Célula</button>
-      </div>
-    );
-  }
-
-  const mts=allMetas(shift,catalog);
-  return(
-    <div style={{padding:16}}>
-      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:14}}>
-        <div style={{color:'#fff',fontWeight:700,fontSize:18}}>Configurar Células</div>
-        <button onClick={()=>setShowCat(true)} style={{background:'#252525',border:'none',color:'#fff',borderRadius:8,padding:'8px 12px',cursor:'pointer',fontSize:12,fontWeight:600}}>📚 Catálogo</button>
-      </div>
-      <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8}}>
-        {CELLS.map(c=>{
-          const cell=shift.cells?.[c]||mkCell();
-          const ch=capH(c,mts,shift.shiftKey);
-          return(
-            <button key={c} onClick={()=>open(c)} style={{background:'#141414',border:`1px solid ${ch>0?'#2a2a2a':'#1a1a1a'}`,borderRadius:12,padding:'14px',cursor:'pointer',textAlign:'left'}}>
-              <div style={{color:'#fff',fontWeight:700,fontSize:15}}>{c}</div>
-              {ch>0&&<div style={{color:R,fontSize:13,fontWeight:700,marginTop:2}}>{ch} pç/h</div>}
-              <div style={{color:'#333',fontSize:10,marginTop:3}}>{cell.operators} op</div>
-              {cell.parts[0]?.partId&&<div style={{color:'#2a2a2a',fontSize:10,marginTop:2}}>P1: {cell.parts[0].partId}</div>}
-            </button>
-          );
-        })}
-      </div>
-    </div>
-  );
+var mts=allMetas(shift,catalog);
+return React.createElement('div',{style:{padding:16}},
+React.createElement('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:14}},
+React.createElement('div',{style:{color:'#fff',fontWeight:700,fontSize:18}},'Configurar Células'),
+React.createElement('button',{onClick:function(){setShowCat(true);},style:{background:'#252525',border:'none',color:'#fff',borderRadius:8,padding:'8px 12px',cursor:'pointer',fontSize:12,fontWeight:600}},'📚 Catálogo')),
+React.createElement('div',{style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8}},
+CELLS.map(function(c){
+var cell=(shift.cells&&shift.cells[c])||mkCell();
+var ch=capH(c,mts,shift.shiftKey);
+return React.createElement('button',{key:c,onClick:function(){open(c);},style:{background:'#141414',border:'1px solid '+(ch>0?'#2a2a2a':'#1a1a1a'),borderRadius:12,padding:'14px',cursor:'pointer',textAlign:'left'}},
+React.createElement('div',{style:{color:'#fff',fontWeight:700,fontSize:15}},c),
+ch>0&&React.createElement('div',{style:{color:R,fontSize:13,fontWeight:700,marginTop:2}},ch+' pç/h'),
+React.createElement('div',{style:{color:'#333',fontSize:10,marginTop:3}},cell.operators+' op'),
+cell.parts[0]&&cell.parts[0].partId&&React.createElement('div',{style:{color:'#2a2a2a',fontSize:10,marginTop:2}},'P1: '+cell.parts[0].partId));})));
 }
 
-function CatScreen({catalog,svC,onBack,fileRef,importExcel}){
-  const[q,setQ]=useState('');
-  const[nId,setNId]=useState('');
-  const[nCaps,setNCaps]=useState(Object.fromEntries(CELLS.map(c=>[c,''])));
-  const filtered=catalog.filter(e=>e.id.toLowerCase().includes(q.toLowerCase()));
-
-  const add=()=>{
-    if(!nId.trim())return;
-    const caps={};CELLS.forEach(c=>{if(nCaps[c])caps[c]=Number(nCaps[c]);});
-    svC([...catalog.filter(e=>e.id!==nId.trim()),{id:nId.trim(),caps}]);
-    setNId('');setNCaps(Object.fromEntries(CELLS.map(c=>[c,''])));
-  };
-
-  return(
-    <div style={{padding:16}}>
-      <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:16,flexWrap:'wrap'}}>
-        <button onClick={onBack} style={{background:'#252525',border:'none',color:'#fff',borderRadius:8,padding:'8px 14px',cursor:'pointer',fontSize:13}}>← Voltar</button>
-        <div style={{color:'#fff',fontWeight:700,fontSize:16,flex:1}}>Catálogo de Peças</div>
-        <input ref={fileRef} type="file" accept=".xlsx,.xls" onChange={importExcel} style={{display:'none'}}/>
-        <button onClick={()=>fileRef.current?.click()} style={{background:'#252525',border:'none',color:'#fff',borderRadius:8,padding:'8px 12px',cursor:'pointer',fontSize:12,fontWeight:600}}>📥 Importar Excel</button>
-      </div>
-      <Card style={{marginBottom:12}}>
-        <Lbl>Adicionar Peça</Lbl>
-        <input value={nId} onChange={e=>setNId(e.target.value)} style={iSt} placeholder="Nº da peça"/>
-        <Lbl style={{marginTop:10}}>Capacidade por Célula</Lbl>
-        <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:4,marginTop:6}}>
-          {CELLS.map(c=><div key={c} style={{display:'flex',flexDirection:'column',alignItems:'center'}}><span style={{color:'#444',fontSize:9,fontWeight:700}}>{c}</span><input type="number" value={nCaps[c]} onChange={e=>setNCaps(p=>({...p,[c]:e.target.value}))} style={{...iSt,padding:'6px 4px',fontSize:12,textAlign:'center',marginTop:2}} placeholder="–"/></div>)}
-        </div>
-        <button onClick={add} style={{...bSt,marginTop:12,width:'100%',background:R}}>➕ Adicionar</button>
-      </Card>
-      <input value={q} onChange={e=>setQ(e.target.value)} placeholder={`Buscar (${catalog.length} peças)...`} style={{...iSt,marginBottom:8}}/>
-      <div style={{display:'flex',flexDirection:'column',gap:4}}>
-        {filtered.slice(0,60).map(e=>(
-          <div key={e.id} style={{background:'#141414',borderRadius:9,padding:'10px 14px',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
-            <div><div style={{color:'#fff',fontWeight:700,fontSize:13}}>{e.id}</div><div style={{color:'#444',fontSize:10}}>{Object.entries(e.caps).map(([k,v])=>`${k}:${v}`).join(' · ')||'Sem cap.'}</div></div>
-            <button onClick={()=>svC(catalog.filter(x=>x.id!==e.id))} style={{background:'none',border:'none',color:'#f44336',cursor:'pointer',fontSize:16,padding:4}}>🗑</button>
-          </div>
-        ))}
-        {filtered.length>60&&<div style={{color:'#444',fontSize:11,textAlign:'center',padding:8}}>+{filtered.length-60} — use a busca</div>}
-      </div>
-    </div>
-  );
+function CatScreen(props){
+var catalog=props.catalog,svC=props.svC,onBack=props.onBack,fileRef=props.fileRef,importExcel=props.importExcel;
+var qState=useState(''),q=qState[0],setQ=qState[1];
+var nIdState=useState(''),nId=nIdState[0],setNId=nIdState[1];
+var nCapsState=useState(Object.fromEntries(CELLS.map(function(c){return[c,''];}))),nCaps=nCapsState[0],setNCaps=nCapsState[1];
+var filtered=catalog.filter(function(e){return e.id.toLowerCase().includes(q.toLowerCase());});
+var add=function(){
+if(!nId.trim())return;
+var caps={};
+CELLS.forEach(function(c){if(nCaps[c])caps[c]=Number(nCaps[c]);});
+svC(catalog.filter(function(e){return e.id!==nId.trim();}).concat([{id:nId.trim(),caps:caps}]));
+setNId('');setNCaps(Object.fromEntries(CELLS.map(function(c){return[c,''];})));
+};
+return React.createElement('div',{style:{padding:16}},
+React.createElement('div',{style:{display:'flex',alignItems:'center',gap:10,marginBottom:16,flexWrap:'wrap'}},
+React.createElement('button',{onClick:onBack,style:{background:'#252525',border:'none',color:'#fff',borderRadius:8,padding:'8px 14px',cursor:'pointer',fontSize:13}},'← Voltar'),
+React.createElement('div',{style:{color:'#fff',fontWeight:700,fontSize:16,flex:1}},'Catálogo de Peças'),
+React.createElement('input',{ref:fileRef,type:'file',accept:'.xlsx,.xls',onChange:importExcel,style:{display:'none'}}),
+React.createElement('button',{onClick:function(){if(fileRef.current)fileRef.current.click();},style:{background:'#252525',border:'none',color:'#fff',borderRadius:8,padding:'8px 12px',cursor:'pointer',fontSize:12,fontWeight:600}},'📥 Importar Excel')),
+React.createElement(Card,{style:{marginBottom:12}},
+React.createElement(Lbl,null,'Adicionar Peça'),
+React.createElement('input',{value:nId,onChange:function(e){setNId(e.target.value);},style:iSt,placeholder:'Nº da peça'}),
+React.createElement(Lbl,{style:{marginTop:10}},'Capacidade por Célula'),
+React.createElement('div',{style:{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:4,marginTop:6}},
+CELLS.map(function(c){return React.createElement('div',{key:c,style:{display:'flex',flexDirection:'column',alignItems:'center'}},
+React.createElement('span',{style:{color:'#444',fontSize:9,fontWeight:700}},c),
+React.createElement('input',{type:'number',value:nCaps[c],onChange:function(e){setNCaps(function(p){var n=Object.assign({},p);n[c]=e.target.value;return n;});},style:Object.assign({},iSt,{padding:'6px 4px',fontSize:12,textAlign:'center',marginTop:2}),placeholder:'–'}));})),
+React.createElement('button',{onClick:add,style:Object.assign({},bSt,{marginTop:12,width:'100%',background:R})},'➕ Adicionar')),
+React.createElement('input',{value:q,onChange:function(e){setQ(e.target.value);},placeholder:'Buscar ('+catalog.length+' peças)...',style:Object.assign({},iSt,{marginBottom:8})}),
+React.createElement('div',{style:{display:'flex',flexDirection:'column',gap:4}},
+filtered.slice(0,60).map(function(e){
+return React.createElement('div',{key:e.id,style:{background:'#141414',borderRadius:9,padding:'10px 14px',display:'flex',justifyContent:'space-between',alignItems:'center'}},
+React.createElement('div',null,
+React.createElement('div',{style:{color:'#fff',fontWeight:700,fontSize:13}},e.id),
+React.createElement('div',{style:{color:'#444',fontSize:10}},Object.entries(e.caps).map(function(pair){return pair[0]+':'+pair[1];}).join(' · ')||'Sem cap.')),
+React.createElement('button',{onClick:function(){svC(catalog.filter(function(x){return x.id!==e.id;}));},style:{background:'none',border:'none',color:'#f44336',cursor:'pointer',fontSize:16,padding:4}},'🗑'));}),
+filtered.length>60&&React.createElement('div',{style:{color:'#444',fontSize:11,textAlign:'center',padding:8}},'+'+( filtered.length-60)+' — use a busca')));
 }
 
-function Hist({history,catalog}){
-  const[view,setView]=useState('list'); // 'list' | 'detail' | 'log'
-  const[sel,setSel]=useState(null);
-  const[fCell,setFCell]=useState('');
-  const[fShift,setFShift]=useState('');
-  const[fPeriod,setFPeriod]=useState('');
-  const[fMonth,setFMonth]=useState('');
-  const[fYear,setFYear]=useState('');
+function Hist(props){
+var history=props.history,catalog=props.catalog;
+var viewState=useState('list'),view=viewState[0],setView=viewState[1];
+var selState=useState(null),sel=selState[0],setSel=selState[1];
+var fCellState=useState(''),fCell=fCellState[0],setFCell=fCellState[1];
+var fShiftState=useState(''),fShift=fShiftState[0],setFShift=fShiftState[1];
+var fPeriodState=useState(''),fPeriod=fPeriodState[0],setFPeriod=fPeriodState[1];
+var fMonthState=useState(''),fMonth=fMonthState[0],setFMonth=fMonthState[1];
+var fYearState=useState(''),fYear=fYearState[0],setFYear=fYearState[1];
 
-  // Build flat records: one per cell × period × shift
-  const allRecords=[];
-  history.forEach((s,si)=>{
-    const mts=allMetas(s,catalog);
-    const sh=SHIFTS[s.shiftKey];
-    const[yr,mo,dy]=s.date.split('-');
-    sh.periods.forEach((p,pi)=>{
-      CELLS.forEach(c=>{
-        const m=(mts[c]||[])[pi]||0;
-        const r=s.reals?.[c]?.[pi];
-        const rv=r===''||r===undefined||r===null?null:Number(r);
-        const ef=m>0&&rv!==null?rv/m:null;
-        const just=s.justificativas?.[pi]?.[c]||'';
-        if(m>0||rv!==null||just){
-          allRecords.push({si,date:s.date,yr,mo,dy,shiftKey:s.shiftKey,shiftLbl:sh.label,
-            pi,periodLbl:p.lbl,cell:c,meta:m,real:rv,efic:ef,just});
-        }
-      });
-    });
-  });
+var allRecords=[];
+history.forEach(function(s,si){
+var mts=allMetas(s,catalog);
+var sh=SHIFTS[s.shiftKey];
+var dateParts=s.date.split('-'),yr=dateParts[0],mo=dateParts[1],dy=dateParts[2];
+sh.periods.forEach(function(p,pi){
+CELLS.forEach(function(c){
+var m=(mts[c]&&mts[c][pi])||0;
+var r=s.reals&&s.reals[c]&&s.reals[c][pi];
+var rv=(r===''||r===undefined||r===null)?null:Number(r);
+var ef=m>0&&rv!==null?rv/m:null;
+var just=(s.justificativas&&s.justificativas[pi]&&s.justificativas[pi][c])||'';
+if(m>0||rv!==null||just){allRecords.push({si:si,date:s.date,yr:yr,mo:mo,dy:dy,shiftKey:s.shiftKey,shiftLbl:sh.label,pi:pi,periodLbl:p.lbl,cell:c,meta:m,real:rv,efic:ef,just:just});}
+});
+});
+});
 
-  // Available filter options
-  const years=[...new Set(allRecords.map(r=>r.yr))].sort().reverse();
-  const months=[...new Set(allRecords.map(r=>r.mo))].sort();
+var years=[...new Set(allRecords.map(function(r){return r.yr;}))].sort().reverse();
+var months=[...new Set(allRecords.map(function(r){return r.mo;}))].sort();
+var filtered=allRecords.filter(function(r){
+if(fCell&&r.cell!==fCell)return false;
+if(fShift&&r.shiftKey!==fShift)return false;
+if(fPeriod&&String(r.pi)!==fPeriod)return false;
+if(fMonth&&r.mo!==fMonth)return false;
+if(fYear&&r.yr!==fYear)return false;
+return true;
+});
 
-  // Apply filters
-  const filtered=allRecords.filter(r=>{
-    if(fCell&&r.cell!==fCell)return false;
-    if(fShift&&r.shiftKey!==fShift)return false;
-    if(fPeriod&&String(r.pi)!==fPeriod)return false;
-    if(fMonth&&r.mo!==fMonth)return false;
-    if(fYear&&r.yr!==fYear)return false;
-    return true;
-  });
+var exportExcel=function(){
+var wb=XLSX.utils.book_new();
+var res=[['Data','Turno','Meta Total','Real Total','Eficiência %','Saldo']];
+history.forEach(function(s){
+var mts2=allMetas(s,catalog);
+var tM=CELLS.reduce(function(a,c){return(mts2[c]||[]).reduce(function(x,y){return x+y;},0)+a;},0);
+var tR=CELLS.reduce(function(a,c){return((s.reals&&s.reals[c])||[]).reduce(function(x,r){return x+(r===''?0:Number(r));},0)+a;},0);
+res.push([s.date,SHIFTS[s.shiftKey]&&SHIFTS[s.shiftKey].label,tM,tR,tM>0?+(tR/tM*100).toFixed(1):0,tR-tM]);
+});
+XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(res),'Resumo');
+var log=[['Data','Ano','Mês','Turno','Período','Célula','Meta','Real','Efic%','Justificativa']];
+allRecords.forEach(function(r){log.push([r.date,r.yr,r.mo,r.shiftLbl,r.periodLbl,r.cell,r.meta,r.real!==null?r.real:'',r.efic!==null?+(r.efic*100).toFixed(1):'',r.just]);});
+XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(log),'Log Células');
+XLSX.writeFile(wb,'UMM_HoraAHora_'+new Date().toISOString().slice(0,10)+'.xlsx');
+};
 
-  const exportExcel=()=>{
-    const wb=XLSX.utils.book_new();
-    // Resumo
-    const res=[['Data','Turno','Meta Total','Real Total','Eficiência %','Saldo']];
-    history.forEach(s=>{
-      const mts=allMetas(s,catalog);
-      const tM=CELLS.reduce((a,c)=>(mts[c]||[]).reduce((x,y)=>x+y,0)+a,0);
-      const tR=CELLS.reduce((a,c)=>(s.reals?.[c]||[]).reduce((x,r)=>x+(r===''?0:Number(r)),0)+a,0);
-      res.push([s.date,SHIFTS[s.shiftKey]?.label,tM,tR,tM>0?+((tR/tM*100).toFixed(1)):0,tR-tM]);
-    });
-    XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(res),'Resumo');
-    // Log por célula
-    const log=[['Data','Ano','Mês','Turno','Período','Célula','Meta','Real','Efic%','Justificativa']];
-    allRecords.forEach(r=>{
-      log.push([r.date,r.yr,r.mo,r.shiftLbl,r.periodLbl,r.cell,r.meta,r.real??'',
-        r.efic!==null?+((r.efic*100).toFixed(1)):'',r.just]);
-    });
-    XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(log),'Log Células');
-    XLSX.writeFile(wb,`UMM_HoraAHora_${new Date().toISOString().slice(0,10)}.xlsx`);
-  };
-
-  // Detail view of one shift
-  if(view==='detail'&&sel!==null){
-    const s=history[sel],mts=allMetas(s,catalog),sh=SHIFTS[s.shiftKey];
-    const tM=CELLS.reduce((a,c)=>(mts[c]||[]).reduce((x,y)=>x+y,0)+a,0);
-    const tR=CELLS.reduce((a,c)=>(s.reals?.[c]||[]).reduce((x,r)=>x+(r===''?0:Number(r)),0)+a,0);
-    const ef=tM>0?tR/tM:null;
-    return(
-      <div style={{padding:16}}>
-        <div style={{display:'flex',alignItems:'center',gap:12,marginBottom:14}}>
-          <button onClick={()=>{setView('list');setSel(null);}} style={{background:'#252525',border:'none',color:'#fff',borderRadius:8,padding:'8px 14px',cursor:'pointer',fontSize:13}}>← Voltar</button>
-          <div><div style={{color:'#fff',fontWeight:700}}>{sh.label} · {s.date}</div>{ef!==null&&<div style={{color:sc(ef),fontSize:12,fontWeight:700}}>{(ef*100).toFixed(1)}%</div>}</div>
-        </div>
-        <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:8,marginBottom:14}}>
-          <Stat lbl="Meta" val={tM.toLocaleString('pt-BR')}/>
-          <Stat lbl="Real" val={tR.toLocaleString('pt-BR')} accent={R}/>
-          <Stat lbl="Saldo" val={(tR-tM).toLocaleString('pt-BR',{signDisplay:'always'})} accent={tR>=tM?'#4caf50':'#f44336'}/>
-        </div>
-        <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:5,marginBottom:14}}>
-          {CELLS.map(c=>{
-            const ef=eficTotal(c,mts,s.reals||{});
-            const rT=(s.reals?.[c]||[]).reduce((a,r)=>a+(r===''?0:Number(r)),0);
-            const mT=(mts[c]||[]).reduce((a,b)=>a+b,0);
-            return (<div key={c} style={{background:sb(ef),borderRadius:9,padding:'9px 6px',border:`1px solid ${sc(ef)}`,textAlign:'center'}}><div style={{color:'#666',fontSize:10,fontWeight:700}}>{c}</div><div style={{color:'#fff',fontSize:13,fontWeight:800}}>{rT.toLocaleString()}</div><div style={{color:'#333',fontSize:8}}>/{mT.toLocaleString()}</div>{ef!==null&&<div style={{color:sc(ef),fontSize:10,fontWeight:700}}>{(ef*100).toFixed(0)}%</div>}</div>);
-          })}
-        </div>
-        {/* Justificativas */}
-        {s.justificativas&&Object.keys(s.justificativas).length>0&&(
-          <div>
-            <div style={{color:'#555',fontSize:11,fontWeight:700,letterSpacing:.5,textTransform:'uppercase',marginBottom:8}}>Justificativas</div>
-            {Object.entries(s.justificativas).map(([pi,cells])=>(
-              Object.entries(cells).map(([c,txt])=>(
-                <div key={`${pi}-${c}`} style={{background:'#141414',borderRadius:8,padding:'10px 14px',marginBottom:6,borderLeft:'3px solid #ff9800'}}>
-                  <div style={{display:'flex',gap:8,marginBottom:3}}>
-                    <span style={{color:'#ff9800',fontSize:11,fontWeight:700}}>{sh.periods[pi]?.lbl}</span>
-                    <span style={{color:'#555',fontSize:11}}>·</span>
-                    <span style={{color:'#fff',fontSize:11,fontWeight:700}}>{c}</span>
-                  </div>
-                  <div style={{color:'#ccc',fontSize:13}}>{txt}</div>
-                </div>
-              ))
-            ))}
-          </div>
-        )}
-      </div>
-    );
-  }
-
-  // Log view (filtered)
-  if(view==='log') return(
-    <div style={{padding:16}}>
-      <div style={{display:'flex',alignItems:'center',gap:12,marginBottom:14}}>
-        <button onClick={()=>setView('list')} style={{background:'#252525',border:'none',color:'#fff',borderRadius:8,padding:'8px 14px',cursor:'pointer',fontSize:13}}>← Voltar</button>
-        <div style={{color:'#fff',fontWeight:700,fontSize:16}}>Log por Célula</div>
-        <button onClick={exportExcel} style={{marginLeft:'auto',background:'#276221',border:'none',color:'#fff',borderRadius:8,padding:'7px 12px',cursor:'pointer',fontSize:12,fontWeight:700}}>📥 Excel</button>
-      </div>
-      {/* Filters */}
-      <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:6,marginBottom:12}}>
-        {[
-          ['Célula',fCell,setFCell,['',...CELLS].map(v=>({v,l:v||'Todas'}))],
-          ['Turno',fShift,setFShift,[{v:'',l:'Todos'},{v:'3t',l:'3° Turno'},{v:'1t',l:'1° Turno'},{v:'2t',l:'2° Turno'}]],
-          ['Período',fPeriod,setFPeriod,[{v:'',l:'Todos'},0,1,2,3,4,5,6,7].map((x,i)=>i===0?x:{v:String(x),l:`${x+1}ª hora`})],
-          ['Mês',fMonth,setFMonth,[{v:'',l:'Todos'},...months.map(m=>({v:m,l:m}))]],
-          ['Ano',fYear,setFYear,[{v:'',l:'Todos'},...years.map(y=>({v:y,l:y}))]],
-          ['Turno tipo',fShift,setFShift,[{v:'',l:'Todos'},{v:'3t',l:'3°T'},{v:'1t',l:'1°T'},{v:'2t',l:'2°T'}]],
-        ].slice(0,5).map(([lbl,val,setter,opts])=>(
-          <div key={lbl}>
-            <div style={{color:'#555',fontSize:10,fontWeight:700,marginBottom:3,textTransform:'uppercase'}}>{lbl}</div>
-            <select value={val} onChange={e=>setter(e.target.value)}
-              style={{width:'100%',background:'#161616',border:'1px solid #333',borderRadius:8,padding:'8px 10px',color:'#fff',fontSize:13,outline:'none'}}>
-              {opts.map(o=><option key={o.v||o} value={o.v||o}>{o.l||o}</option>)}
-            </select>
-          </div>
-        ))}
-      </div>
-      <div style={{color:'#444',fontSize:11,marginBottom:8}}>{filtered.length} registro(s)</div>
-      <div style={{display:'flex',flexDirection:'column',gap:6}}>
-        {filtered.slice(0,100).map((r,i)=>(
-          <div key={i} style={{background:'#141414',borderRadius:10,padding:'10px 14px',border:`1px solid ${r.efic!==null?sc(r.efic):'#222'}`}}>
-            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:r.just?6:0}}>
-              <div>
-                <span style={{color:'#fff',fontWeight:700,fontSize:13}}>{r.cell}</span>
-                <span style={{color:'#444',fontSize:11,marginLeft:8}}>{r.date} · {r.shiftLbl}</span>
-              </div>
-              <div style={{textAlign:'right'}}>
-                <div style={{color:r.efic!==null?sc(r.efic):'#444',fontWeight:700,fontSize:13}}>{r.real!==null?r.real.toLocaleString():'—'}<span style={{color:'#333',fontSize:10}}>/{r.meta}</span></div>
-                {r.efic!==null&&<div style={{color:sc(r.efic),fontSize:10,fontWeight:700}}>{(r.efic*100).toFixed(0)}%</div>}
-              </div>
-            </div>
-            <div style={{color:'#555',fontSize:10,marginBottom:r.just?4:0}}>{r.periodLbl}</div>
-            {r.just&&<div style={{color:'#ff9800',fontSize:12,borderTop:'1px solid #222',paddingTop:6,marginTop:4}}>📝 {r.just}</div>}
-          </div>
-        ))}
-        {filtered.length>100&&<div style={{color:'#444',fontSize:11,textAlign:'center',padding:8}}>Mostrando 100 de {filtered.length}. Refine os filtros.</div>}
-      </div>
-    </div>
-  );
-
-  // Main list view
-  return(
-    <div style={{padding:16}}>
-      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:14}}>
-        <div style={{color:'#fff',fontWeight:700,fontSize:18}}>Histórico</div>
-        <div style={{display:'flex',gap:8}}>
-          {history.length>0&&<button onClick={()=>setView('log')} style={{background:'#252525',border:'none',color:'#fff',borderRadius:8,padding:'8px 12px',cursor:'pointer',fontSize:12,fontWeight:600}}>🔍 Log</button>}
-          {history.length>0&&<button onClick={exportExcel} style={{background:'#276221',border:'none',color:'#fff',borderRadius:8,padding:'8px 12px',cursor:'pointer',fontSize:12,fontWeight:700}}>📥 Excel</button>}
-        </div>
-      </div>
-      {!history.length&&<div style={{color:'#444',textAlign:'center',marginTop:40,fontSize:15}}>Nenhum turno encerrado ainda.</div>}
-      {history.map((s,i)=>{
-        const mts=allMetas(s,catalog);
-        const tM=CELLS.reduce((a,c)=>(mts[c]||[]).reduce((x,y)=>x+y,0)+a,0);
-        const tR=CELLS.reduce((a,c)=>(s.reals?.[c]||[]).reduce((x,r)=>x+(r===''?0:Number(r)),0)+a,0);
-        const ef=tM>0?tR/tM:null;
-        const hasJust=s.justificativas&&Object.values(s.justificativas).some(pj=>Object.keys(pj).length>0);
-        return (<button key={i} onClick={()=>{setSel(i);setView('detail');}} style={{display:'flex',alignItems:'center',gap:12,background:'#141414',border:'1px solid #1e1e1e',borderRadius:12,padding:'14px 16px',cursor:'pointer',textAlign:'left',width:'100%',marginBottom:8}}><div style={{flex:1}}><div style={{color:'#fff',fontWeight:700}}>{SHIFTS[s.shiftKey]?.label} · {s.date}</div><div style={{color:'#333',fontSize:11,marginTop:2}}>Meta:{tM.toLocaleString()} · Real:{tR.toLocaleString()}{hasJust?' · 📝':''}</div></div><div style={{textAlign:'right'}}><div style={{color:sc(ef),fontWeight:800,fontSize:16}}>{ef!==null?`${(ef*100).toFixed(1)}%`:'—'}</div><div style={{fontSize:14}}>{sl(ef)}</div></div></button>);
-      })}
-    </div>
-  );
+if(view==='detail'&&sel!==null){
+var s=history[sel],mts=allMetas(s,catalog),sh=SHIFTS[s.shiftKey];
+var tM=CELLS.reduce(function(a,c){return(mts[c]||[]).reduce(function(x,y){return x+y;},0)+a;},0);
+var tR=CELLS.reduce(function(a,c){return((s.reals&&s.reals[c])||[]).reduce(function(x,r){return x+(r===''?0:Number(r));},0)+a;},0);
+var ef=tM>0?tR/tM:null;
+return React.createElement('div',{style:{padding:16}},
+React.createElement('div',{style:{display:'flex',alignItems:'center',gap:12,marginBottom:14}},
+React.createElement('button',{onClick:function(){setView('list');setSel(null);},style:{background:'#252525',border:'none',color:'#fff',borderRadius:8,padding:'8px 14px',cursor:'pointer',fontSize:13}},'← Voltar'),
+React.createElement('div',null,React.createElement('div',{style:{color:'#fff',fontWeight:700}},sh.label+' · '+s.date),ef!==null&&React.createElement('div',{style:{color:sc(ef),fontSize:12,fontWeight:700}},(ef*100).toFixed(1)+'%'))),
+React.createElement('div',{style:{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:8,marginBottom:14}},
+React.createElement(Stat,{lbl:'Meta',val:tM.toLocaleString('pt-BR')}),
+React.createElement(Stat,{lbl:'Real',val:tR.toLocaleString('pt-BR'),accent:R}),
+React.createElement(Stat,{lbl:'Saldo',val:(tR-tM).toLocaleString('pt-BR',{signDisplay:'always'}),accent:tR>=tM?'#4caf50':'#f44336'})),
+React.createElement('div',{style:{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:5,marginBottom:14}},
+CELLS.map(function(c){
+var ef2=eficTotal(c,mts,s.reals||{});
+var rT=((s.reals&&s.reals[c])||[]).reduce(function(a,r){return a+(r===''?0:Number(r));},0);
+var mT=(mts[c]||[]).reduce(function(a,b){return a+b;},0);
+return React.createElement('div',{key:c,style:{background:sb(ef2),borderRadius:9,padding:'9px 6px',border:'1px solid '+sc(ef2),textAlign:'center'}},
+React.createElement('div',{style:{color:'#666',fontSize:10,fontWeight:700}},c),
+React.createElement('div',{style:{color:'#fff',fontSize:13,fontWeight:800}},rT.toLocaleString()),
+React.createElement('div',{style:{color:'#333',fontSize:8}},'/'+mT.toLocaleString()),
+ef2!==null&&React.createElement('div',{style:{color:sc(ef2),fontSize:10,fontWeight:700}},(ef2*100).toFixed(0)+'%'));})),
+s.justificativas&&Object.keys(s.justificativas).length>0&&React.createElement('div',null,
+React.createElement('div',{style:{color:'#555',fontSize:11,fontWeight:700,letterSpacing:.5,textTransform:'uppercase',marginBottom:8}},'Justificativas'),
+Object.entries(s.justificativas).map(function(pair){var pi=pair[0],cells=pair[1];
+return Object.entries(cells).map(function(pair2){var c=pair2[0],txt=pair2[1];
+return React.createElement('div',{key:pi+'-'+c,style:{background:'#141414',borderRadius:8,padding:'10px 14px',marginBottom:6,borderLeft:'3px solid #ff9800'}},
+React.createElement('div',{style:{display:'flex',gap:8,marginBottom:3}},
+React.createElement('span',{style:{color:'#ff9800',fontSize:11,fontWeight:700}},sh.periods[pi]&&sh.periods[pi].lbl),
+React.createElement('span',{style:{color:'#555',fontSize:11}},'·'),
+React.createElement('span',{style:{color:'#fff',fontSize:11,fontWeight:700}},c)),
+React.createElement('div',{style:{color:'#ccc',fontSize:13}},txt));});})));
 }
 
+if(view==='log')return React.createElement('div',{style:{padding:16}},
+React.createElement('div',{style:{display:'flex',alignItems:'center',gap:12,marginBottom:14}},
+React.createElement('button',{onClick:function(){setView('list');},style:{background:'#252525',border:'none',color:'#fff',borderRadius:8,padding:'8px 14px',cursor:'pointer',fontSize:13}},'← Voltar'),
+React.createElement('div',{style:{color:'#fff',fontWeight:700,fontSize:16}},'Log por Célula'),
+React.createElement('button',{onClick:exportExcel,style:{marginLeft:'auto',background:'#276221',border:'none',color:'#fff',borderRadius:8,padding:'7px 12px',cursor:'pointer',fontSize:12,fontWeight:700}},'📥 Excel')),
+React.createElement('div',{style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:6,marginBottom:12}},
+[['Célula',fCell,setFCell,[''].concat(CELLS).map(function(v){return{v:v,l:v||'Todas'};})],
+['Turno',fShift,setFShift,[{v:'',l:'Todos'},{v:'3t',l:'3° Turno'},{v:'1t',l:'1° Turno'},{v:'2t',l:'2° Turno'}]],
+['Período',fPeriod,setFPeriod,[{v:'',l:'Todos'}].concat([0,1,2,3,4,5,6,7].map(function(x){return{v:String(x),l:(x+1)+'ª hora'};})
+)],
+['Mês',fMonth,setFMonth,[{v:'',l:'Todos'}].concat(months.map(function(m){return{v:m,l:m};}))],
+['Ano',fYear,setFYear,[{v:'',l:'Todos'}].concat(years.map(function(y){return{v:y,l:y};}))]
+].map(function(arr){var lbl=arr[0],val=arr[1],setter=arr[2],opts=arr[3];
+return React.createElement('div',{key:lbl},
+React.createElement('div',{style:{color:'#555',fontSize:10,fontWeight:700,marginBottom:3,textTransform:'uppercase'}},lbl),
+React.createElement('select',{value:val,onChange:function(e){setter(e.target.value);},style:{width:'100%',background:'#161616',border:'1px solid #333',borderRadius:8,padding:'8px 10px',color:'#fff',fontSize:13,outline:'none'}},
+opts.map(function(o){return React.createElement('option',{key:o.v,value:o.v},o.l);})));})),
+React.createElement('div',{style:{color:'#444',fontSize:11,marginBottom:8}},filtered.length+' registro(s)'),
+React.createElement('div',{style:{display:'flex',flexDirection:'column',gap:6}},
+filtered.slice(0,100).map(function(r,i){
+return React.createElement('div',{key:i,style:{background:'#141414',borderRadius:10,padding:'10px 14px',border:'1px solid '+(r.efic!==null?sc(r.efic):'#222')}},
+React.createElement('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:r.just?6:0}},
+React.createElement('div',null,
+React.createElement('span',{style:{color:'#fff',fontWeight:700,fontSize:13}},r.cell),
+React.createElement('span',{style:{color:'#444',fontSize:11,marginLeft:8}},r.date+' · '+r.shiftLbl)),
+React.createElement('div',{style:{textAlign:'right'}},
+React.createElement('div',{style:{color:r.efic!==null?sc(r.efic):'#444',fontWeight:700,fontSize:13}},r.real!==null?r.real.toLocaleString():'—',React.createElement('span',{style:{color:'#333',fontSize:10}},'/'+r.meta)),
+r.efic!==null&&React.createElement('div',{style:{color:sc(r.efic),fontSize:10,fontWeight:700}},(r.efic*100).toFixed(0)+'%'))),
+React.createElement('div',{style:{color:'#555',fontSize:10,marginBottom:r.just?4:0}},r.periodLbl),
+r.just&&React.createElement('div',{style:{color:'#ff9800',fontSize:12,borderTop:'1px solid #222',paddingTop:6,marginTop:4}},'📝 '+r.just));}),
+filtered.length>100&&React.createElement('div',{style:{color:'#444',fontSize:11,textAlign:'center',padding:8}},'Mostrando 100 de '+filtered.length+'. Refine os filtros.')));
 
-    const root = ReactDOM.createRoot(document.getElementById('root'));
-    root.render(React.createElement(App));
-  </script>
+return React.createElement('div',{style:{padding:16}},
+React.createElement('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:14}},
+React.createElement('div',{style:{color:'#fff',fontWeight:700,fontSize:18}},'Histórico'),
+React.createElement('div',{style:{display:'flex',gap:8}},
+history.length>0&&React.createElement('button',{onClick:function(){setView('log');},style:{background:'#252525',border:'none',color:'#fff',borderRadius:8,padding:'8px 12px',cursor:'pointer',fontSize:12,fontWeight:600}},'🔍 Log'),
+history.length>0&&React.createElement('button',{onClick:exportExcel,style:{background:'#276221',border:'none',color:'#fff',borderRadius:8,padding:'8px 12px',cursor:'pointer',fontSize:12,fontWeight:700}},'📥 Excel'))),
+!history.length&&React.createElement('div',{style:{color:'#444',textAlign:'center',marginTop:40,fontSize:15}},'Nenhum turno encerrado ainda.'),
+history.map(function(s,i){
+var mts=allMetas(s,catalog);
+var tM=CELLS.reduce(function(a,c){return(mts[c]||[]).reduce(function(x,y){return x+y;},0)+a;},0);
+var tR=CELLS.reduce(function(a,c){return((s.reals&&s.reals[c])||[]).reduce(function(x,r){return x+(r===''?0:Number(r));},0)+a;},0);
+var ef=tM>0?tR/tM:null;
+var hasJust=s.justificativas&&Object.values(s.justificativas).some(function(pj){return Object.keys(pj).length>0;});
+return React.createElement('button',{key:i,onClick:function(){setSel(i);setView('detail');},style:{display:'flex',alignItems:'center',gap:12,background:'#141414',border:'1px solid #1e1e1e',borderRadius:12,padding:'14px 16px',cursor:'pointer',textAlign:'left',width:'100%',marginBottom:8}},
+React.createElement('div',{style:{flex:1}},
+React.createElement('div',{style:{color:'#fff',fontWeight:700}},(SHIFTS[s.shiftKey]&&SHIFTS[s.shiftKey].label)+' · '+s.date),
+React.createElement('div',{style:{color:'#333',fontSize:11,marginTop:2}},'Meta:'+tM.toLocaleString()+' · Real:'+tR.toLocaleString()+(hasJust?' · 📝':''))),
+React.createElement('div',{style:{textAlign:'right'}},
+React.createElement('div',{style:{color:sc(ef),fontWeight:800,fontSize:16}},ef!==null?(ef*100).toFixed(1)+'%':'—'),
+React.createElement('div',{style:{fontSize:14}},sl(ef))));}));
+}
+
+try{
+var container=document.getElementById('root');
+var root=ReactDOM.createRoot(container);
+root.render(React.createElement(App));
+}catch(err){
+document.getElementById('root').innerHTML='<div style="color:#f44336;padding:20px;font-family:sans-serif">Erro: '+err.message+'</div>';
+}
+</script>
 </body>
 </html>
