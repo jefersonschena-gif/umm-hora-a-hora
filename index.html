@@ -16,629 +16,4181 @@ select option{background:#222;color:#fff}
 </head>
 <body>
 <div id="root"><div style="color:#fff;padding:40px;text-align:center;font-family:sans-serif;font-size:16px">Carregando...</div></div>
+
 <script src="https://cdn.jsdelivr.net/npm/react@18.2.0/umd/react.production.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/react-dom@18.2.0/umd/react-dom.production.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
 <script>
-var storage={get:async function(k){try{var v=localStorage.getItem(k);return v?{value:v}:null;}catch(e){return null;}},set:async function(k,v){try{localStorage.setItem(k,String(v));return{key:k,value:v};}catch(e){return null;}}};
+var storage={
+  get:async function(k){try{var v=localStorage.getItem(k);return v?{value:v}:null;}catch(e){return null;}},
+  set:async function(k,v){try{localStorage.setItem(k,String(v));return{key:k,value:v};}catch(e){return null;}}
+};
 window._XLSX=window.XLSX;
-var useState=React.useState,useEffect=React.useEffect,useCallback=React.useCallback,useRef=React.useRef;
+var useState=React.useState;
+var useEffect=React.useEffect;
+var useCallback=React.useCallback;
+var useRef=React.useRef;
 </script>
+
 <script>
 "use strict";
 var XLSX=window._XLSX;
-function _typeof(o){return typeof o;}
-function _objectSpread(e){for(var r=1;r<arguments.length;r++){var t=null!=arguments[r]?arguments[r]:{};r%2?Object.keys(Object(t)).forEach(function(r){_defineProperty(e,r,t[r]);}):Object.getOwnPropertyDescriptors?Object.defineProperties(e,Object.getOwnPropertyDescriptors(t)):Object.keys(Object(t)).forEach(function(r){Object.defineProperty(e,r,Object.getOwnPropertyDescriptor(t,r));});}return e;}
-function _defineProperty(e,r,t){return r in e?Object.defineProperty(e,r,{value:t,enumerable:!0,configurable:!0,writable:!0}):e[r]=t,e;}
-function _toConsumableArray(r){return Array.isArray(r)?r.slice():Array.from(r);}
-function _slicedToArray(r,e){return Array.isArray(r)?r:Array.from(r);}
-function _asyncToGenerator(fn){return function(){var self=this,args=arguments;return new Promise(function(resolve,reject){var gen=fn.apply(self,args);function step(key,arg){try{var info=gen[key](arg),value=info.value;}catch(e){reject(e);return;}info.done?resolve(value):Promise.resolve(value).then(function(v){step("next",v);},function(v){step("throw",v);});}step("next");});};}
+"use strict";
 
-var CATALOG_BASE=[{"id":"10239440","caps":{"C18":70}},{"id":"10239928","caps":{"C23":130}},{"id":"10239932","caps":{"C23":130}},{"id":"10333268","caps":{"C16":142,"C17":142}},{"id":"10333270","caps":{"C16":142}},{"id":"10356878","caps":{"C23":130}},{"id":"10356879","caps":{"C23":130}},{"id":"10356885","caps":{"C16":142,"C17":142}},{"id":"10363369","caps":{"C23":100,"C26":100}},{"id":"10363370","caps":{"C26":100}},{"id":"10363371","caps":{"C26":100}},{"id":"10414784","caps":{"C23":130}},{"id":"10421679","caps":{"C16":142,"C17":142}},{"id":"10423304","caps":{"C16":142}},{"id":"10457663","caps":{"C23":130}},{"id":"10457665","caps":{"C16":142,"C23":138}},{"id":"10457675","caps":{"C16":142,"C23":138}},{"id":"10457681","caps":{"C16":142,"C23":138}},{"id":"10457683","caps":{}},{"id":"10459147","caps":{"C16":142,"C17":142}},{"id":"10459151","caps":{"C16":142}},{"id":"10461184","caps":{"C23":130}},{"id":"10461185","caps":{"C23":120}},{"id":"10463686","caps":{"C16":142,"C17":142}},{"id":"10463687","caps":{"C16":142}},{"id":"10463688","caps":{"C16":142,"C17":142}},{"id":"10463689","caps":{"C16":142,"C17":142}},{"id":"10463690","caps":{"C16":142}},{"id":"10463691","caps":{"C16":142}},{"id":"10464003","caps":{"C16":142,"C17":142}},{"id":"10464004","caps":{"C16":142}},{"id":"10464009","caps":{"C16":142,"C17":142}},{"id":"10464010","caps":{"C16":142}},{"id":"10476179","caps":{"C23":130}},{"id":"10476180","caps":{"C23":120}},{"id":"10489649","caps":{"C23":130}},{"id":"10489650","caps":{"C23":120}},{"id":"10502230","caps":{"C23":130}},{"id":"10517769","caps":{"C23":120}},{"id":"10517771","caps":{"C23":120}},{"id":"10524642","caps":{"C16":142,"C17":142}},{"id":"10524644","caps":{"C16":142}},{"id":"10526442","caps":{}},{"id":"10526444","caps":{}},{"id":"10529875","caps":{"C23":138,"C27":107}},{"id":"10529876","caps":{"C23":138,"C27":107}},{"id":"20003016","caps":{"C16":142,"C17":142}},{"id":"20003018","caps":{"C16":142}},{"id":"10553891","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10553881","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10553895","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10553893","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10553875","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10553889","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10394851","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10553883","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10420996","caps":{}},{"id":"10432915","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10432917","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10432919","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10432921","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10432923","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10432925","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10432927","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10432931","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10432933","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10432935","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10432937","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10453968","caps":{"C22":106,"C24":111,"C25":111}},{"id":"10453970","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10453972","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10453974","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10457939","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10457941","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10523131","caps":{}},{"id":"10523161","caps":{"C19":70}},{"id":"10533873","caps":{}},{"id":"10535217","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10535219","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10535221","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10535223","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10535225","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10535227","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10535229","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10535231","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10535237","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10535239","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10535251","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10535253","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10553877","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10553879","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10553885","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10553887","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10553899","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10432919-E","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10432921-E","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10432931-E","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10432933-E","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10432935-E","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10432937-E","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10452931-E","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10452933-E","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10535213-E","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10535215-E","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10535225-E","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10535227-E","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10535229-E","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10535231-E","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10553897","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10322924","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10322925","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10324075","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10324879","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10327634","caps":{"C22":106,"C24":106,"C25":106}},{"id":"10358836","caps":{"C19":100}},{"id":"10358839","caps":{"C19":100}},{"id":"10448319","caps":{"C19":100}},{"id":"10458581","caps":{"C23":100,"C26":100}},{"id":"10497457","caps":{"C19":100}},{"id":"10536719","caps":{"C26":100}},{"id":"10536721","caps":{"C26":100}},{"id":"10536951","caps":{"C26":100}},{"id":"10536953","caps":{"C26":100}},{"id":"10358400","caps":{"C27":106}},{"id":"10358407","caps":{"C27":106}},{"id":"10358408","caps":{"C27":106}},{"id":"10390100","caps":{"C27":106}},{"id":"10516378","caps":{"C27":92}},{"id":"10516380","caps":{"C27":87}},{"id":"20009488","caps":{"C26":106}},{"id":"10494539-E","caps":{"C16":142,"C17":142}},{"id":"10494537","caps":{"C17":142}},{"id":"10494538","caps":{"C16":142}},{"id":"10494539","caps":{"C16":142,"C17":142}},{"id":"10494540","caps":{"C16":142}},{"id":"10507197","caps":{"C21":92}},{"id":"10507199","caps":{"C21":92}},{"id":"10514266","caps":{"C21":92}},{"id":"10514268","caps":{"C21":92}},{"id":"10526447","caps":{"C17":142}},{"id":"10526449","caps":{"C16":142}},{"id":"10526457","caps":{"C21":92}},{"id":"10526458","caps":{"C21":92}},{"id":"10548231","caps":{"C16":142}},{"id":"10548233","caps":{"C16":142,"C17":142}},{"id":"10548235","caps":{"C16":142}},{"id":"10548239","caps":{"C16":142}},{"id":"10514266-E","caps":{"C21":92}},{"id":"10514268-E","caps":{"C21":92}},{"id":"10548225","caps":{"C16":142,"C17":142}},{"id":"10548227","caps":{"C16":142}},{"id":"10279274","caps":{"C21":96}},{"id":"10318522","caps":{"C21":96}},{"id":"10333685","caps":{"C21":96}},{"id":"10507962","caps":{"C21":96}},{"id":"10507964","caps":{"C21":96}},{"id":"10510140","caps":{"C21":96}},{"id":"10510142","caps":{"C21":96}},{"id":"10510496","caps":{"C21":96}},{"id":"10510498","caps":{"C21":96}},{"id":"10520621","caps":{"C27":92}},{"id":"10520623","caps":{"C27":92}},{"id":"10557731","caps":{"C16":142,"C17":142}},{"id":"20010453","caps":{"C21":92}},{"id":"20010458","caps":{"C21":92}},{"id":"20015005","caps":{"C21":92}},{"id":"20015007","caps":{"C21":92}},{"id":"10520621-E","caps":{"C27":92}},{"id":"20015005-E","caps":{"C21":92}},{"id":"20015007-E","caps":{"C21":92}},{"id":"10407936","caps":{"C25":106}},{"id":"10504956","caps":{"C14":99}},{"id":"10521463","caps":{"C11":85}},{"id":"10521465","caps":{"C11":85}},{"id":"10532343","caps":{"C11":100,"C22":100}},{"id":"10532345","caps":{"C11":94,"C22":94}},{"id":"10532349","caps":{"C11":100,"C22":100}},{"id":"10532351","caps":{"C11":94,"C22":94}},{"id":"10532355","caps":{"C11":100,"C22":100}},{"id":"10532357","caps":{"C11":94,"C22":94}},{"id":"10532361","caps":{"C11":100,"C22":100}},{"id":"10532363","caps":{"C11":94,"C22":94}},{"id":"10544719","caps":{"C11":85}},{"id":"10544721","caps":{"C11":85}},{"id":"20000987","caps":{"C14":99}},{"id":"20008027","caps":{"C14":85,"C25":107}},{"id":"20008039","caps":{"C14":85,"C25":107}},{"id":"10532355-R","caps":{"C14":100}},{"id":"10532361-R","caps":{"C14":100}},{"id":"10366109","caps":{"C18":113,"C20":120}},{"id":"10366110","caps":{"C18":113,"C20":120}},{"id":"10393568","caps":{"C25":106,"C26":106,"C27":106}},{"id":"10473250","caps":{"C18":70}},{"id":"10488933","caps":{"C25":112,"C26":112,"C27":112}},{"id":"10488934","caps":{"C13":106,"C25":106,"C26":106,"C27":106}},{"id":"10509485","caps":{"C20":60}},{"id":"10518900","caps":{"C25":112,"C26":112,"C27":112}},{"id":"10518902","caps":{"C25":106,"C26":106,"C27":106}},{"id":"10534118","caps":{"C13":112,"C25":112,"C26":112,"C27":112}},{"id":"10534267","caps":{"C13":106,"C25":106,"C26":106,"C27":106}},{"id":"20005544","caps":{"C26":112,"C27":112}},{"id":"20005548","caps":{"C26":106,"C27":106}},{"id":"20005552","caps":{"C13":112,"C25":112,"C26":112,"C27":112}},{"id":"20005555","caps":{"C27":106}},{"id":"20005588","caps":{"C20":120}},{"id":"20005591","caps":{"C20":120}},{"id":"20011576","caps":{"C13":112,"C25":112,"C26":112,"C27":112}},{"id":"20012534","caps":{"C20":60}},{"id":"20012542","caps":{"C26":112,"C27":112}},{"id":"20012545","caps":{"C26":112,"C27":112}},{"id":"10393568-1","caps":{"C13":106,"C25":106,"C26":106,"C27":106}},{"id":"20011576-1","caps":{"C13":112,"C25":112,"C26":112,"C27":112}}];
-
-var CELLS=['C11','C13','C14','C15','C16','C17','C18','C19','C20','C21','C22','C23','C24','C25','C26','C27'];
-var R='#CC0000';
-var SHIFTS={
-'3t':{label:'3° Turno',start:'23:00',end:'06:35',startMin:1380,totalMins:455,periods:[
-{id:0,lbl:'23:00 → 00:00',s:0,e:60,pm:60,ev:'📋'},{id:1,lbl:'00:00 → 01:00',s:60,e:120,pm:60,ev:''},
-{id:2,lbl:'01:00 → 02:00',s:120,e:180,pm:60,ev:'🤝'},{id:3,lbl:'02:00 → 03:00',s:180,e:240,pm:30,ev:'🍽️'},
-{id:4,lbl:'03:00 → 04:00',s:240,e:300,pm:42,ev:'🍽️',refCont:true},{id:5,lbl:'04:00 → 05:00',s:300,e:360,pm:60,ev:''},
-{id:6,lbl:'05:00 → 06:00',s:360,e:420,pm:60,ev:'🤸'},{id:7,lbl:'06:00 → 06:35',s:420,e:455,pm:35,ev:'🧹'}]},
-'1t':{label:'1° Turno',start:'06:35',end:'14:56',startMin:395,totalMins:501,periods:[
-{id:0,lbl:'06:35 → 08:00',s:0,e:85,pm:85,ev:'📋'},{id:1,lbl:'08:00 → 09:00',s:85,e:145,pm:60,ev:''},
-{id:2,lbl:'09:00 → 10:00',s:145,e:205,pm:60,ev:'🤝'},{id:3,lbl:'10:00 → 11:00',s:205,e:265,pm:60,ev:''},
-{id:4,lbl:'11:00 → 12:00',s:265,e:325,pm:30,ev:'🍽️'},{id:5,lbl:'12:00 → 13:00',s:325,e:385,pm:50,ev:'🍽️',refCont:true},
-{id:6,lbl:'13:00 → 14:00',s:385,e:445,pm:60,ev:'🤸'},{id:7,lbl:'14:00 → 14:56',s:445,e:501,pm:56,ev:'🧹'}]},
-'2t':{label:'2° Turno',start:'14:56',end:'23:00',startMin:896,totalMins:484,periods:[
-{id:0,lbl:'14:56 → 16:00',s:0,e:64,pm:64,ev:'📋'},{id:1,lbl:'16:00 → 17:00',s:64,e:124,pm:60,ev:''},
-{id:2,lbl:'17:00 → 18:00',s:124,e:184,pm:60,ev:'🤝'},{id:3,lbl:'18:00 → 19:00',s:184,e:244,pm:60,ev:''},
-{id:4,lbl:'19:00 → 20:00',s:244,e:304,pm:60,ev:''},{id:5,lbl:'20:00 → 21:00',s:304,e:364,pm:20,ev:'🍽️'},
-{id:6,lbl:'21:00 → 22:00',s:364,e:424,pm:60,ev:'🤸'},{id:7,lbl:'22:00 → 23:00',s:424,e:484,pm:60,ev:'🧹'}]}
+function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
+function ownKeys(e, r) { var t = Object.keys(e); if (Object.getOwnPropertySymbols) { var o = Object.getOwnPropertySymbols(e); r && (o = o.filter(function (r) { return Object.getOwnPropertyDescriptor(e, r).enumerable; })), t.push.apply(t, o); } return t; }
+function _objectSpread(e) { for (var r = 1; r < arguments.length; r++) { var t = null != arguments[r] ? arguments[r] : {}; r % 2 ? ownKeys(Object(t), !0).forEach(function (r) { _defineProperty(e, r, t[r]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(e, Object.getOwnPropertyDescriptors(t)) : ownKeys(Object(t)).forEach(function (r) { Object.defineProperty(e, r, Object.getOwnPropertyDescriptor(t, r)); }); } return e; }
+function _defineProperty(e, r, t) { return (r = _toPropertyKey(r)) in e ? Object.defineProperty(e, r, { value: t, enumerable: !0, configurable: !0, writable: !0 }) : e[r] = t, e; }
+function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" == _typeof(i) ? i : i + ""; }
+function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != _typeof(i)) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
+function _toConsumableArray(r) { return _arrayWithoutHoles(r) || _iterableToArray(r) || _unsupportedIterableToArray(r) || _nonIterableSpread(); }
+function _nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
+function _iterableToArray(r) { if ("undefined" != typeof Symbol && null != r[Symbol.iterator] || null != r["@@iterator"]) return Array.from(r); }
+function _arrayWithoutHoles(r) { if (Array.isArray(r)) return _arrayLikeToArray(r); }
+function _regenerator() { /*! regenerator-runtime -- Copyright (c) 2014-present, Facebook, Inc. -- license (MIT): https://github.com/babel/babel/blob/main/packages/babel-helpers/LICENSE */ var e, t, r = "function" == typeof Symbol ? Symbol : {}, n = r.iterator || "@@iterator", o = r.toStringTag || "@@toStringTag"; function i(r, n, o, i) { var c = n && n.prototype instanceof Generator ? n : Generator, u = Object.create(c.prototype); return _regeneratorDefine2(u, "_invoke", function (r, n, o) { var i, c, u, f = 0, p = o || [], y = !1, G = { p: 0, n: 0, v: e, a: d, f: d.bind(e, 4), d: function d(t, r) { return i = t, c = 0, u = e, G.n = r, a; } }; function d(r, n) { for (c = r, u = n, t = 0; !y && f && !o && t < p.length; t++) { var o, i = p[t], d = G.p, l = i[2]; r > 3 ? (o = l === n) && (u = i[(c = i[4]) ? 5 : (c = 3, 3)], i[4] = i[5] = e) : i[0] <= d && ((o = r < 2 && d < i[1]) ? (c = 0, G.v = n, G.n = i[1]) : d < l && (o = r < 3 || i[0] > n || n > l) && (i[4] = r, i[5] = n, G.n = l, c = 0)); } if (o || r > 1) return a; throw y = !0, n; } return function (o, p, l) { if (f > 1) throw TypeError("Generator is already running"); for (y && 1 === p && d(p, l), c = p, u = l; (t = c < 2 ? e : u) || !y;) { i || (c ? c < 3 ? (c > 1 && (G.n = -1), d(c, u)) : G.n = u : G.v = u); try { if (f = 2, i) { if (c || (o = "next"), t = i[o]) { if (!(t = t.call(i, u))) throw TypeError("iterator result is not an object"); if (!t.done) return t; u = t.value, c < 2 && (c = 0); } else 1 === c && (t = i.return) && t.call(i), c < 2 && (u = TypeError("The iterator does not provide a '" + o + "' method"), c = 1); i = e; } else if ((t = (y = G.n < 0) ? u : r.call(n, G)) !== a) break; } catch (t) { i = e, c = 1, u = t; } finally { f = 1; } } return { value: t, done: y }; }; }(r, o, i), !0), u; } var a = {}; function Generator() {} function GeneratorFunction() {} function GeneratorFunctionPrototype() {} t = Object.getPrototypeOf; var c = [][n] ? t(t([][n]())) : (_regeneratorDefine2(t = {}, n, function () { return this; }), t), u = GeneratorFunctionPrototype.prototype = Generator.prototype = Object.create(c); function f(e) { return Object.setPrototypeOf ? Object.setPrototypeOf(e, GeneratorFunctionPrototype) : (e.__proto__ = GeneratorFunctionPrototype, _regeneratorDefine2(e, o, "GeneratorFunction")), e.prototype = Object.create(u), e; } return GeneratorFunction.prototype = GeneratorFunctionPrototype, _regeneratorDefine2(u, "constructor", GeneratorFunctionPrototype), _regeneratorDefine2(GeneratorFunctionPrototype, "constructor", GeneratorFunction), GeneratorFunction.displayName = "GeneratorFunction", _regeneratorDefine2(GeneratorFunctionPrototype, o, "GeneratorFunction"), _regeneratorDefine2(u), _regeneratorDefine2(u, o, "Generator"), _regeneratorDefine2(u, n, function () { return this; }), _regeneratorDefine2(u, "toString", function () { return "[object Generator]"; }), (_regenerator = function _regenerator() { return { w: i, m: f }; })(); }
+function _regeneratorDefine2(e, r, n, t) { var i = Object.defineProperty; try { i({}, "", {}); } catch (e) { i = 0; } _regeneratorDefine2 = function _regeneratorDefine(e, r, n, t) { function o(r, n) { _regeneratorDefine2(e, r, function (e) { return this._invoke(r, n, e); }); } r ? i ? i(e, r, { value: n, enumerable: !t, configurable: !t, writable: !t }) : e[r] = n : (o("next", 0), o("throw", 1), o("return", 2)); }, _regeneratorDefine2(e, r, n, t); }
+function asyncGeneratorStep(n, t, e, r, o, a, c) { try { var i = n[a](c), u = i.value; } catch (n) { return void e(n); } i.done ? t(u) : Promise.resolve(u).then(r, o); }
+function _asyncToGenerator(n) { return function () { var t = this, e = arguments; return new Promise(function (r, o) { var a = n.apply(t, e); function _next(n) { asyncGeneratorStep(a, r, o, _next, _throw, "next", n); } function _throw(n) { asyncGeneratorStep(a, r, o, _next, _throw, "throw", n); } _next(void 0); }); }; }
+function _slicedToArray(r, e) { return _arrayWithHoles(r) || _iterableToArrayLimit(r, e) || _unsupportedIterableToArray(r, e) || _nonIterableRest(); }
+function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
+function _unsupportedIterableToArray(r, a) { if (r) { if ("string" == typeof r) return _arrayLikeToArray(r, a); var t = {}.toString.call(r).slice(8, -1); return "Object" === t && r.constructor && (t = r.constructor.name), "Map" === t || "Set" === t ? Array.from(r) : "Arguments" === t || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t) ? _arrayLikeToArray(r, a) : void 0; } }
+function _arrayLikeToArray(r, a) { (null == a || a > r.length) && (a = r.length); for (var e = 0, n = Array(a); e < a; e++) n[e] = r[e]; return n; }
+function _iterableToArrayLimit(r, l) { var t = null == r ? null : "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (null != t) { var e, n, i, u, a = [], f = !0, o = !1; try { if (i = (t = t.call(r)).next, 0 === l) { if (Object(t) !== t) return; f = !1; } else for (; !(f = (e = i.call(t)).done) && (a.push(e.value), a.length !== l); f = !0); } catch (r) { o = !0, n = r; } finally { try { if (!f && null != t.return && (u = t.return(), Object(u) !== u)) return; } finally { if (o) throw n; } } return a; } }
+function _arrayWithHoles(r) { if (Array.isArray(r)) return r; }
+var CATALOG_BASE = [{
+  "id": "10239440",
+  "caps": {
+    "C18": 70
+  }
+}, {
+  "id": "10239928",
+  "caps": {
+    "C23": 130
+  }
+}, {
+  "id": "10239932",
+  "caps": {
+    "C23": 130
+  }
+}, {
+  "id": "10333268",
+  "caps": {
+    "C16": 142,
+    "C17": 142
+  }
+}, {
+  "id": "10333270",
+  "caps": {
+    "C16": 142
+  }
+}, {
+  "id": "10356878",
+  "caps": {
+    "C23": 130
+  }
+}, {
+  "id": "10356879",
+  "caps": {
+    "C23": 130
+  }
+}, {
+  "id": "10356885",
+  "caps": {
+    "C16": 142,
+    "C17": 142
+  }
+}, {
+  "id": "10363369",
+  "caps": {
+    "C23": 100,
+    "C26": 100
+  }
+}, {
+  "id": "10363370",
+  "caps": {
+    "C26": 100
+  }
+}, {
+  "id": "10363371",
+  "caps": {
+    "C26": 100
+  }
+}, {
+  "id": "10414784",
+  "caps": {
+    "C23": 130
+  }
+}, {
+  "id": "10421679",
+  "caps": {
+    "C16": 142,
+    "C17": 142
+  }
+}, {
+  "id": "10423304",
+  "caps": {
+    "C16": 142
+  }
+}, {
+  "id": "10457663",
+  "caps": {
+    "C23": 130
+  }
+}, {
+  "id": "10457665",
+  "caps": {
+    "C16": 142,
+    "C23": 138
+  }
+}, {
+  "id": "10457675",
+  "caps": {
+    "C16": 142,
+    "C23": 138
+  }
+}, {
+  "id": "10457681",
+  "caps": {
+    "C16": 142,
+    "C23": 138
+  }
+}, {
+  "id": "10457683",
+  "caps": {}
+}, {
+  "id": "10459147",
+  "caps": {
+    "C16": 142,
+    "C17": 142
+  }
+}, {
+  "id": "10459151",
+  "caps": {
+    "C16": 142
+  }
+}, {
+  "id": "10461184",
+  "caps": {
+    "C23": 130
+  }
+}, {
+  "id": "10461185",
+  "caps": {
+    "C23": 120
+  }
+}, {
+  "id": "10463686",
+  "caps": {
+    "C16": 142,
+    "C17": 142
+  }
+}, {
+  "id": "10463687",
+  "caps": {
+    "C16": 142
+  }
+}, {
+  "id": "10463688",
+  "caps": {
+    "C16": 142,
+    "C17": 142
+  }
+}, {
+  "id": "10463689",
+  "caps": {
+    "C16": 142,
+    "C17": 142
+  }
+}, {
+  "id": "10463690",
+  "caps": {
+    "C16": 142
+  }
+}, {
+  "id": "10463691",
+  "caps": {
+    "C16": 142
+  }
+}, {
+  "id": "10464003",
+  "caps": {
+    "C16": 142,
+    "C17": 142
+  }
+}, {
+  "id": "10464004",
+  "caps": {
+    "C16": 142
+  }
+}, {
+  "id": "10464009",
+  "caps": {
+    "C16": 142,
+    "C17": 142
+  }
+}, {
+  "id": "10464010",
+  "caps": {
+    "C16": 142
+  }
+}, {
+  "id": "10476179",
+  "caps": {
+    "C23": 130
+  }
+}, {
+  "id": "10476180",
+  "caps": {
+    "C23": 120
+  }
+}, {
+  "id": "10489649",
+  "caps": {
+    "C23": 130
+  }
+}, {
+  "id": "10489650",
+  "caps": {
+    "C23": 120
+  }
+}, {
+  "id": "10502230",
+  "caps": {
+    "C23": 130
+  }
+}, {
+  "id": "10517769",
+  "caps": {
+    "C23": 120
+  }
+}, {
+  "id": "10517771",
+  "caps": {
+    "C23": 120
+  }
+}, {
+  "id": "10524642",
+  "caps": {
+    "C16": 142,
+    "C17": 142
+  }
+}, {
+  "id": "10524644",
+  "caps": {
+    "C16": 142
+  }
+}, {
+  "id": "10526442",
+  "caps": {}
+}, {
+  "id": "10526444",
+  "caps": {}
+}, {
+  "id": "10529875",
+  "caps": {
+    "C23": 138,
+    "C27": 107
+  }
+}, {
+  "id": "10529876",
+  "caps": {
+    "C23": 138,
+    "C27": 107
+  }
+}, {
+  "id": "20003016",
+  "caps": {
+    "C16": 142,
+    "C17": 142
+  }
+}, {
+  "id": "20003018",
+  "caps": {
+    "C16": 142
+  }
+}, {
+  "id": "10553891",
+  "caps": {
+    "C22": 106,
+    "C24": 106,
+    "C25": 106
+  }
+}, {
+  "id": "10553881",
+  "caps": {
+    "C22": 106,
+    "C24": 106,
+    "C25": 106
+  }
+}, {
+  "id": "10553895",
+  "caps": {
+    "C22": 106,
+    "C24": 106,
+    "C25": 106
+  }
+}, {
+  "id": "10553893",
+  "caps": {
+    "C22": 106,
+    "C24": 106,
+    "C25": 106
+  }
+}, {
+  "id": "10553875",
+  "caps": {
+    "C22": 106,
+    "C24": 106,
+    "C25": 106
+  }
+}, {
+  "id": "10553889",
+  "caps": {
+    "C22": 106,
+    "C24": 106,
+    "C25": 106
+  }
+}, {
+  "id": "10394851",
+  "caps": {
+    "C22": 106,
+    "C24": 106,
+    "C25": 106
+  }
+}, {
+  "id": "10553883",
+  "caps": {
+    "C22": 106,
+    "C24": 106,
+    "C25": 106
+  }
+}, {
+  "id": "10420996",
+  "caps": {}
+}, {
+  "id": "10432915",
+  "caps": {
+    "C22": 106,
+    "C24": 106,
+    "C25": 106
+  }
+}, {
+  "id": "10432917",
+  "caps": {
+    "C22": 106,
+    "C24": 106,
+    "C25": 106
+  }
+}, {
+  "id": "10432919",
+  "caps": {
+    "C22": 106,
+    "C24": 106,
+    "C25": 106
+  }
+}, {
+  "id": "10432921",
+  "caps": {
+    "C22": 106,
+    "C24": 106,
+    "C25": 106
+  }
+}, {
+  "id": "10432923",
+  "caps": {
+    "C22": 106,
+    "C24": 106,
+    "C25": 106
+  }
+}, {
+  "id": "10432925",
+  "caps": {
+    "C22": 106,
+    "C24": 106,
+    "C25": 106
+  }
+}, {
+  "id": "10432927",
+  "caps": {
+    "C22": 106,
+    "C24": 106,
+    "C25": 106
+  }
+}, {
+  "id": "10432931",
+  "caps": {
+    "C22": 106,
+    "C24": 106,
+    "C25": 106
+  }
+}, {
+  "id": "10432933",
+  "caps": {
+    "C22": 106,
+    "C24": 106,
+    "C25": 106
+  }
+}, {
+  "id": "10432935",
+  "caps": {
+    "C22": 106,
+    "C24": 106,
+    "C25": 106
+  }
+}, {
+  "id": "10432937",
+  "caps": {
+    "C22": 106,
+    "C24": 106,
+    "C25": 106
+  }
+}, {
+  "id": "10453968",
+  "caps": {
+    "C22": 106,
+    "C24": 111,
+    "C25": 111
+  }
+}, {
+  "id": "10453970",
+  "caps": {
+    "C22": 106,
+    "C24": 106,
+    "C25": 106
+  }
+}, {
+  "id": "10453972",
+  "caps": {
+    "C22": 106,
+    "C24": 106,
+    "C25": 106
+  }
+}, {
+  "id": "10453974",
+  "caps": {
+    "C22": 106,
+    "C24": 106,
+    "C25": 106
+  }
+}, {
+  "id": "10457939",
+  "caps": {
+    "C22": 106,
+    "C24": 106,
+    "C25": 106
+  }
+}, {
+  "id": "10457941",
+  "caps": {
+    "C22": 106,
+    "C24": 106,
+    "C25": 106
+  }
+}, {
+  "id": "10523131",
+  "caps": {}
+}, {
+  "id": "10523161",
+  "caps": {
+    "C19": 70
+  }
+}, {
+  "id": "10533873",
+  "caps": {}
+}, {
+  "id": "10535217",
+  "caps": {
+    "C22": 106,
+    "C24": 106,
+    "C25": 106
+  }
+}, {
+  "id": "10535219",
+  "caps": {
+    "C22": 106,
+    "C24": 106,
+    "C25": 106
+  }
+}, {
+  "id": "10535221",
+  "caps": {
+    "C22": 106,
+    "C24": 106,
+    "C25": 106
+  }
+}, {
+  "id": "10535223",
+  "caps": {
+    "C22": 106,
+    "C24": 106,
+    "C25": 106
+  }
+}, {
+  "id": "10535225",
+  "caps": {
+    "C22": 106,
+    "C24": 106,
+    "C25": 106
+  }
+}, {
+  "id": "10535227",
+  "caps": {
+    "C22": 106,
+    "C24": 106,
+    "C25": 106
+  }
+}, {
+  "id": "10535229",
+  "caps": {
+    "C22": 106,
+    "C24": 106,
+    "C25": 106
+  }
+}, {
+  "id": "10535231",
+  "caps": {
+    "C22": 106,
+    "C24": 106,
+    "C25": 106
+  }
+}, {
+  "id": "10535237",
+  "caps": {
+    "C22": 106,
+    "C24": 106,
+    "C25": 106
+  }
+}, {
+  "id": "10535239",
+  "caps": {
+    "C22": 106,
+    "C24": 106,
+    "C25": 106
+  }
+}, {
+  "id": "10535251",
+  "caps": {
+    "C22": 106,
+    "C24": 106,
+    "C25": 106
+  }
+}, {
+  "id": "10535253",
+  "caps": {
+    "C22": 106,
+    "C24": 106,
+    "C25": 106
+  }
+}, {
+  "id": "10553877",
+  "caps": {
+    "C22": 106,
+    "C24": 106,
+    "C25": 106
+  }
+}, {
+  "id": "10553879",
+  "caps": {
+    "C22": 106,
+    "C24": 106,
+    "C25": 106
+  }
+}, {
+  "id": "10553885",
+  "caps": {
+    "C22": 106,
+    "C24": 106,
+    "C25": 106
+  }
+}, {
+  "id": "10553887",
+  "caps": {
+    "C22": 106,
+    "C24": 106,
+    "C25": 106
+  }
+}, {
+  "id": "10553899",
+  "caps": {
+    "C22": 106,
+    "C24": 106,
+    "C25": 106
+  }
+}, {
+  "id": "10432919-E",
+  "caps": {
+    "C22": 106,
+    "C24": 106,
+    "C25": 106
+  }
+}, {
+  "id": "10432921-E",
+  "caps": {
+    "C22": 106,
+    "C24": 106,
+    "C25": 106
+  }
+}, {
+  "id": "10432931-E",
+  "caps": {
+    "C22": 106,
+    "C24": 106,
+    "C25": 106
+  }
+}, {
+  "id": "10432933-E",
+  "caps": {
+    "C22": 106,
+    "C24": 106,
+    "C25": 106
+  }
+}, {
+  "id": "10432935-E",
+  "caps": {
+    "C22": 106,
+    "C24": 106,
+    "C25": 106
+  }
+}, {
+  "id": "10432937-E",
+  "caps": {
+    "C22": 106,
+    "C24": 106,
+    "C25": 106
+  }
+}, {
+  "id": "10452931-E",
+  "caps": {
+    "C22": 106,
+    "C24": 106,
+    "C25": 106
+  }
+}, {
+  "id": "10452933-E",
+  "caps": {
+    "C22": 106,
+    "C24": 106,
+    "C25": 106
+  }
+}, {
+  "id": "10535213-E",
+  "caps": {
+    "C22": 106,
+    "C24": 106,
+    "C25": 106
+  }
+}, {
+  "id": "10535215-E",
+  "caps": {
+    "C22": 106,
+    "C24": 106,
+    "C25": 106
+  }
+}, {
+  "id": "10535225-E",
+  "caps": {
+    "C22": 106,
+    "C24": 106,
+    "C25": 106
+  }
+}, {
+  "id": "10535227-E",
+  "caps": {
+    "C22": 106,
+    "C24": 106,
+    "C25": 106
+  }
+}, {
+  "id": "10535229-E",
+  "caps": {
+    "C22": 106,
+    "C24": 106,
+    "C25": 106
+  }
+}, {
+  "id": "10535231-E",
+  "caps": {
+    "C22": 106,
+    "C24": 106,
+    "C25": 106
+  }
+}, {
+  "id": "10553897",
+  "caps": {
+    "C22": 106,
+    "C24": 106,
+    "C25": 106
+  }
+}, {
+  "id": "10322924",
+  "caps": {
+    "C22": 106,
+    "C24": 106,
+    "C25": 106
+  }
+}, {
+  "id": "10322925",
+  "caps": {
+    "C22": 106,
+    "C24": 106,
+    "C25": 106
+  }
+}, {
+  "id": "10324075",
+  "caps": {
+    "C22": 106,
+    "C24": 106,
+    "C25": 106
+  }
+}, {
+  "id": "10324879",
+  "caps": {
+    "C22": 106,
+    "C24": 106,
+    "C25": 106
+  }
+}, {
+  "id": "10327634",
+  "caps": {
+    "C22": 106,
+    "C24": 106,
+    "C25": 106
+  }
+}, {
+  "id": "10358836",
+  "caps": {
+    "C19": 100
+  }
+}, {
+  "id": "10358839",
+  "caps": {
+    "C19": 100
+  }
+}, {
+  "id": "10448319",
+  "caps": {
+    "C19": 100
+  }
+}, {
+  "id": "10458581",
+  "caps": {
+    "C23": 100,
+    "C26": 100
+  }
+}, {
+  "id": "10497457",
+  "caps": {
+    "C19": 100
+  }
+}, {
+  "id": "10536719",
+  "caps": {
+    "C26": 100
+  }
+}, {
+  "id": "10536721",
+  "caps": {
+    "C26": 100
+  }
+}, {
+  "id": "10536951",
+  "caps": {
+    "C26": 100
+  }
+}, {
+  "id": "10536953",
+  "caps": {
+    "C26": 100
+  }
+}, {
+  "id": "10358400",
+  "caps": {
+    "C27": 106
+  }
+}, {
+  "id": "10358407",
+  "caps": {
+    "C27": 106
+  }
+}, {
+  "id": "10358408",
+  "caps": {
+    "C27": 106
+  }
+}, {
+  "id": "10390100",
+  "caps": {
+    "C27": 106
+  }
+}, {
+  "id": "10516378",
+  "caps": {
+    "C27": 92
+  }
+}, {
+  "id": "10516380",
+  "caps": {
+    "C27": 87
+  }
+}, {
+  "id": "20009488",
+  "caps": {
+    "C26": 106
+  }
+}, {
+  "id": "10494539-E",
+  "caps": {
+    "C16": 142,
+    "C17": 142
+  }
+}, {
+  "id": "10494537",
+  "caps": {
+    "C17": 142
+  }
+}, {
+  "id": "10494538",
+  "caps": {
+    "C16": 142
+  }
+}, {
+  "id": "10494539",
+  "caps": {
+    "C16": 142,
+    "C17": 142
+  }
+}, {
+  "id": "10494540",
+  "caps": {
+    "C16": 142
+  }
+}, {
+  "id": "10507197",
+  "caps": {
+    "C21": 92
+  }
+}, {
+  "id": "10507199",
+  "caps": {
+    "C21": 92
+  }
+}, {
+  "id": "10514266",
+  "caps": {
+    "C21": 92
+  }
+}, {
+  "id": "10514268",
+  "caps": {
+    "C21": 92
+  }
+}, {
+  "id": "10526447",
+  "caps": {
+    "C17": 142
+  }
+}, {
+  "id": "10526449",
+  "caps": {
+    "C16": 142
+  }
+}, {
+  "id": "10526457",
+  "caps": {
+    "C21": 92
+  }
+}, {
+  "id": "10526458",
+  "caps": {
+    "C21": 92
+  }
+}, {
+  "id": "10548231",
+  "caps": {
+    "C16": 142
+  }
+}, {
+  "id": "10548233",
+  "caps": {
+    "C16": 142,
+    "C17": 142
+  }
+}, {
+  "id": "10548235",
+  "caps": {
+    "C16": 142
+  }
+}, {
+  "id": "10548239",
+  "caps": {
+    "C16": 142
+  }
+}, {
+  "id": "10514266-E",
+  "caps": {
+    "C21": 92
+  }
+}, {
+  "id": "10514268-E",
+  "caps": {
+    "C21": 92
+  }
+}, {
+  "id": "10548225",
+  "caps": {
+    "C16": 142,
+    "C17": 142
+  }
+}, {
+  "id": "10548227",
+  "caps": {
+    "C16": 142
+  }
+}, {
+  "id": "10279274",
+  "caps": {
+    "C21": 96
+  }
+}, {
+  "id": "10318522",
+  "caps": {
+    "C21": 96
+  }
+}, {
+  "id": "10333685",
+  "caps": {
+    "C21": 96
+  }
+}, {
+  "id": "10507962",
+  "caps": {
+    "C21": 96
+  }
+}, {
+  "id": "10507964",
+  "caps": {
+    "C21": 96
+  }
+}, {
+  "id": "10510140",
+  "caps": {
+    "C21": 96
+  }
+}, {
+  "id": "10510142",
+  "caps": {
+    "C21": 96
+  }
+}, {
+  "id": "10510496",
+  "caps": {
+    "C21": 96
+  }
+}, {
+  "id": "10510498",
+  "caps": {
+    "C21": 96
+  }
+}, {
+  "id": "10520621",
+  "caps": {
+    "C27": 92
+  }
+}, {
+  "id": "10520623",
+  "caps": {
+    "C27": 92
+  }
+}, {
+  "id": "10557731",
+  "caps": {
+    "C16": 142,
+    "C17": 142
+  }
+}, {
+  "id": "20010453",
+  "caps": {
+    "C21": 92
+  }
+}, {
+  "id": "20010458",
+  "caps": {
+    "C21": 92
+  }
+}, {
+  "id": "20015005",
+  "caps": {
+    "C21": 92
+  }
+}, {
+  "id": "20015007",
+  "caps": {
+    "C21": 92
+  }
+}, {
+  "id": "10520621-E",
+  "caps": {
+    "C27": 92
+  }
+}, {
+  "id": "20015005-E",
+  "caps": {
+    "C21": 92
+  }
+}, {
+  "id": "20015007-E",
+  "caps": {
+    "C21": 92
+  }
+}, {
+  "id": "10407936",
+  "caps": {
+    "C25": 106
+  }
+}, {
+  "id": "10504956",
+  "caps": {
+    "C14": 99
+  }
+}, {
+  "id": "10521463",
+  "caps": {
+    "C11": 85
+  }
+}, {
+  "id": "10521465",
+  "caps": {
+    "C11": 85
+  }
+}, {
+  "id": "10532343",
+  "caps": {
+    "C11": 100,
+    "C22": 100
+  }
+}, {
+  "id": "10532345",
+  "caps": {
+    "C11": 94,
+    "C22": 94
+  }
+}, {
+  "id": "10532349",
+  "caps": {
+    "C11": 100,
+    "C22": 100
+  }
+}, {
+  "id": "10532351",
+  "caps": {
+    "C11": 94,
+    "C22": 94
+  }
+}, {
+  "id": "10532355",
+  "caps": {
+    "C11": 100,
+    "C22": 100
+  }
+}, {
+  "id": "10532357",
+  "caps": {
+    "C11": 94,
+    "C22": 94
+  }
+}, {
+  "id": "10532361",
+  "caps": {
+    "C11": 100,
+    "C22": 100
+  }
+}, {
+  "id": "10532363",
+  "caps": {
+    "C11": 94,
+    "C22": 94
+  }
+}, {
+  "id": "10544719",
+  "caps": {
+    "C11": 85
+  }
+}, {
+  "id": "10544721",
+  "caps": {
+    "C11": 85
+  }
+}, {
+  "id": "20000987",
+  "caps": {
+    "C14": 99
+  }
+}, {
+  "id": "20008027",
+  "caps": {
+    "C14": 85,
+    "C25": 107
+  }
+}, {
+  "id": "20008039",
+  "caps": {
+    "C14": 85,
+    "C25": 107
+  }
+}, {
+  "id": "10532355-R",
+  "caps": {
+    "C14": 100
+  }
+}, {
+  "id": "10532361-R",
+  "caps": {
+    "C14": 100
+  }
+}, {
+  "id": "10366109",
+  "caps": {
+    "C18": 113,
+    "C20": 120
+  }
+}, {
+  "id": "10366110",
+  "caps": {
+    "C18": 113,
+    "C20": 120
+  }
+}, {
+  "id": "10393568",
+  "caps": {
+    "C25": 106,
+    "C26": 106,
+    "C27": 106
+  }
+}, {
+  "id": "10473250",
+  "caps": {
+    "C18": 70
+  }
+}, {
+  "id": "10488933",
+  "caps": {
+    "C25": 112,
+    "C26": 112,
+    "C27": 112
+  }
+}, {
+  "id": "10488934",
+  "caps": {
+    "C13": 106,
+    "C25": 106,
+    "C26": 106,
+    "C27": 106
+  }
+}, {
+  "id": "10509485",
+  "caps": {
+    "C20": 60
+  }
+}, {
+  "id": "10518900",
+  "caps": {
+    "C25": 112,
+    "C26": 112,
+    "C27": 112
+  }
+}, {
+  "id": "10518902",
+  "caps": {
+    "C25": 106,
+    "C26": 106,
+    "C27": 106
+  }
+}, {
+  "id": "10534118",
+  "caps": {
+    "C13": 112,
+    "C25": 112,
+    "C26": 112,
+    "C27": 112
+  }
+}, {
+  "id": "10534267",
+  "caps": {
+    "C13": 106,
+    "C25": 106,
+    "C26": 106,
+    "C27": 106
+  }
+}, {
+  "id": "20005544",
+  "caps": {
+    "C26": 112,
+    "C27": 112
+  }
+}, {
+  "id": "20005548",
+  "caps": {
+    "C26": 106,
+    "C27": 106
+  }
+}, {
+  "id": "20005552",
+  "caps": {
+    "C13": 112,
+    "C25": 112,
+    "C26": 112,
+    "C27": 112
+  }
+}, {
+  "id": "20005555",
+  "caps": {
+    "C27": 106
+  }
+}, {
+  "id": "20005588",
+  "caps": {
+    "C20": 120
+  }
+}, {
+  "id": "20005591",
+  "caps": {
+    "C20": 120
+  }
+}, {
+  "id": "20011576",
+  "caps": {
+    "C13": 112,
+    "C25": 112,
+    "C26": 112,
+    "C27": 112
+  }
+}, {
+  "id": "20012534",
+  "caps": {
+    "C20": 60
+  }
+}, {
+  "id": "20012542",
+  "caps": {
+    "C26": 112,
+    "C27": 112
+  }
+}, {
+  "id": "20012545",
+  "caps": {
+    "C26": 112,
+    "C27": 112
+  }
+}, {
+  "id": "10393568-1",
+  "caps": {
+    "C13": 106,
+    "C25": 106,
+    "C26": 106,
+    "C27": 106
+  }
+}, {
+  "id": "20011576-1",
+  "caps": {
+    "C13": 112,
+    "C25": 112,
+    "C26": 112,
+    "C27": 112
+  }
+}];
+var CELLS = ['C11', 'C13', 'C14', 'C15', 'C16', 'C17', 'C18', 'C19', 'C20', 'C21', 'C22', 'C23', 'C24', 'C25', 'C26', 'C27'];
+var R = '#CC0000';
+var SHIFTS = {
+  '3t': {
+    label: '3° Turno',
+    start: '23:00',
+    end: '06:35',
+    startMin: 1380,
+    totalMins: 455,
+    periods: [{
+      id: 0,
+      lbl: '23:00 → 00:00',
+      s: 0,
+      e: 60,
+      pm: 60,
+      ev: '📋'
+    }, {
+      id: 1,
+      lbl: '00:00 → 01:00',
+      s: 60,
+      e: 120,
+      pm: 60,
+      ev: ''
+    }, {
+      id: 2,
+      lbl: '01:00 → 02:00',
+      s: 120,
+      e: 180,
+      pm: 60,
+      ev: '🤝'
+    }, {
+      id: 3,
+      lbl: '02:00 → 03:00',
+      s: 180,
+      e: 240,
+      pm: 30,
+      ev: '🍽️'
+    }, {
+      id: 4,
+      lbl: '03:00 → 04:00',
+      s: 240,
+      e: 300,
+      pm: 42,
+      ev: '🍽️',
+      refCont: true
+    }, {
+      id: 5,
+      lbl: '04:00 → 05:00',
+      s: 300,
+      e: 360,
+      pm: 60,
+      ev: ''
+    }, {
+      id: 6,
+      lbl: '05:00 → 06:00',
+      s: 360,
+      e: 420,
+      pm: 60,
+      ev: '🤸'
+    }, {
+      id: 7,
+      lbl: '06:00 → 06:35',
+      s: 420,
+      e: 455,
+      pm: 35,
+      ev: '🧹'
+    }]
+  },
+  '1t': {
+    label: '1° Turno',
+    start: '06:35',
+    end: '14:56',
+    startMin: 395,
+    totalMins: 501,
+    periods: [{
+      id: 0,
+      lbl: '06:35 → 08:00',
+      s: 0,
+      e: 85,
+      pm: 85,
+      ev: '📋'
+    }, {
+      id: 1,
+      lbl: '08:00 → 09:00',
+      s: 85,
+      e: 145,
+      pm: 60,
+      ev: ''
+    }, {
+      id: 2,
+      lbl: '09:00 → 10:00',
+      s: 145,
+      e: 205,
+      pm: 60,
+      ev: '🤝'
+    }, {
+      id: 3,
+      lbl: '10:00 → 11:00',
+      s: 205,
+      e: 265,
+      pm: 60,
+      ev: ''
+    }, {
+      id: 4,
+      lbl: '11:00 → 12:00',
+      s: 265,
+      e: 325,
+      pm: 30,
+      ev: '🍽️'
+    }, {
+      id: 5,
+      lbl: '12:00 → 13:00',
+      s: 325,
+      e: 385,
+      pm: 50,
+      ev: '🍽️',
+      refCont: true
+    }, {
+      id: 6,
+      lbl: '13:00 → 14:00',
+      s: 385,
+      e: 445,
+      pm: 60,
+      ev: '🤸'
+    }, {
+      id: 7,
+      lbl: '14:00 → 14:56',
+      s: 445,
+      e: 501,
+      pm: 56,
+      ev: '🧹'
+    }]
+  },
+  '2t': {
+    label: '2° Turno',
+    start: '14:56',
+    end: '23:00',
+    startMin: 896,
+    totalMins: 484,
+    periods: [{
+      id: 0,
+      lbl: '14:56 → 16:00',
+      s: 0,
+      e: 64,
+      pm: 64,
+      ev: '📋'
+    }, {
+      id: 1,
+      lbl: '16:00 → 17:00',
+      s: 64,
+      e: 124,
+      pm: 60,
+      ev: ''
+    }, {
+      id: 2,
+      lbl: '17:00 → 18:00',
+      s: 124,
+      e: 184,
+      pm: 60,
+      ev: '🤝'
+    }, {
+      id: 3,
+      lbl: '18:00 → 19:00',
+      s: 184,
+      e: 244,
+      pm: 60,
+      ev: ''
+    }, {
+      id: 4,
+      lbl: '19:00 → 20:00',
+      s: 244,
+      e: 304,
+      pm: 60,
+      ev: ''
+    }, {
+      id: 5,
+      lbl: '20:00 → 21:00',
+      s: 304,
+      e: 364,
+      pm: 20,
+      ev: '🍽️'
+    }, {
+      id: 6,
+      lbl: '21:00 → 22:00',
+      s: 364,
+      e: 424,
+      pm: 60,
+      ev: '🤸'
+    }, {
+      id: 7,
+      lbl: '22:00 → 23:00',
+      s: 424,
+      e: 484,
+      pm: 60,
+      ev: '🧹'
+    }]
+  }
+};
+var mkPart = function mkPart() {
+  return {
+    partId: '',
+    cap: '',
+    startTime: ''
+  };
+};
+var mkCell = function mkCell() {
+  return {
+    operators: 1,
+    extraRef: 0,
+    parts: [mkPart(), mkPart(), mkPart()]
+  };
+};
+var mkShift = function mkShift(sk, date) {
+  return {
+    id: Date.now(),
+    shiftKey: sk,
+    date: date,
+    createdAt: new Date().toISOString(),
+    cells: Object.fromEntries(CELLS.map(function (c) {
+      return [c, mkCell()];
+    })),
+    reals: Object.fromEntries(CELLS.map(function (c) {
+      return [c, Array(8).fill('')];
+    }))
+  };
+};
+function t2m(t, sm) {
+  if (!t || !t.includes(':')) return null;
+  var _t$split$map = t.split(':').map(Number),
+    _t$split$map2 = _slicedToArray(_t$split$map, 2),
+    h = _t$split$map2[0],
+    m = _t$split$map2[1];
+  if (isNaN(h) || isNaN(m)) return null;
+  return (h * 60 + m - sm + 1440) % 1440;
+}
+function getLookup(id, cellId, catalog) {
+  var _e$caps$cellId;
+  var e = catalog.find(function (x) {
+    return x.id === String(id || '').trim();
+  });
+  return e ? (_e$caps$cellId = e.caps[cellId]) !== null && _e$caps$cellId !== void 0 ? _e$caps$cellId : null : null;
+}
+function calcMeta(cell, period, sk, catalog) {
+  var sh = SHIFTS[sk];
+  var pm = period.pm;
+  if (period.refCont && Number(cell.extraRef) > 0) pm = Math.max(0, pm - Number(cell.extraRef));
+  var dur = period.e - period.s;
+  if (!dur) return 0;
+  var total = 0;
+  for (var i = 0; i < 3; i++) {
+    var _cell$parts, _t2m;
+    var p = (_cell$parts = cell.parts) === null || _cell$parts === void 0 ? void 0 : _cell$parts[i];
+    var cap = Number(p === null || p === void 0 ? void 0 : p.cap);
+    if (!cap) continue;
+    var ps = i === 0 ? (_t2m = t2m(p.startTime, sh.startMin)) !== null && _t2m !== void 0 ? _t2m : 0 : t2m(p.startTime, sh.startMin);
+    if (ps === null) continue;
+    var pe = sh.totalMins;
+    for (var j = i + 1; j < 3; j++) {
+      var _cell$parts2;
+      var np = (_cell$parts2 = cell.parts) === null || _cell$parts2 === void 0 ? void 0 : _cell$parts2[j];
+      if (np !== null && np !== void 0 && np.startTime) {
+        var nm = t2m(np.startTime, sh.startMin);
+        if (nm !== null) {
+          pe = nm;
+          break;
+        }
+      }
+    }
+    total += cap * (Math.max(0, Math.min(pe, period.e) - Math.max(ps, period.s)) / dur) * pm / 60;
+  }
+  return Math.round(total);
+}
+function allMetas(shift, catalog) {
+  var sh = SHIFTS[shift.shiftKey];
+  return Object.fromEntries(CELLS.map(function (c) {
+    return [c, sh.periods.map(function (p) {
+      return calcMeta(shift.cells[c] || mkCell(), p, shift.shiftKey, catalog);
+    })];
+  }));
+}
+function eficTotal(cid, metas, reals) {
+  var rs = 0,
+    ms = 0;
+  for (var i = 0; i < 8; i++) {
+    var m = (metas[cid] || [])[i] || 0,
+      r = (reals[cid] || [])[i];
+    if (r !== '' && r !== null && r !== undefined && m > 0) {
+      rs += Number(r);
+      ms += m;
+    }
+  }
+  return ms > 0 ? rs / ms : null;
+}
+function capH(cid, metas, sk) {
+  var sh = SHIFTS[sk],
+    ms = metas[cid] || [];
+  var mt = 0,
+    mint = 0;
+  sh.periods.forEach(function (p, i) {
+    if ((ms[i] || 0) > 0) {
+      mt += ms[i];
+      mint += p.pm;
+    }
+  });
+  return mint > 0 ? Math.round(mt * 60 / mint) : 0;
+}
+var sc = function sc(e) {
+  return e === null ? '#444' : e >= 0.9 ? '#4caf50' : e >= 0.75 ? '#ff9800' : '#f44336';
+};
+var sb = function sb(e) {
+  return e === null ? '#1a1a1a' : e >= 0.9 ? '#0a1e0f' : e >= 0.75 ? '#1a1100' : '#1a0008';
+};
+var sl = function sl(e) {
+  return e === null ? '—' : e >= 0.9 ? '✅' : e >= 0.75 ? '⚠️' : '🔴';
+};
+var iSt = {
+  background: '#0d0d0d',
+  border: '1px solid #3a3a3a',
+  borderRadius: 8,
+  padding: '10px 12px',
+  color: '#fff',
+  fontSize: 14,
+  outline: 'none',
+  width: '100%',
+  boxSizing: 'border-box',
+  marginTop: 4
+};
+var bSt = {
+  padding: '12px 18px',
+  borderRadius: 10,
+  border: 'none',
+  cursor: 'pointer',
+  fontWeight: 700,
+  fontSize: 14,
+  color: '#fff'
+};
+function App() {
+  var _SHIFTS$shift$shiftKe;
+  var _useState = useState('dash'),
+    _useState2 = _slicedToArray(_useState, 2),
+    tab = _useState2[0],
+    setTab = _useState2[1];
+  var _useState3 = useState(null),
+    _useState4 = _slicedToArray(_useState3, 2),
+    shift = _useState4[0],
+    setShift = _useState4[1];
+  var _useState5 = useState([]),
+    _useState6 = _slicedToArray(_useState5, 2),
+    history = _useState6[0],
+    setHistory = _useState6[1];
+  var _useState7 = useState(CATALOG_BASE),
+    _useState8 = _slicedToArray(_useState7, 2),
+    catalog = _useState8[0],
+    setCatalog = _useState8[1];
+  var _useState9 = useState(true),
+    _useState0 = _slicedToArray(_useState9, 2),
+    loading = _useState0[0],
+    setLoading = _useState0[1];
+  useEffect(function () {
+    _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee() {
+      var s, h, c, _t;
+      return _regenerator().w(function (_context) {
+        while (1) switch (_context.p = _context.n) {
+          case 0:
+            _context.p = 0;
+            _context.n = 1;
+            return storage.get('hah2_shift');
+          case 1:
+            s = _context.v;
+            if (s) setShift(JSON.parse(s.value));
+            _context.n = 2;
+            return storage.get('hah2_hist');
+          case 2:
+            h = _context.v;
+            if (h) setHistory(JSON.parse(h.value));
+            _context.n = 3;
+            return storage.get('hah2_cat');
+          case 3:
+            c = _context.v;
+            if (c) setCatalog(JSON.parse(c.value));
+            _context.n = 5;
+            break;
+          case 4:
+            _context.p = 4;
+            _t = _context.v;
+          case 5:
+            setLoading(false);
+          case 6:
+            return _context.a(2);
+        }
+      }, _callee, null, [[0, 4]]);
+    }))();
+  }, []);
+  var sv = useCallback(/*#__PURE__*/function () {
+    var _ref2 = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee2(s) {
+      var _t2;
+      return _regenerator().w(function (_context2) {
+        while (1) switch (_context2.p = _context2.n) {
+          case 0:
+            setShift(s);
+            _context2.p = 1;
+            _context2.n = 2;
+            return storage.set('hah2_shift', JSON.stringify(s));
+          case 2:
+            _context2.n = 4;
+            break;
+          case 3:
+            _context2.p = 3;
+            _t2 = _context2.v;
+          case 4:
+            return _context2.a(2);
+        }
+      }, _callee2, null, [[1, 3]]);
+    }));
+    return function (_x) {
+      return _ref2.apply(this, arguments);
+    };
+  }(), []);
+  var svH = useCallback(/*#__PURE__*/function () {
+    var _ref3 = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee3(h) {
+      var _t3;
+      return _regenerator().w(function (_context3) {
+        while (1) switch (_context3.p = _context3.n) {
+          case 0:
+            setHistory(h);
+            _context3.p = 1;
+            _context3.n = 2;
+            return storage.set('hah2_hist', JSON.stringify(h));
+          case 2:
+            _context3.n = 4;
+            break;
+          case 3:
+            _context3.p = 3;
+            _t3 = _context3.v;
+          case 4:
+            return _context3.a(2);
+        }
+      }, _callee3, null, [[1, 3]]);
+    }));
+    return function (_x2) {
+      return _ref3.apply(this, arguments);
+    };
+  }(), []);
+  var svC = useCallback(/*#__PURE__*/function () {
+    var _ref4 = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee4(c) {
+      var _t4;
+      return _regenerator().w(function (_context4) {
+        while (1) switch (_context4.p = _context4.n) {
+          case 0:
+            setCatalog(c);
+            _context4.p = 1;
+            _context4.n = 2;
+            return storage.set('hah2_cat', JSON.stringify(c));
+          case 2:
+            _context4.n = 4;
+            break;
+          case 3:
+            _context4.p = 3;
+            _t4 = _context4.v;
+          case 4:
+            return _context4.a(2);
+        }
+      }, _callee4, null, [[1, 3]]);
+    }));
+    return function (_x3) {
+      return _ref4.apply(this, arguments);
+    };
+  }(), []);
+  var close = useCallback(/*#__PURE__*/_asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee5() {
+    return _regenerator().w(function (_context5) {
+      while (1) switch (_context5.n) {
+        case 0:
+          if (shift) {
+            _context5.n = 1;
+            break;
+          }
+          return _context5.a(2);
+        case 1:
+          _context5.n = 2;
+          return svH([_objectSpread(_objectSpread({}, shift), {}, {
+            closedAt: new Date().toISOString()
+          })].concat(_toConsumableArray(history)).slice(0, 50));
+        case 2:
+          _context5.n = 3;
+          return sv(null);
+        case 3:
+          setTab('dash');
+        case 4:
+          return _context5.a(2);
+      }
+    }, _callee5);
+  })), [shift, history, sv, svH]);
+  if (loading) return /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: '#0a0a0a',
+      height: '100vh',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      color: '#fff',
+      fontSize: 18
+    }
+  }, "Carregando...");
+  var TABS = [{
+    id: 'dash',
+    icon: '⬛',
+    lbl: 'Principal'
+  }, {
+    id: 'launch',
+    icon: '✏️',
+    lbl: 'Lançar'
+  }, {
+    id: 'cells',
+    icon: '⚙️',
+    lbl: 'Células'
+  }, {
+    id: 'hist',
+    icon: '📋',
+    lbl: 'Histórico'
+  }];
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontFamily: "'Helvetica Neue',Arial,sans-serif",
+      background: '#0d0d0d',
+      minHeight: '100vh',
+      maxWidth: 680,
+      margin: '0 auto',
+      display: 'flex',
+      flexDirection: 'column',
+      height: '100vh'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: '#000',
+      padding: '12px 16px',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      borderBottom: "2px solid ".concat(R)
+    }
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    style: {
+      color: R,
+      fontWeight: 900,
+      fontSize: 20,
+      letterSpacing: 3
+    }
+  }, "UMM"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      color: '#ddd',
+      fontSize: 9,
+      letterSpacing: 2,
+      textTransform: 'uppercase'
+    }
+  }, "Controle Hora a Hora")), shift && /*#__PURE__*/React.createElement("div", {
+    style: {
+      textAlign: 'right'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      color: '#fff',
+      fontWeight: 700,
+      fontSize: 14
+    }
+  }, (_SHIFTS$shift$shiftKe = SHIFTS[shift.shiftKey]) === null || _SHIFTS$shift$shiftKe === void 0 ? void 0 : _SHIFTS$shift$shiftKe.label), /*#__PURE__*/React.createElement("div", {
+    style: {
+      color: '#ddd',
+      fontSize: 11
+    }
+  }, shift.date))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      flex: 1,
+      overflowY: 'auto',
+      paddingBottom: 64
+    }
+  }, tab === 'dash' && /*#__PURE__*/React.createElement(Dash, {
+    shift: shift,
+    sv: sv,
+    close: close,
+    catalog: catalog
+  }), tab === 'launch' && (shift ? /*#__PURE__*/React.createElement(Launch, {
+    shift: shift,
+    sv: sv,
+    catalog: catalog
+  }) : /*#__PURE__*/React.createElement(NoS, null)), tab === 'cells' && (shift ? /*#__PURE__*/React.createElement(Cells, {
+    shift: shift,
+    sv: sv,
+    catalog: catalog,
+    svC: svC
+  }) : /*#__PURE__*/React.createElement(NoS, null)), tab === 'hist' && /*#__PURE__*/React.createElement(Hist, {
+    history: history,
+    catalog: catalog
+  })), /*#__PURE__*/React.createElement("nav", {
+    style: {
+      position: 'fixed',
+      bottom: 0,
+      left: '50%',
+      transform: 'translateX(-50%)',
+      width: '100%',
+      maxWidth: 680,
+      background: '#141414',
+      borderTop: '1px solid #222',
+      display: 'flex',
+      zIndex: 100
+    }
+  }, TABS.map(function (t) {
+    return /*#__PURE__*/React.createElement("button", {
+      key: t.id,
+      onClick: function onClick() {
+        return setTab(t.id);
+      },
+      style: {
+        flex: 1,
+        padding: '10px 0',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        background: 'none',
+        border: 'none',
+        cursor: 'pointer',
+        color: tab === t.id ? R : '#555'
+      }
+    }, /*#__PURE__*/React.createElement("span", {
+      style: {
+        fontSize: 18
+      }
+    }, t.icon), /*#__PURE__*/React.createElement("span", {
+      style: {
+        fontSize: 10,
+        marginTop: 2,
+        fontWeight: 600
+      }
+    }, t.lbl));
+  })));
+}
+var NoS = function NoS() {
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      padding: 40,
+      textAlign: 'center',
+      color: '#ddd'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 48,
+      marginBottom: 12
+    }
+  }, "\u26A0\uFE0F"), /*#__PURE__*/React.createElement("div", null, "Inicie um turno na aba Principal."));
+};
+var Card = function Card(_ref6) {
+  var children = _ref6.children,
+    style = _ref6.style;
+  return /*#__PURE__*/React.createElement("div", {
+    style: _objectSpread({
+      background: '#161616',
+      borderRadius: 12,
+      padding: 16,
+      border: '1px solid #252525'
+    }, style)
+  }, children);
+};
+var Lbl = function Lbl(_ref7) {
+  var children = _ref7.children,
+    style = _ref7.style;
+  return /*#__PURE__*/React.createElement("div", {
+    style: _objectSpread({
+      color: '#ddd',
+      fontSize: 11,
+      fontWeight: 700,
+      letterSpacing: .5,
+      textTransform: 'uppercase',
+      marginBottom: 2
+    }, style)
+  }, children);
+};
+var Sec = function Sec(_ref8) {
+  var children = _ref8.children;
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      color: '#ddd',
+      fontSize: 10,
+      letterSpacing: 1.5,
+      textTransform: 'uppercase',
+      margin: '14px 0 8px'
+    }
+  }, children);
+};
+var Stat = function Stat(_ref9) {
+  var lbl = _ref9.lbl,
+    val = _ref9.val,
+    accent = _ref9.accent;
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: '#161616',
+      borderRadius: 10,
+      padding: '12px 8px',
+      textAlign: 'center',
+      border: '1px solid #222'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      color: '#ddd',
+      fontSize: 10,
+      textTransform: 'uppercase',
+      letterSpacing: .5
+    }
+  }, lbl), /*#__PURE__*/React.createElement("div", {
+    style: {
+      color: accent || '#fff',
+      fontWeight: 800,
+      fontSize: 17,
+      marginTop: 4
+    }
+  }, val));
 };
 
-var mkPart=function(){return{partId:'',cap:'',startTime:''};};
-var mkCell=function(){return{operators:1,extraRef:0,parts:[mkPart(),mkPart(),mkPart()]};};
-var mkShift=function(sk,date){return{id:Date.now(),shiftKey:sk,date:date,createdAt:new Date().toISOString(),cells:Object.fromEntries(CELLS.map(function(c){return[c,mkCell()];})),reals:Object.fromEntries(CELLS.map(function(c){return[c,Array(8).fill('')];}))};}; 
+// ─── EXPORT TO PLANILHA ──────────────────────────────────────────────────────
+// Columns D-S map to cells C11,C13,...,C27
+var CELL_COLS = {
+  'C11': 'D',
+  'C13': 'E',
+  'C14': 'F',
+  'C15': 'G',
+  'C16': 'H',
+  'C17': 'I',
+  'C18': 'J',
+  'C19': 'K',
+  'C20': 'L',
+  'C21': 'M',
+  'C22': 'N',
+  'C23': 'O',
+  'C24': 'P',
+  'C25': 'Q',
+  'C26': 'R',
+  'C27': 'S'
+};
 
-function t2m(t,sm){if(!t||!t.includes(':'))return null;var parts=t.split(':').map(Number),h=parts[0],m=parts[1];if(isNaN(h)||isNaN(m))return null;return(h*60+m-sm+1440)%1440;}
+// REAL rows per shift: 3t=[19,21,23,25,27,29,31,33], same for 1t and 2t
+var REAL_ROWS = [19, 21, 23, 25, 27, 29, 31, 33];
+function exportPlanilha(shift, catalog) {
+  var wb = XLSX.utils.book_new();
+  var sh = SHIFTS[shift.shiftKey];
+  var mts = allMetas(shift, catalog);
 
-function getLookup(id,cellId,catalog){var e=catalog.find(function(x){return x.id===String(id||'').trim();});return e?( e.caps[cellId]!==undefined?e.caps[cellId]:null):null;}
+  // Build sheet data as array of arrays (rows 1-40)
+  // We'll create a flat data object: { "D6": value, "F10": value, ... }
+  var data = {};
+  var set = function set(col, row, val) {
+    data["".concat(col).concat(row)] = val;
+  };
+  CELLS.forEach(function (c) {
+    var _shift$cells, _cell$parts3;
+    var col = CELL_COLS[c];
+    var cell = ((_shift$cells = shift.cells) === null || _shift$cells === void 0 ? void 0 : _shift$cells[c]) || mkCell();
 
-function calcMeta(cell,period,sk,catalog){
-var sh=SHIFTS[sk],pm=period.pm;
-if(period.refCont&&Number(cell.extraRef)>0)pm=Math.max(0,pm-Number(cell.extraRef));
-var dur=period.e-period.s;if(!dur)return 0;
-var total=0;
-for(var i=0;i<3;i++){
-var p=cell.parts&&cell.parts[i];
-var cap=Number(p&&p.cap);if(!cap)continue;
-var ps=i===0?(t2m(p.startTime,sh.startMin)||0):t2m(p.startTime,sh.startMin);
-if(ps===null)continue;
-var pe=sh.totalMins;
-for(var j=i+1;j<3;j++){var np=cell.parts&&cell.parts[j];if(np&&np.startTime){var nm=t2m(np.startTime,sh.startMin);if(nm!==null){pe=nm;break;}}}
-total+=cap*(Math.max(0,Math.min(pe,period.e)-Math.max(ps,period.s))/dur)*pm/60;
+    // Row 6: Capacidade/hora
+    var ch = capH(c, mts, shift.shiftKey);
+    if (ch > 0) set(col, 6, ch);
+
+    // Row 8: Operadores
+    if (cell.operators) set(col, 8, Number(cell.operators));
+
+    // Row 16: Extra refeição
+    if (cell.extraRef && Number(cell.extraRef) > 0) set(col, 16, Number(cell.extraRef));
+
+    // Parts: rows 10-15
+    (_cell$parts3 = cell.parts) === null || _cell$parts3 === void 0 || _cell$parts3.forEach(function (p, i) {
+      var pRow = 10 + i * 2; // 10, 12, 14
+      var tRow = 10 + i * 2 + 1; // 11, 13, 15
+      if (p !== null && p !== void 0 && p.partId) set(col, pRow, p.partId);
+      if (p !== null && p !== void 0 && p.startTime) set(col, tRow, p.startTime);
+    });
+
+    // REAL rows 19,21,23,25,27,29,31,33
+    REAL_ROWS.forEach(function (row, pi) {
+      var _shift$reals;
+      var r = (_shift$reals = shift.reals) === null || _shift$reals === void 0 || (_shift$reals = _shift$reals[c]) === null || _shift$reals === void 0 ? void 0 : _shift$reals[pi];
+      if (r !== '' && r !== null && r !== undefined) set(col, row, Number(r));
+    });
+  });
+
+  // Build the worksheet as aoa (array of arrays) rows 1-40
+  var maxRow = 40;
+  var cols = 'ABCDEFGHIJKLMNOPQRSTU'.split('');
+  var aoa = [];
+  for (var r = 1; r <= maxRow; r++) {
+    var row = [];
+    for (var ci = 0; ci < cols.length; ci++) {
+      var key = "".concat(cols[ci]).concat(r);
+      row.push(data[key] !== undefined ? data[key] : null);
+    }
+    aoa.push(row);
+  }
+
+  // Add labels in col A
+  var labels = {
+    5: '📋 DISPONIBILIDADE',
+    6: '⚡ CAPACIDADE / HORA',
+    7: '🎯 META OEE 90%',
+    8: '👤 Nº OPERADORES DL',
+    9: '📊 pç/HH (cap ÷ DL)',
+    10: '🟢 PEÇA 1',
+    11: '⏰ INÍCIO 1',
+    12: '🟡 PEÇA 2',
+    13: '⏰ INÍCIO 2',
+    14: '🔴 PEÇA 3',
+    15: '⏰ INÍCIO 3',
+    16: '⏱️ EXTRA REFEIÇÃO (min)'
+  };
+  Object.entries(labels).forEach(function (_ref0) {
+    var _ref1 = _slicedToArray(_ref0, 2),
+      r = _ref1[0],
+      lbl = _ref1[1];
+    aoa[Number(r) - 1][0] = lbl;
+  });
+
+  // Row 4: cell headers
+  CELLS.forEach(function (c) {
+    aoa[3][cols.indexOf(CELL_COLS[c])] = c;
+  });
+
+  // Period labels in col B + META row labels
+  sh.periods.forEach(function (p, i) {
+    var mr = 18 + i * 2 - 1; // META rows: 17,19... → index 16,18...
+    var rr = mr + 1;
+    if (aoa[mr]) {
+      aoa[mr][0] = 'META';
+      aoa[mr][1] = p.lbl;
+      aoa[mr][2] = p.pm;
+    }
+    if (aoa[rr]) {
+      aoa[rr][0] = 'REAL';
+    }
+  });
+
+  // Title rows
+  aoa[0] = ["Controle Hora a Hora \u2014 ".concat(sh.label, " \u2014 ").concat(shift.date)];
+  aoa[1] = ["Gerado pelo app UMM em ".concat(new Date().toLocaleString('pt-BR'))];
+  var ws2 = XLSX.utils.aoa_to_sheet(aoa);
+  var sheetName = sh.label.replace('°', '').replace(' ', '_');
+  XLSX.utils.book_append_sheet(wb, ws2, sheetName);
+
+  // Justificativas sheet
+  var justRows = [['Período', 'Célula', 'Justificativa']];
+  if (shift.justificativas) {
+    Object.entries(shift.justificativas).forEach(function (_ref10) {
+      var _ref11 = _slicedToArray(_ref10, 2),
+        pi = _ref11[0],
+        cells = _ref11[1];
+      Object.entries(cells).forEach(function (_ref12) {
+        var _sh$periods$pi;
+        var _ref13 = _slicedToArray(_ref12, 2),
+          c = _ref13[0],
+          txt = _ref13[1];
+        if (txt) justRows.push([((_sh$periods$pi = sh.periods[pi]) === null || _sh$periods$pi === void 0 ? void 0 : _sh$periods$pi.lbl) || "Per\xEDodo ".concat(Number(pi) + 1), c, txt]);
+      });
+    });
+  }
+  if (justRows.length > 1) {
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(justRows), 'Justificativas');
+  }
+  XLSX.writeFile(wb, "UMM_".concat(sheetName, "_").concat(shift.date, ".xlsx"));
 }
-return Math.round(total);
+function Dash(_ref14) {
+  var shift = _ref14.shift,
+    sv = _ref14.sv,
+    close = _ref14.close,
+    catalog = _ref14.catalog;
+  var _useState1 = useState(new Date().toISOString().slice(0, 10)),
+    _useState10 = _slicedToArray(_useState1, 2),
+    date = _useState10[0],
+    setDate = _useState10[1];
+  var _useState11 = useState('3t'),
+    _useState12 = _slicedToArray(_useState11, 2),
+    sk = _useState12[0],
+    setSk = _useState12[1];
+  var _useState13 = useState(false),
+    _useState14 = _slicedToArray(_useState13, 2),
+    editMeta = _useState14[0],
+    setEditMeta = _useState14[1];
+  var _useState15 = useState(''),
+    _useState16 = _slicedToArray(_useState15, 2),
+    metaInput = _useState16[0],
+    setMetaInput = _useState16[1];
+  if (!shift) return /*#__PURE__*/React.createElement("div", {
+    style: {
+      padding: 20
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      color: '#fff',
+      fontWeight: 700,
+      fontSize: 18,
+      marginBottom: 14
+    }
+  }, "Iniciar Turno"), /*#__PURE__*/React.createElement(Card, null, /*#__PURE__*/React.createElement(Lbl, null, "Data"), /*#__PURE__*/React.createElement("input", {
+    type: "date",
+    value: date,
+    onChange: function onChange(e) {
+      return setDate(e.target.value);
+    },
+    style: iSt
+  }), /*#__PURE__*/React.createElement(Lbl, {
+    style: {
+      marginTop: 14
+    }
+  }, "Turno"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      gap: 8,
+      marginTop: 6
+    }
+  }, Object.entries(SHIFTS).map(function (_ref15) {
+    var _ref16 = _slicedToArray(_ref15, 2),
+      k = _ref16[0],
+      v = _ref16[1];
+    return /*#__PURE__*/React.createElement("button", {
+      key: k,
+      onClick: function onClick() {
+        return setSk(k);
+      },
+      style: {
+        flex: 1,
+        padding: '11px 0',
+        borderRadius: 8,
+        border: 'none',
+        cursor: 'pointer',
+        fontWeight: 700,
+        fontSize: 13,
+        background: sk === k ? R : '#252525',
+        color: '#fff'
+      }
+    }, v.label);
+  })), /*#__PURE__*/React.createElement("button", {
+    onClick: function onClick() {
+      return sv(mkShift(sk, date));
+    },
+    style: _objectSpread(_objectSpread({}, bSt), {}, {
+      marginTop: 18,
+      width: '100%',
+      background: R
+    })
+  }, "\uD83D\uDE80 Iniciar Turno")));
+  var mts = allMetas(shift, catalog),
+    sh = SHIFTS[shift.shiftKey];
+  // CAPAC. MIX = soma total das metas calculadas pelas células
+  var tM = CELLS.reduce(function (a, c) {
+    return (mts[c] || []).reduce(function (x, y) {
+      return x + y;
+    }, 0) + a;
+  }, 0);
+  // REAL total lançado
+  var tR = CELLS.reduce(function (a, c) {
+    var _shift$reals2;
+    return (((_shift$reals2 = shift.reals) === null || _shift$reals2 === void 0 ? void 0 : _shift$reals2[c]) || []).reduce(function (x, r) {
+      return x + (r === '' ? 0 : Number(r));
+    }, 0) + a;
+  }, 0);
+  // EFICIÊNCIA = Real ÷ CapacMix (horas lançadas apenas)
+  var _tRl = 0,
+    _tMl = 0;
+  var _loop = function _loop(_i) {
+    CELLS.forEach(function (_c) {
+      var _shift$reals8;
+      var _m = (mts[_c] || [])[_i] || 0,
+        _r = (_shift$reals8 = shift.reals) === null || _shift$reals8 === void 0 || (_shift$reals8 = _shift$reals8[_c]) === null || _shift$reals8 === void 0 ? void 0 : _shift$reals8[_i];
+      if (_r !== '' && _r !== null && _r !== undefined && _m > 0) {
+        _tRl += Number(_r);
+        _tMl += _m;
+      }
+    });
+  };
+  for (var _i = 0; _i < 8; _i++) {
+    _loop(_i);
+  }
+  var ef = _tMl > 0 ? _tRl / _tMl : null;
+  // META TARGET (editável)
+  var metaTarget = Number(shift.metaTarget) || 0;
+  var status = metaTarget > 0 ? tR - metaTarget : null;
+  var saveMeta = /*#__PURE__*/function () {
+    var _ref17 = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee6() {
+      var v;
+      return _regenerator().w(function (_context6) {
+        while (1) switch (_context6.n) {
+          case 0:
+            v = Number(metaInput);
+            if (!(!isNaN(v) && v > 0)) {
+              _context6.n = 1;
+              break;
+            }
+            _context6.n = 1;
+            return sv(_objectSpread(_objectSpread({}, shift), {}, {
+              metaTarget: v
+            }));
+          case 1:
+            setEditMeta(false);
+          case 2:
+            return _context6.a(2);
+        }
+      }, _callee6);
+    }));
+    return function saveMeta() {
+      return _ref17.apply(this, arguments);
+    };
+  }();
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      padding: 16
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'grid',
+      gridTemplateColumns: '1fr 1fr 1fr',
+      gridTemplateRows: 'auto auto',
+      gap: 8,
+      marginBottom: 14
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      gridColumn: '1',
+      gridRow: '1'
+    }
+  }, /*#__PURE__*/React.createElement(Stat, {
+    lbl: "Capac. Mix",
+    val: tM.toLocaleString('pt-BR'),
+    accent: "#ddd"
+  })), /*#__PURE__*/React.createElement("div", {
+    style: {
+      gridColumn: '2',
+      gridRow: '1'
+    }
+  }, /*#__PURE__*/React.createElement(Stat, {
+    lbl: "Real",
+    val: tR.toLocaleString('pt-BR'),
+    accent: R
+  })), /*#__PURE__*/React.createElement("div", {
+    style: {
+      gridColumn: '3',
+      gridRow: '1 / span 2',
+      background: '#161616',
+      borderRadius: 10,
+      padding: '12px 8px',
+      textAlign: 'center',
+      border: "1px solid ".concat(ef !== null ? sc(ef) : '#222'),
+      display: 'flex',
+      flexDirection: 'column',
+      justifyContent: 'center',
+      alignItems: 'center'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      color: '#ddd',
+      fontSize: 10,
+      textTransform: 'uppercase',
+      letterSpacing: .5,
+      marginBottom: 6
+    }
+  }, "Efici\xEAncia"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      color: ef !== null ? sc(ef) : '#555',
+      fontWeight: 900,
+      fontSize: 26,
+      lineHeight: 1
+    }
+  }, ef !== null ? "".concat((ef * 100).toFixed(1), "%") : '—'), /*#__PURE__*/React.createElement("div", {
+    style: {
+      color: ef !== null ? sc(ef) : '#555',
+      fontSize: 18,
+      marginTop: 8
+    }
+  }, ef !== null ? sl(ef) : ''), /*#__PURE__*/React.createElement("div", {
+    style: {
+      color: '#555',
+      fontSize: 9,
+      marginTop: 8
+    }
+  }, "Real \xF7 Capac. Mix")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      gridColumn: '1',
+      gridRow: '2',
+      background: '#161616',
+      borderRadius: 10,
+      padding: '12px 8px',
+      textAlign: 'center',
+      border: "1px solid ".concat(metaTarget > 0 ? '#2E75B6' : '#555'),
+      cursor: 'pointer'
+    },
+    onClick: function onClick() {
+      setMetaInput(metaTarget || '');
+      setEditMeta(true);
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      color: '#ddd',
+      fontSize: 10,
+      textTransform: 'uppercase',
+      letterSpacing: .5
+    }
+  }, "Meta"), editMeta ? /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 4,
+      marginTop: 4
+    }
+  }, /*#__PURE__*/React.createElement("input", {
+    type: "number",
+    value: metaInput,
+    onChange: function onChange(e) {
+      return setMetaInput(e.target.value);
+    },
+    autoFocus: true,
+    onClick: function onClick(e) {
+      return e.stopPropagation();
+    },
+    style: {
+      background: '#0d0d0d',
+      border: '1px solid #2E75B6',
+      borderRadius: 6,
+      padding: '4px 6px',
+      color: '#fff',
+      fontSize: 16,
+      textAlign: 'center',
+      outline: 'none',
+      width: '100%',
+      boxSizing: 'border-box'
+    }
+  }), /*#__PURE__*/React.createElement("button", {
+    onClick: function onClick(e) {
+      e.stopPropagation();
+      saveMeta();
+    },
+    style: {
+      background: R,
+      border: 'none',
+      color: '#fff',
+      borderRadius: 6,
+      padding: '4px',
+      fontSize: 11,
+      cursor: 'pointer',
+      fontWeight: 700
+    }
+  }, "OK")) : /*#__PURE__*/React.createElement("div", {
+    style: {
+      color: metaTarget > 0 ? '#2E75B6' : '#555',
+      fontWeight: 800,
+      fontSize: 17,
+      marginTop: 4
+    }
+  }, metaTarget > 0 ? metaTarget.toLocaleString('pt-BR') : 'Definir')), /*#__PURE__*/React.createElement("div", {
+    style: {
+      gridColumn: '2',
+      gridRow: '2',
+      background: '#161616',
+      borderRadius: 10,
+      padding: '12px 8px',
+      textAlign: 'center',
+      border: '1px solid #222'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      color: '#ddd',
+      fontSize: 10,
+      textTransform: 'uppercase',
+      letterSpacing: .5
+    }
+  }, "Status"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      color: status === null ? '#555' : status >= 0 ? '#4caf50' : '#f44336',
+      fontWeight: 800,
+      fontSize: 17,
+      marginTop: 4
+    }
+  }, status === null ? '—' : status.toLocaleString('pt-BR', {
+    signDisplay: 'always'
+  })), status !== null && status < 0 && /*#__PURE__*/React.createElement("div", {
+    style: {
+      color: '#f44336',
+      fontSize: 9,
+      marginTop: 2
+    }
+  }, "faltam ", Math.abs(status).toLocaleString('pt-BR')), status !== null && status >= 0 && /*#__PURE__*/React.createElement("div", {
+    style: {
+      color: '#4caf50',
+      fontSize: 9,
+      marginTop: 2
+    }
+  }, "\u2705 meta atingida"))), /*#__PURE__*/React.createElement(Sec, null, "C\xE9lulas"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'grid',
+      gridTemplateColumns: 'repeat(4,1fr)',
+      gap: 5,
+      marginBottom: 14
+    }
+  }, CELLS.map(function (c) {
+    var _shift$reals3, _shift$reals4;
+    var ef = eficTotal(c, mts, shift.reals || {});
+    var ch = capH(c, mts, shift.shiftKey);
+    var rT = (((_shift$reals3 = shift.reals) === null || _shift$reals3 === void 0 ? void 0 : _shift$reals3[c]) || []).reduce(function (a, r) {
+      return a + (r === '' ? 0 : Number(r));
+    }, 0);
+    var mT = (mts[c] || []).reduce(function (a, b) {
+      return a + b;
+    }, 0);
+    var has = (((_shift$reals4 = shift.reals) === null || _shift$reals4 === void 0 ? void 0 : _shift$reals4[c]) || []).some(function (r) {
+      return r !== '';
+    });
+    return /*#__PURE__*/React.createElement("div", {
+      key: c,
+      style: {
+        background: sb(has ? ef : null),
+        borderRadius: 9,
+        padding: '9px 6px',
+        border: "1px solid ".concat(has ? sc(ef) : '#222'),
+        textAlign: 'center'
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        color: '#eee',
+        fontSize: 10,
+        fontWeight: 700
+      }
+    }, c), ch > 0 && /*#__PURE__*/React.createElement("div", {
+      style: {
+        color: '#ddd',
+        fontSize: 9
+      }
+    }, ch, " p\xE7/h"), has ? /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
+      style: {
+        color: '#fff',
+        fontSize: 14,
+        fontWeight: 800
+      }
+    }, rT.toLocaleString()), /*#__PURE__*/React.createElement("div", {
+      style: {
+        color: '#ddd',
+        fontSize: 8
+      }
+    }, "/", mT.toLocaleString()), /*#__PURE__*/React.createElement("div", {
+      style: {
+        color: sc(ef),
+        fontSize: 11,
+        fontWeight: 700
+      }
+    }, ef !== null ? "".concat((ef * 100).toFixed(0), "%") : sl(ef))) : /*#__PURE__*/React.createElement("div", {
+      style: {
+        color: '#2a2a2a',
+        fontSize: 10,
+        marginTop: 4
+      }
+    }, "\u2014"));
+  })), /*#__PURE__*/React.createElement(Sec, null, "Per\xEDodos"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 4,
+      marginBottom: 14
+    }
+  }, sh.periods.map(function (p, i) {
+    var pM = CELLS.reduce(function (s, c) {
+      var _mts$c;
+      return s + (((_mts$c = mts[c]) === null || _mts$c === void 0 ? void 0 : _mts$c[i]) || 0);
+    }, 0);
+    var has = CELLS.some(function (c) {
+      var _shift$reals5;
+      return ((_shift$reals5 = shift.reals) === null || _shift$reals5 === void 0 || (_shift$reals5 = _shift$reals5[c]) === null || _shift$reals5 === void 0 ? void 0 : _shift$reals5[i]) !== '';
+    });
+    var pR = has ? CELLS.reduce(function (s, c) {
+      var _shift$reals6, _shift$reals7;
+      return s + ((((_shift$reals6 = shift.reals) === null || _shift$reals6 === void 0 || (_shift$reals6 = _shift$reals6[c]) === null || _shift$reals6 === void 0 ? void 0 : _shift$reals6[i]) || '') === '' ? 0 : Number(((_shift$reals7 = shift.reals) === null || _shift$reals7 === void 0 || (_shift$reals7 = _shift$reals7[c]) === null || _shift$reals7 === void 0 ? void 0 : _shift$reals7[i]) || 0));
+    }, 0) : null;
+    var ef = pM > 0 && pR !== null ? pR / pM : null;
+    return /*#__PURE__*/React.createElement("div", {
+      key: i,
+      style: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: 10,
+        padding: '9px 14px',
+        background: '#141414',
+        borderRadius: 8,
+        border: "1px solid ".concat(has ? sc(ef) : '#1e1e1e')
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        color: '#ddd',
+        fontSize: 11,
+        minWidth: 100
+      }
+    }, p.lbl), /*#__PURE__*/React.createElement("div", {
+      style: {
+        flex: 1,
+        height: 3,
+        background: '#222',
+        borderRadius: 2,
+        overflow: 'hidden'
+      }
+    }, has && /*#__PURE__*/React.createElement("div", {
+      style: {
+        height: '100%',
+        background: sc(ef),
+        width: "".concat(Math.min(100, (ef || 0) * 100), "%"),
+        transition: 'width .4s'
+      }
+    })), /*#__PURE__*/React.createElement("div", {
+      style: {
+        minWidth: 50,
+        textAlign: 'right',
+        color: has ? sc(ef) : '#2a2a2a',
+        fontWeight: 700,
+        fontSize: 13
+      }
+    }, has ? pR.toLocaleString() : p.ev || '–'));
+  })), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'grid',
+      gridTemplateColumns: '1fr 1fr',
+      gap: 8,
+      marginTop: 14
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: function onClick() {
+      return exportPlanilha(shift, catalog);
+    },
+    style: _objectSpread(_objectSpread({}, bSt), {}, {
+      background: '#1a3a6b',
+      border: '1px solid #2E75B6',
+      fontSize: 13
+    })
+  }, "\uD83D\uDCCA Exportar Planilha"), /*#__PURE__*/React.createElement("button", {
+    onClick: close,
+    style: _objectSpread(_objectSpread({}, bSt), {}, {
+      background: '#161616',
+      color: '#f44336',
+      border: '1px solid #f44336',
+      fontSize: 13
+    })
+  }, "Encerrar Turno")));
+}
+function Launch(_ref18) {
+  var shift = _ref18.shift,
+    sv = _ref18.sv,
+    catalog = _ref18.catalog;
+  var _useState17 = useState(null),
+    _useState18 = _slicedToArray(_useState17, 2),
+    sel = _useState18[0],
+    setSel = _useState18[1];
+  var _useState19 = useState({}),
+    _useState20 = _slicedToArray(_useState19, 2),
+    inp = _useState20[0],
+    setInp = _useState20[1];
+  var _useState21 = useState({}),
+    _useState22 = _slicedToArray(_useState21, 2),
+    just = _useState22[0],
+    setJust = _useState22[1]; // {cellId: text}
+  var sh = SHIFTS[shift.shiftKey];
+  var mts = allMetas(shift, catalog);
+  var open = function open(i) {
+    var _shift$justificativas;
+    var c = {};
+    CELLS.forEach(function (c2) {
+      var _shift$reals$c2$i, _shift$reals9;
+      c[c2] = (_shift$reals$c2$i = (_shift$reals9 = shift.reals) === null || _shift$reals9 === void 0 || (_shift$reals9 = _shift$reals9[c2]) === null || _shift$reals9 === void 0 ? void 0 : _shift$reals9[i]) !== null && _shift$reals$c2$i !== void 0 ? _shift$reals$c2$i : '';
+    });
+    setInp(c);
+    setJust(((_shift$justificativas = shift.justificativas) === null || _shift$justificativas === void 0 ? void 0 : _shift$justificativas[i]) || {});
+    setSel(i);
+  };
+  var save = /*#__PURE__*/function () {
+    var _ref19 = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee7() {
+      var nr, nj, pj;
+      return _regenerator().w(function (_context7) {
+        while (1) switch (_context7.n) {
+          case 0:
+            nr = _objectSpread({}, shift.reals);
+            CELLS.forEach(function (c) {
+              var _inp$c;
+              if (!nr[c]) nr[c] = Array(8).fill('');
+              nr[c] = _toConsumableArray(nr[c]);
+              nr[c][sel] = (_inp$c = inp[c]) !== null && _inp$c !== void 0 ? _inp$c : '';
+            });
+            nj = _objectSpread({}, shift.justificativas || {});
+            pj = {};
+            Object.entries(just).forEach(function (_ref20) {
+              var _ref21 = _slicedToArray(_ref20, 2),
+                c = _ref21[0],
+                t = _ref21[1];
+              if (t.trim()) pj[c] = t.trim();
+            });
+            if (Object.keys(pj).length > 0) nj[sel] = pj;else delete nj[sel];
+            _context7.n = 1;
+            return sv(_objectSpread(_objectSpread({}, shift), {}, {
+              reals: nr,
+              justificativas: nj
+            }));
+          case 1:
+            setSel(null);
+          case 2:
+            return _context7.a(2);
+        }
+      }, _callee7);
+    }));
+    return function save() {
+      return _ref19.apply(this, arguments);
+    };
+  }();
+  if (sel !== null) {
+    var p = sh.periods[sel];
+    return /*#__PURE__*/React.createElement("div", {
+      style: {
+        padding: 16
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: 12,
+        marginBottom: 16
+      }
+    }, /*#__PURE__*/React.createElement("button", {
+      onClick: function onClick() {
+        return setSel(null);
+      },
+      style: {
+        background: '#252525',
+        border: 'none',
+        color: '#fff',
+        borderRadius: 8,
+        padding: '8px 14px',
+        cursor: 'pointer',
+        fontSize: 13
+      }
+    }, "\u2190 Voltar"), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+      style: {
+        color: '#fff',
+        fontWeight: 700,
+        fontSize: 15
+      }
+    }, p.lbl), /*#__PURE__*/React.createElement("div", {
+      style: {
+        color: '#ddd',
+        fontSize: 11
+      }
+    }, p.ev, " \xB7 ", p.pm, " min"))), /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 8
+      }
+    }, CELLS.map(function (c) {
+      var _mts$c2;
+      var m = ((_mts$c2 = mts[c]) === null || _mts$c2 === void 0 ? void 0 : _mts$c2[sel]) || 0,
+        r = inp[c] || '';
+      var ef = m > 0 && r !== '' ? Number(r) / m : null;
+      var ch = capH(c, mts, shift.shiftKey);
+      var below = ef !== null && ef < 0.9;
+      return /*#__PURE__*/React.createElement("div", {
+        key: c,
+        style: {
+          background: '#141414',
+          borderRadius: 10,
+          padding: '10px 14px',
+          border: "1px solid ".concat(ef !== null ? sc(ef) : '#252525')
+        }
+      }, /*#__PURE__*/React.createElement("div", {
+        style: {
+          display: 'flex',
+          alignItems: 'center',
+          gap: 10
+        }
+      }, /*#__PURE__*/React.createElement("div", {
+        style: {
+          minWidth: 34,
+          color: '#eee',
+          fontWeight: 700,
+          fontSize: 12
+        }
+      }, c), /*#__PURE__*/React.createElement("div", {
+        style: {
+          color: '#ddd',
+          fontSize: 11,
+          minWidth: 55
+        }
+      }, "Meta:", /*#__PURE__*/React.createElement("span", {
+        style: {
+          color: '#ddd',
+          marginLeft: 4
+        }
+      }, m)), ch > 0 && /*#__PURE__*/React.createElement("div", {
+        style: {
+          color: '#2a2a2a',
+          fontSize: 10,
+          minWidth: 45
+        }
+      }, ch, "p\xE7/h"), /*#__PURE__*/React.createElement("input", {
+        type: "number",
+        min: 0,
+        value: r,
+        placeholder: "Real",
+        onChange: function onChange(e) {
+          return setInp(function (prev) {
+            return _objectSpread(_objectSpread({}, prev), {}, _defineProperty({}, c, e.target.value));
+          });
+        },
+        style: {
+          flex: 1,
+          background: '#0a0a0a',
+          border: "2px solid ".concat(ef !== null ? sc(ef) : '#333'),
+          borderRadius: 8,
+          padding: '9px 8px',
+          color: '#fff',
+          fontSize: 18,
+          textAlign: 'center',
+          outline: 'none'
+        }
+      }), ef !== null && /*#__PURE__*/React.createElement("div", {
+        style: {
+          minWidth: 28,
+          textAlign: 'center',
+          color: sc(ef),
+          fontWeight: 700,
+          fontSize: 14
+        }
+      }, sl(ef))), (below || just[c] && just[c].trim()) && m > 0 && /*#__PURE__*/React.createElement("div", {
+        style: {
+          marginTop: 8
+        }
+      }, /*#__PURE__*/React.createElement("div", {
+        style: {
+          color: below ? '#ff9800' : '#555',
+          fontSize: 10,
+          fontWeight: 700,
+          marginBottom: 4
+        }
+      }, below ? '⚠️ Justificativa' : '📝 Justificativa'), /*#__PURE__*/React.createElement("textarea", {
+        value: just[c] || '',
+        onChange: function onChange(e) {
+          return setJust(function (prev) {
+            return _objectSpread(_objectSpread({}, prev), {}, _defineProperty({}, c, e.target.value));
+          });
+        },
+        placeholder: "Causa do desvio...",
+        rows: 2,
+        style: {
+          width: '100%',
+          background: '#0a0a0a',
+          border: "1px solid ".concat(below ? '#ff9800' : '#333'),
+          borderRadius: 8,
+          padding: '8px',
+          color: '#fff',
+          fontSize: 12,
+          outline: 'none',
+          resize: 'none',
+          boxSizing: 'border-box',
+          fontFamily: 'inherit'
+        }
+      })), !below && m > 0 && !(just[c] && just[c].trim()) && r !== '' && ef !== null && ef >= 0.9 && /*#__PURE__*/React.createElement("div", {
+        style: {
+          marginTop: 6
+        }
+      }, /*#__PURE__*/React.createElement("button", {
+        onClick: function onClick() {
+          return setJust(function (prev) {
+            return _objectSpread(_objectSpread({}, prev), {}, _defineProperty({}, c, ' '));
+          });
+        },
+        style: {
+          background: 'none',
+          border: '1px solid #252525',
+          color: '#ddd',
+          borderRadius: 6,
+          padding: '4px 8px',
+          cursor: 'pointer',
+          fontSize: 10
+        }
+      }, "+ Adicionar nota")));
+    })), /*#__PURE__*/React.createElement("button", {
+      onClick: save,
+      style: _objectSpread(_objectSpread({}, bSt), {}, {
+        marginTop: 14,
+        width: '100%',
+        background: R
+      })
+    }, "\uD83D\uDCBE Salvar"));
+  }
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      padding: 16
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      color: '#fff',
+      fontWeight: 700,
+      fontSize: 18,
+      marginBottom: 14
+    }
+  }, "Lan\xE7ar REAL"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 8
+    }
+  }, sh.periods.map(function (p, i) {
+    var has = CELLS.some(function (c) {
+      var _shift$reals0;
+      return ((_shift$reals0 = shift.reals) === null || _shift$reals0 === void 0 || (_shift$reals0 = _shift$reals0[c]) === null || _shift$reals0 === void 0 ? void 0 : _shift$reals0[i]) !== '';
+    });
+    var pM = CELLS.reduce(function (s, c) {
+      var _mts$c3;
+      return s + (((_mts$c3 = mts[c]) === null || _mts$c3 === void 0 ? void 0 : _mts$c3[i]) || 0);
+    }, 0);
+    var pR = has ? CELLS.reduce(function (s, c) {
+      var _shift$reals1, _shift$reals10;
+      return s + ((((_shift$reals1 = shift.reals) === null || _shift$reals1 === void 0 || (_shift$reals1 = _shift$reals1[c]) === null || _shift$reals1 === void 0 ? void 0 : _shift$reals1[i]) || '') === '' ? 0 : Number(((_shift$reals10 = shift.reals) === null || _shift$reals10 === void 0 || (_shift$reals10 = _shift$reals10[c]) === null || _shift$reals10 === void 0 ? void 0 : _shift$reals10[i]) || 0));
+    }, 0) : null;
+    var ef = pM > 0 && pR !== null ? pR / pM : null;
+    return /*#__PURE__*/React.createElement("button", {
+      key: i,
+      onClick: function onClick() {
+        return open(i);
+      },
+      style: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: 12,
+        background: '#141414',
+        border: "1px solid ".concat(has ? sc(ef) : '#1e1e1e'),
+        borderRadius: 12,
+        padding: '14px 16px',
+        cursor: 'pointer',
+        textAlign: 'left',
+        width: '100%'
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 18,
+        minWidth: 22
+      }
+    }, p.ev || '⏱'), /*#__PURE__*/React.createElement("div", {
+      style: {
+        flex: 1
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        color: '#fff',
+        fontWeight: 700,
+        fontSize: 14
+      }
+    }, p.lbl), /*#__PURE__*/React.createElement("div", {
+      style: {
+        color: '#ddd',
+        fontSize: 11
+      }
+    }, p.pm, " min \xB7 Meta: ", pM.toLocaleString())), has ? /*#__PURE__*/React.createElement("div", {
+      style: {
+        textAlign: 'right'
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        color: sc(ef),
+        fontWeight: 800,
+        fontSize: 15
+      }
+    }, pR === null || pR === void 0 ? void 0 : pR.toLocaleString()), /*#__PURE__*/React.createElement("div", {
+      style: {
+        color: sc(ef),
+        fontSize: 11
+      }
+    }, ef !== null ? "".concat((ef * 100).toFixed(0), "%") : '')) : /*#__PURE__*/React.createElement("div", {
+      style: {
+        color: '#ddd',
+        fontSize: 12
+      }
+    }, "Lan\xE7ar \u2192"));
+  })));
+}
+function Cells(_ref22) {
+  var shift = _ref22.shift,
+    sv = _ref22.sv,
+    catalog = _ref22.catalog,
+    svC = _ref22.svC;
+  var _useState23 = useState(null),
+    _useState24 = _slicedToArray(_useState23, 2),
+    sel = _useState24[0],
+    setSel = _useState24[1];
+  var _useState25 = useState(null),
+    _useState26 = _slicedToArray(_useState25, 2),
+    cd = _useState26[0],
+    setCd = _useState26[1];
+  var _useState27 = useState(false),
+    _useState28 = _slicedToArray(_useState27, 2),
+    showCat = _useState28[0],
+    setShowCat = _useState28[1];
+  var fileRef = useRef();
+  var open = function open(c) {
+    var _shift$cells2;
+    setCd(JSON.parse(JSON.stringify(((_shift$cells2 = shift.cells) === null || _shift$cells2 === void 0 ? void 0 : _shift$cells2[c]) || mkCell())));
+    setSel(c);
+  };
+  var saveCell = /*#__PURE__*/function () {
+    var _ref23 = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee8() {
+      return _regenerator().w(function (_context8) {
+        while (1) switch (_context8.n) {
+          case 0:
+            _context8.n = 1;
+            return sv(_objectSpread(_objectSpread({}, shift), {}, {
+              cells: _objectSpread(_objectSpread({}, shift.cells), {}, _defineProperty({}, sel, cd))
+            }));
+          case 1:
+            setSel(null);
+          case 2:
+            return _context8.a(2);
+        }
+      }, _callee8);
+    }));
+    return function saveCell() {
+      return _ref23.apply(this, arguments);
+    };
+  }();
+  var setP = function setP(i, f, v) {
+    return setCd(function (prev) {
+      var parts = _toConsumableArray(prev.parts);
+      parts[i] = _objectSpread(_objectSpread({}, parts[i]), {}, _defineProperty({}, f, v));
+      return _objectSpread(_objectSpread({}, prev), {}, {
+        parts: parts
+      });
+    });
+  };
+  var onPartId = function onPartId(i, v) {
+    setP(i, 'partId', v);
+    var cap = getLookup(v, sel, catalog);
+    if (cap !== null) setP(i, 'cap', String(cap));else if (v && !cap) setP(i, 'cap', '');
+  };
+  var importExcel = function importExcel(e) {
+    var file = e.target.files[0];
+    if (!file) return;
+    var reader = new FileReader();
+    reader.onload = function (ev) {
+      try {
+        var wb = XLSX.read(ev.target.result, {
+          type: 'array'
+        });
+        var ws = wb.Sheets['LISTA DE PEÇAS'];
+        if (!ws) {
+          alert('Aba "LISTA DE PEÇAS" não encontrada.');
+          return;
+        }
+        var rows = XLSX.utils.sheet_to_json(ws, {
+          header: 1
+        });
+        var hdrs = rows[0].slice(1);
+        var nc = [];
+        var _loop2 = function _loop2() {
+          var row = rows[r];
+          if (!row[0]) return 1; // continue
+          var id = String(row[0]).trim();
+          var caps = {};
+          hdrs.forEach(function (h, idx) {
+            if (row[idx + 1]) caps[h] = Number(row[idx + 1]);
+          });
+          nc.push({
+            id: id,
+            caps: caps
+          });
+        };
+        for (var r = 1; r < rows.length; r++) {
+          if (_loop2()) continue;
+        }
+        svC(nc);
+        alert("".concat(nc.length, " pe\xE7as importadas!"));
+      } catch (err) {
+        alert('Erro: ' + err.message);
+      }
+    };
+    reader.readAsArrayBuffer(file);
+    e.target.value = '';
+  };
+  if (showCat) return /*#__PURE__*/React.createElement(CatScreen, {
+    catalog: catalog,
+    svC: svC,
+    onBack: function onBack() {
+      return setShowCat(false);
+    },
+    fileRef: fileRef,
+    importExcel: importExcel
+  });
+  if (sel && cd) {
+    var colors = ['#276221', '#9C5700', '#9C0006'];
+    var lbls = ['🟢 PEÇA 1', '🟡 PEÇA 2', '🔴 PEÇA 3'];
+    return /*#__PURE__*/React.createElement("div", {
+      style: {
+        padding: 16
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: 12,
+        marginBottom: 16
+      }
+    }, /*#__PURE__*/React.createElement("button", {
+      onClick: function onClick() {
+        return setSel(null);
+      },
+      style: {
+        background: '#252525',
+        border: 'none',
+        color: '#fff',
+        borderRadius: 8,
+        padding: '8px 14px',
+        cursor: 'pointer',
+        fontSize: 13
+      }
+    }, "\u2190 Voltar"), /*#__PURE__*/React.createElement("div", {
+      style: {
+        color: '#fff',
+        fontWeight: 700,
+        fontSize: 18
+      }
+    }, "C\xE9lula ", sel)), /*#__PURE__*/React.createElement(Card, null, /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: 'grid',
+        gridTemplateColumns: '1fr 1fr',
+        gap: 10
+      }
+    }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement(Lbl, null, "Operadores"), /*#__PURE__*/React.createElement("input", {
+      type: "number",
+      value: cd.operators,
+      onChange: function onChange(e) {
+        return setCd(function (p) {
+          return _objectSpread(_objectSpread({}, p), {}, {
+            operators: e.target.value
+          });
+        });
+      },
+      style: iSt
+    })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement(Lbl, null, "Extra Refei\xE7\xE3o (min)"), /*#__PURE__*/React.createElement("input", {
+      type: "number",
+      value: cd.extraRef,
+      onChange: function onChange(e) {
+        return setCd(function (p) {
+          return _objectSpread(_objectSpread({}, p), {}, {
+            extraRef: e.target.value
+          });
+        });
+      },
+      style: iSt
+    })))), [0, 1, 2].map(function (i) {
+      var p = cd.parts[i] || mkPart();
+      var found = p.partId ? getLookup(p.partId, sel, catalog) : null;
+      var isStop = !p.cap && p.startTime && i > 0;
+      return /*#__PURE__*/React.createElement(Card, {
+        key: i,
+        style: {
+          marginTop: 10,
+          borderLeft: "3px solid ".concat(colors[i])
+        }
+      }, /*#__PURE__*/React.createElement("div", {
+        style: {
+          color: colors[i],
+          fontWeight: 700,
+          fontSize: 13,
+          marginBottom: 10
+        }
+      }, lbls[i]), /*#__PURE__*/React.createElement("div", {
+        style: {
+          display: 'grid',
+          gridTemplateColumns: '1fr 1fr',
+          gap: 8
+        }
+      }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement(Lbl, null, "N\xBA da Pe\xE7a"), /*#__PURE__*/React.createElement("input", {
+        value: p.partId || '',
+        placeholder: i === 0 ? 'Ex: 20000987' : 'Vazio = não usar',
+        onChange: function onChange(e) {
+          return onPartId(i, e.target.value);
+        },
+        style: iSt
+      }), p.partId && found !== null && /*#__PURE__*/React.createElement("div", {
+        style: {
+          color: '#276221',
+          fontSize: 10,
+          marginTop: 3
+        }
+      }, "\u2705 ", found, " p\xE7/h"), p.partId && found === null && /*#__PURE__*/React.createElement("div", {
+        style: {
+          color: '#9C5700',
+          fontSize: 10,
+          marginTop: 3
+        }
+      }, "\u26A0\uFE0F N\xE3o encontrado para ", sel)), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement(Lbl, null, "Capacidade (p\xE7/h)"), /*#__PURE__*/React.createElement("input", {
+        type: "number",
+        value: p.cap || '',
+        placeholder: "p\xE7/h",
+        onChange: function onChange(e) {
+          return setP(i, 'cap', e.target.value);
+        },
+        style: iSt
+      }), p.partId && found !== null && p.cap == String(found) && /*#__PURE__*/React.createElement("div", {
+        style: {
+          color: '#ddd',
+          fontSize: 10,
+          marginTop: 3
+        }
+      }, "auto do cat\xE1logo"))), /*#__PURE__*/React.createElement(Lbl, {
+        style: {
+          marginTop: 10
+        }
+      }, i === 0 ? 'Horário início (vazio = padrão do turno)' : 'Horário entrada / parada'), /*#__PURE__*/React.createElement("input", {
+        type: "time",
+        value: p.startTime || '',
+        onChange: function onChange(e) {
+          return setP(i, 'startTime', e.target.value);
+        },
+        style: iSt
+      }), isStop && /*#__PURE__*/React.createElement("div", {
+        style: {
+          color: '#9C5700',
+          fontSize: 10,
+          marginTop: 4
+        }
+      }, "\u23F9 Parada \xE0s ", p.startTime, " (sem pe\xE7a = stop)"));
+    }), /*#__PURE__*/React.createElement("button", {
+      onClick: saveCell,
+      style: _objectSpread(_objectSpread({}, bSt), {}, {
+        marginTop: 16,
+        width: '100%',
+        background: R
+      })
+    }, "\uD83D\uDCBE Salvar C\xE9lula"));
+  }
+  var mts = allMetas(shift, catalog);
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      padding: 16
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: 14
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      color: '#fff',
+      fontWeight: 700,
+      fontSize: 18
+    }
+  }, "Configurar C\xE9lulas"), /*#__PURE__*/React.createElement("button", {
+    onClick: function onClick() {
+      return setShowCat(true);
+    },
+    style: {
+      background: '#252525',
+      border: 'none',
+      color: '#fff',
+      borderRadius: 8,
+      padding: '8px 12px',
+      cursor: 'pointer',
+      fontSize: 12,
+      fontWeight: 600
+    }
+  }, "\uD83D\uDCDA Cat\xE1logo")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'grid',
+      gridTemplateColumns: '1fr 1fr',
+      gap: 8
+    }
+  }, CELLS.map(function (c) {
+    var _shift$cells3, _cell$parts$;
+    var cell = ((_shift$cells3 = shift.cells) === null || _shift$cells3 === void 0 ? void 0 : _shift$cells3[c]) || mkCell();
+    var ch = capH(c, mts, shift.shiftKey);
+    return /*#__PURE__*/React.createElement("button", {
+      key: c,
+      onClick: function onClick() {
+        return open(c);
+      },
+      style: {
+        background: '#141414',
+        border: "1px solid ".concat(ch > 0 ? '#2a2a2a' : '#1a1a1a'),
+        borderRadius: 12,
+        padding: '14px',
+        cursor: 'pointer',
+        textAlign: 'left'
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        color: '#fff',
+        fontWeight: 700,
+        fontSize: 15
+      }
+    }, c), ch > 0 && /*#__PURE__*/React.createElement("div", {
+      style: {
+        color: R,
+        fontSize: 13,
+        fontWeight: 700,
+        marginTop: 2
+      }
+    }, ch, " p\xE7/h"), /*#__PURE__*/React.createElement("div", {
+      style: {
+        color: '#ddd',
+        fontSize: 10,
+        marginTop: 3
+      }
+    }, cell.operators, " op"), ((_cell$parts$ = cell.parts[0]) === null || _cell$parts$ === void 0 ? void 0 : _cell$parts$.partId) && /*#__PURE__*/React.createElement("div", {
+      style: {
+        color: '#ddd',
+        fontSize: 10,
+        marginTop: 2
+      }
+    }, "P1: ", cell.parts[0].partId));
+  })));
+}
+function CatScreen(_ref24) {
+  var catalog = _ref24.catalog,
+    svC = _ref24.svC,
+    onBack = _ref24.onBack,
+    fileRef = _ref24.fileRef,
+    importExcel = _ref24.importExcel;
+  var _useState29 = useState(''),
+    _useState30 = _slicedToArray(_useState29, 2),
+    q = _useState30[0],
+    setQ = _useState30[1];
+  var _useState31 = useState(''),
+    _useState32 = _slicedToArray(_useState31, 2),
+    nId = _useState32[0],
+    setNId = _useState32[1];
+  var _useState33 = useState(Object.fromEntries(CELLS.map(function (c) {
+      return [c, ''];
+    }))),
+    _useState34 = _slicedToArray(_useState33, 2),
+    nCaps = _useState34[0],
+    setNCaps = _useState34[1];
+  var filtered = catalog.filter(function (e) {
+    return e.id.toLowerCase().includes(q.toLowerCase());
+  });
+  var add = function add() {
+    if (!nId.trim()) return;
+    var caps = {};
+    CELLS.forEach(function (c) {
+      if (nCaps[c]) caps[c] = Number(nCaps[c]);
+    });
+    svC([].concat(_toConsumableArray(catalog.filter(function (e) {
+      return e.id !== nId.trim();
+    })), [{
+      id: nId.trim(),
+      caps: caps
+    }]));
+    setNId('');
+    setNCaps(Object.fromEntries(CELLS.map(function (c) {
+      return [c, ''];
+    })));
+  };
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      padding: 16
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: 10,
+      marginBottom: 16,
+      flexWrap: 'wrap'
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: onBack,
+    style: {
+      background: '#252525',
+      border: 'none',
+      color: '#fff',
+      borderRadius: 8,
+      padding: '8px 14px',
+      cursor: 'pointer',
+      fontSize: 13
+    }
+  }, "\u2190 Voltar"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      color: '#fff',
+      fontWeight: 700,
+      fontSize: 16,
+      flex: 1
+    }
+  }, "Cat\xE1logo de Pe\xE7as"), /*#__PURE__*/React.createElement("input", {
+    ref: fileRef,
+    type: "file",
+    accept: ".xlsx,.xls",
+    onChange: importExcel,
+    style: {
+      display: 'none'
+    }
+  }), /*#__PURE__*/React.createElement("button", {
+    onClick: function onClick() {
+      var _fileRef$current;
+      return (_fileRef$current = fileRef.current) === null || _fileRef$current === void 0 ? void 0 : _fileRef$current.click();
+    },
+    style: {
+      background: '#252525',
+      border: 'none',
+      color: '#fff',
+      borderRadius: 8,
+      padding: '8px 12px',
+      cursor: 'pointer',
+      fontSize: 12,
+      fontWeight: 600
+    }
+  }, "\uD83D\uDCE5 Importar Excel")), /*#__PURE__*/React.createElement(Card, {
+    style: {
+      marginBottom: 12
+    }
+  }, /*#__PURE__*/React.createElement(Lbl, null, "Adicionar Pe\xE7a"), /*#__PURE__*/React.createElement("input", {
+    value: nId,
+    onChange: function onChange(e) {
+      return setNId(e.target.value);
+    },
+    style: iSt,
+    placeholder: "N\xBA da pe\xE7a"
+  }), /*#__PURE__*/React.createElement(Lbl, {
+    style: {
+      marginTop: 10
+    }
+  }, "Capacidade por C\xE9lula"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'grid',
+      gridTemplateColumns: 'repeat(4,1fr)',
+      gap: 4,
+      marginTop: 6
+    }
+  }, CELLS.map(function (c) {
+    return /*#__PURE__*/React.createElement("div", {
+      key: c,
+      style: {
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center'
+      }
+    }, /*#__PURE__*/React.createElement("span", {
+      style: {
+        color: '#ddd',
+        fontSize: 9,
+        fontWeight: 700
+      }
+    }, c), /*#__PURE__*/React.createElement("input", {
+      type: "number",
+      value: nCaps[c],
+      onChange: function onChange(e) {
+        return setNCaps(function (p) {
+          return _objectSpread(_objectSpread({}, p), {}, _defineProperty({}, c, e.target.value));
+        });
+      },
+      style: _objectSpread(_objectSpread({}, iSt), {}, {
+        padding: '6px 4px',
+        fontSize: 12,
+        textAlign: 'center',
+        marginTop: 2
+      }),
+      placeholder: "\u2013"
+    }));
+  })), /*#__PURE__*/React.createElement("button", {
+    onClick: add,
+    style: _objectSpread(_objectSpread({}, bSt), {}, {
+      marginTop: 12,
+      width: '100%',
+      background: R
+    })
+  }, "\u2795 Adicionar")), /*#__PURE__*/React.createElement("input", {
+    value: q,
+    onChange: function onChange(e) {
+      return setQ(e.target.value);
+    },
+    placeholder: "Buscar (".concat(catalog.length, " pe\xE7as)..."),
+    style: _objectSpread(_objectSpread({}, iSt), {}, {
+      marginBottom: 8
+    })
+  }), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 4
+    }
+  }, filtered.slice(0, 60).map(function (e) {
+    return /*#__PURE__*/React.createElement("div", {
+      key: e.id,
+      style: {
+        background: '#141414',
+        borderRadius: 9,
+        padding: '10px 14px',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center'
+      }
+    }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+      style: {
+        color: '#fff',
+        fontWeight: 700,
+        fontSize: 13
+      }
+    }, e.id), /*#__PURE__*/React.createElement("div", {
+      style: {
+        color: '#ddd',
+        fontSize: 10
+      }
+    }, Object.entries(e.caps).map(function (_ref25) {
+      var _ref26 = _slicedToArray(_ref25, 2),
+        k = _ref26[0],
+        v = _ref26[1];
+      return "".concat(k, ":").concat(v);
+    }).join(' · ') || 'Sem cap.')), /*#__PURE__*/React.createElement("button", {
+      onClick: function onClick() {
+        return svC(catalog.filter(function (x) {
+          return x.id !== e.id;
+        }));
+      },
+      style: {
+        background: 'none',
+        border: 'none',
+        color: '#f44336',
+        cursor: 'pointer',
+        fontSize: 16,
+        padding: 4
+      }
+    }, "\uD83D\uDDD1"));
+  }), filtered.length > 60 && /*#__PURE__*/React.createElement("div", {
+    style: {
+      color: '#ddd',
+      fontSize: 11,
+      textAlign: 'center',
+      padding: 8
+    }
+  }, "+", filtered.length - 60, " \u2014 use a busca")));
+}
+function Hist(_ref27) {
+  var history = _ref27.history,
+    catalog = _ref27.catalog;
+  var _useState35 = useState('list'),
+    _useState36 = _slicedToArray(_useState35, 2),
+    view = _useState36[0],
+    setView = _useState36[1]; // 'list' | 'detail' | 'log'
+  var _useState37 = useState(null),
+    _useState38 = _slicedToArray(_useState37, 2),
+    sel = _useState38[0],
+    setSel = _useState38[1];
+  var _useState39 = useState(''),
+    _useState40 = _slicedToArray(_useState39, 2),
+    fCell = _useState40[0],
+    setFCell = _useState40[1];
+  var _useState41 = useState(''),
+    _useState42 = _slicedToArray(_useState41, 2),
+    fShift = _useState42[0],
+    setFShift = _useState42[1];
+  var _useState43 = useState(''),
+    _useState44 = _slicedToArray(_useState43, 2),
+    fPeriod = _useState44[0],
+    setFPeriod = _useState44[1];
+  var _useState45 = useState(''),
+    _useState46 = _slicedToArray(_useState45, 2),
+    fMonth = _useState46[0],
+    setFMonth = _useState46[1];
+  var _useState47 = useState(''),
+    _useState48 = _slicedToArray(_useState47, 2),
+    fYear = _useState48[0],
+    setFYear = _useState48[1];
+
+  // Build flat records: one per cell × period × shift
+  var allRecords = [];
+  history.forEach(function (s, si) {
+    var mts = allMetas(s, catalog);
+    var sh = SHIFTS[s.shiftKey];
+    var _s$date$split = s.date.split('-'),
+      _s$date$split2 = _slicedToArray(_s$date$split, 3),
+      yr = _s$date$split2[0],
+      mo = _s$date$split2[1],
+      dy = _s$date$split2[2];
+    sh.periods.forEach(function (p, pi) {
+      CELLS.forEach(function (c) {
+        var _s$reals, _s$justificativas;
+        var m = (mts[c] || [])[pi] || 0;
+        var r = (_s$reals = s.reals) === null || _s$reals === void 0 || (_s$reals = _s$reals[c]) === null || _s$reals === void 0 ? void 0 : _s$reals[pi];
+        var rv = r === '' || r === undefined || r === null ? null : Number(r);
+        var ef = m > 0 && rv !== null ? rv / m : null;
+        var just = ((_s$justificativas = s.justificativas) === null || _s$justificativas === void 0 || (_s$justificativas = _s$justificativas[pi]) === null || _s$justificativas === void 0 ? void 0 : _s$justificativas[c]) || '';
+        if (m > 0 || rv !== null || just) {
+          allRecords.push({
+            si: si,
+            date: s.date,
+            yr: yr,
+            mo: mo,
+            dy: dy,
+            shiftKey: s.shiftKey,
+            shiftLbl: sh.label,
+            pi: pi,
+            periodLbl: p.lbl,
+            cell: c,
+            meta: m,
+            real: rv,
+            efic: ef,
+            just: just
+          });
+        }
+      });
+    });
+  });
+
+  // Available filter options
+  var years = _toConsumableArray(new Set(allRecords.map(function (r) {
+    return r.yr;
+  }))).sort().reverse();
+  var months = _toConsumableArray(new Set(allRecords.map(function (r) {
+    return r.mo;
+  }))).sort();
+
+  // Apply filters
+  var filtered = allRecords.filter(function (r) {
+    if (fCell && r.cell !== fCell) return false;
+    if (fShift && r.shiftKey !== fShift) return false;
+    if (fPeriod && String(r.pi) !== fPeriod) return false;
+    if (fMonth && r.mo !== fMonth) return false;
+    if (fYear && r.yr !== fYear) return false;
+    return true;
+  });
+  var exportExcel = function exportExcel() {
+    var wb = XLSX.utils.book_new();
+    // Resumo
+    var res = [['Data', 'Turno', 'Meta Total', 'Real Total', 'Eficiência %', 'Saldo']];
+    history.forEach(function (s) {
+      var _SHIFTS$s$shiftKey;
+      var mts = allMetas(s, catalog);
+      var tM = CELLS.reduce(function (a, c) {
+        return (mts[c] || []).reduce(function (x, y) {
+          return x + y;
+        }, 0) + a;
+      }, 0);
+      var tR = CELLS.reduce(function (a, c) {
+        var _s$reals2;
+        return (((_s$reals2 = s.reals) === null || _s$reals2 === void 0 ? void 0 : _s$reals2[c]) || []).reduce(function (x, r) {
+          return x + (r === '' ? 0 : Number(r));
+        }, 0) + a;
+      }, 0);
+      res.push([s.date, (_SHIFTS$s$shiftKey = SHIFTS[s.shiftKey]) === null || _SHIFTS$s$shiftKey === void 0 ? void 0 : _SHIFTS$s$shiftKey.label, tM, tR, tM > 0 ? +(tR / tM * 100).toFixed(1) : 0, tR - tM]);
+    });
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(res), 'Resumo');
+    // Log por célula
+    var log = [['Data', 'Ano', 'Mês', 'Turno', 'Período', 'Célula', 'Meta', 'Real', 'Efic%', 'Justificativa']];
+    allRecords.forEach(function (r) {
+      var _r$real;
+      log.push([r.date, r.yr, r.mo, r.shiftLbl, r.periodLbl, r.cell, r.meta, (_r$real = r.real) !== null && _r$real !== void 0 ? _r$real : '', r.efic !== null ? +(r.efic * 100).toFixed(1) : '', r.just]);
+    });
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(log), 'Log Células');
+    XLSX.writeFile(wb, "UMM_HoraAHora_".concat(new Date().toISOString().slice(0, 10), ".xlsx"));
+  };
+
+  // Detail view of one shift
+  if (view === 'detail' && sel !== null) {
+    var s = history[sel],
+      mts = allMetas(s, catalog),
+      sh = SHIFTS[s.shiftKey];
+    var tM = CELLS.reduce(function (a, c) {
+      return (mts[c] || []).reduce(function (x, y) {
+        return x + y;
+      }, 0) + a;
+    }, 0);
+    var tR = CELLS.reduce(function (a, c) {
+      var _s$reals3;
+      return (((_s$reals3 = s.reals) === null || _s$reals3 === void 0 ? void 0 : _s$reals3[c]) || []).reduce(function (x, r) {
+        return x + (r === '' ? 0 : Number(r));
+      }, 0) + a;
+    }, 0);
+    var ef = tM > 0 ? tR / tM : null;
+    return /*#__PURE__*/React.createElement("div", {
+      style: {
+        padding: 16
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: 12,
+        marginBottom: 14
+      }
+    }, /*#__PURE__*/React.createElement("button", {
+      onClick: function onClick() {
+        setView('list');
+        setSel(null);
+      },
+      style: {
+        background: '#252525',
+        border: 'none',
+        color: '#fff',
+        borderRadius: 8,
+        padding: '8px 14px',
+        cursor: 'pointer',
+        fontSize: 13
+      }
+    }, "\u2190 Voltar"), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+      style: {
+        color: '#fff',
+        fontWeight: 700
+      }
+    }, sh.label, " \xB7 ", s.date), ef !== null && /*#__PURE__*/React.createElement("div", {
+      style: {
+        color: sc(ef),
+        fontSize: 12,
+        fontWeight: 700
+      }
+    }, (ef * 100).toFixed(1), "%"))), /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: 'grid',
+        gridTemplateColumns: '1fr 1fr 1fr',
+        gap: 8,
+        marginBottom: 14
+      }
+    }, /*#__PURE__*/React.createElement(Stat, {
+      lbl: "Meta",
+      val: tM.toLocaleString('pt-BR')
+    }), /*#__PURE__*/React.createElement(Stat, {
+      lbl: "Real",
+      val: tR.toLocaleString('pt-BR'),
+      accent: R
+    }), /*#__PURE__*/React.createElement(Stat, {
+      lbl: "Saldo",
+      val: (tR - tM).toLocaleString('pt-BR', {
+        signDisplay: 'always'
+      }),
+      accent: tR >= tM ? '#4caf50' : '#f44336'
+    })), /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: 'grid',
+        gridTemplateColumns: 'repeat(4,1fr)',
+        gap: 5,
+        marginBottom: 14
+      }
+    }, CELLS.map(function (c) {
+      var _s$reals4;
+      var ef = eficTotal(c, mts, s.reals || {});
+      var rT = (((_s$reals4 = s.reals) === null || _s$reals4 === void 0 ? void 0 : _s$reals4[c]) || []).reduce(function (a, r) {
+        return a + (r === '' ? 0 : Number(r));
+      }, 0);
+      var mT = (mts[c] || []).reduce(function (a, b) {
+        return a + b;
+      }, 0);
+      return /*#__PURE__*/React.createElement("div", {
+        key: c,
+        style: {
+          background: sb(ef),
+          borderRadius: 9,
+          padding: '9px 6px',
+          border: "1px solid ".concat(sc(ef)),
+          textAlign: 'center'
+        }
+      }, /*#__PURE__*/React.createElement("div", {
+        style: {
+          color: '#eee',
+          fontSize: 10,
+          fontWeight: 700
+        }
+      }, c), /*#__PURE__*/React.createElement("div", {
+        style: {
+          color: '#fff',
+          fontSize: 13,
+          fontWeight: 800
+        }
+      }, rT.toLocaleString()), /*#__PURE__*/React.createElement("div", {
+        style: {
+          color: '#ddd',
+          fontSize: 8
+        }
+      }, "/", mT.toLocaleString()), ef !== null && /*#__PURE__*/React.createElement("div", {
+        style: {
+          color: sc(ef),
+          fontSize: 10,
+          fontWeight: 700
+        }
+      }, (ef * 100).toFixed(0), "%"));
+    })), s.justificativas && Object.keys(s.justificativas).length > 0 && /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+      style: {
+        color: '#ddd',
+        fontSize: 11,
+        fontWeight: 700,
+        letterSpacing: .5,
+        textTransform: 'uppercase',
+        marginBottom: 8
+      }
+    }, "Justificativas"), Object.entries(s.justificativas).map(function (_ref28) {
+      var _ref29 = _slicedToArray(_ref28, 2),
+        pi = _ref29[0],
+        cells = _ref29[1];
+      return Object.entries(cells).map(function (_ref30) {
+        var _sh$periods$pi2;
+        var _ref31 = _slicedToArray(_ref30, 2),
+          c = _ref31[0],
+          txt = _ref31[1];
+        return /*#__PURE__*/React.createElement("div", {
+          key: "".concat(pi, "-").concat(c),
+          style: {
+            background: '#141414',
+            borderRadius: 8,
+            padding: '10px 14px',
+            marginBottom: 6,
+            borderLeft: '3px solid #ff9800'
+          }
+        }, /*#__PURE__*/React.createElement("div", {
+          style: {
+            display: 'flex',
+            gap: 8,
+            marginBottom: 3
+          }
+        }, /*#__PURE__*/React.createElement("span", {
+          style: {
+            color: '#ff9800',
+            fontSize: 11,
+            fontWeight: 700
+          }
+        }, (_sh$periods$pi2 = sh.periods[pi]) === null || _sh$periods$pi2 === void 0 ? void 0 : _sh$periods$pi2.lbl), /*#__PURE__*/React.createElement("span", {
+          style: {
+            color: '#ddd',
+            fontSize: 11
+          }
+        }, "\xB7"), /*#__PURE__*/React.createElement("span", {
+          style: {
+            color: '#fff',
+            fontSize: 11,
+            fontWeight: 700
+          }
+        }, c)), /*#__PURE__*/React.createElement("div", {
+          style: {
+            color: '#eee',
+            fontSize: 13
+          }
+        }, txt));
+      });
+    })));
+  }
+
+  // Log view (filtered)
+  if (view === 'log') return /*#__PURE__*/React.createElement("div", {
+    style: {
+      padding: 16
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: 12,
+      marginBottom: 14
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: function onClick() {
+      return setView('list');
+    },
+    style: {
+      background: '#252525',
+      border: 'none',
+      color: '#fff',
+      borderRadius: 8,
+      padding: '8px 14px',
+      cursor: 'pointer',
+      fontSize: 13
+    }
+  }, "\u2190 Voltar"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      color: '#fff',
+      fontWeight: 700,
+      fontSize: 16
+    }
+  }, "Log por C\xE9lula"), /*#__PURE__*/React.createElement("button", {
+    onClick: exportExcel,
+    style: {
+      marginLeft: 'auto',
+      background: '#276221',
+      border: 'none',
+      color: '#fff',
+      borderRadius: 8,
+      padding: '7px 12px',
+      cursor: 'pointer',
+      fontSize: 12,
+      fontWeight: 700
+    }
+  }, "\uD83D\uDCE5 Excel")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'grid',
+      gridTemplateColumns: '1fr 1fr',
+      gap: 6,
+      marginBottom: 12
+    }
+  }, [['Célula', fCell, setFCell, [''].concat(CELLS).map(function (v) {
+    return {
+      v: v,
+      l: v || 'Todas'
+    };
+  })], ['Turno', fShift, setFShift, [{
+    v: '',
+    l: 'Todos'
+  }, {
+    v: '3t',
+    l: '3° Turno'
+  }, {
+    v: '1t',
+    l: '1° Turno'
+  }, {
+    v: '2t',
+    l: '2° Turno'
+  }]], ['Período', fPeriod, setFPeriod, [{
+    v: '',
+    l: 'Todos'
+  }, 0, 1, 2, 3, 4, 5, 6, 7].map(function (x, i) {
+    return i === 0 ? x : {
+      v: String(x),
+      l: "".concat(x + 1, "\xAA hora")
+    };
+  })], ['Mês', fMonth, setFMonth, [{
+    v: '',
+    l: 'Todos'
+  }].concat(_toConsumableArray(months.map(function (m) {
+    return {
+      v: m,
+      l: m
+    };
+  })))], ['Ano', fYear, setFYear, [{
+    v: '',
+    l: 'Todos'
+  }].concat(_toConsumableArray(years.map(function (y) {
+    return {
+      v: y,
+      l: y
+    };
+  })))], ['Turno tipo', fShift, setFShift, [{
+    v: '',
+    l: 'Todos'
+  }, {
+    v: '3t',
+    l: '3°T'
+  }, {
+    v: '1t',
+    l: '1°T'
+  }, {
+    v: '2t',
+    l: '2°T'
+  }]]].slice(0, 5).map(function (_ref32) {
+    var _ref33 = _slicedToArray(_ref32, 4),
+      lbl = _ref33[0],
+      val = _ref33[1],
+      setter = _ref33[2],
+      opts = _ref33[3];
+    return /*#__PURE__*/React.createElement("div", {
+      key: lbl
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        color: '#ddd',
+        fontSize: 10,
+        fontWeight: 700,
+        marginBottom: 3,
+        textTransform: 'uppercase'
+      }
+    }, lbl), /*#__PURE__*/React.createElement("select", {
+      value: val,
+      onChange: function onChange(e) {
+        return setter(e.target.value);
+      },
+      style: {
+        width: '100%',
+        background: '#161616',
+        border: '1px solid #333',
+        borderRadius: 8,
+        padding: '8px 10px',
+        color: '#fff',
+        fontSize: 13,
+        outline: 'none'
+      }
+    }, opts.map(function (o) {
+      return /*#__PURE__*/React.createElement("option", {
+        key: o.v || o,
+        value: o.v || o
+      }, o.l || o);
+    })));
+  })), /*#__PURE__*/React.createElement("div", {
+    style: {
+      color: '#ddd',
+      fontSize: 11,
+      marginBottom: 8
+    }
+  }, filtered.length, " registro(s)"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 6
+    }
+  }, filtered.slice(0, 100).map(function (r, i) {
+    return /*#__PURE__*/React.createElement("div", {
+      key: i,
+      style: {
+        background: '#141414',
+        borderRadius: 10,
+        padding: '10px 14px',
+        border: "1px solid ".concat(r.efic !== null ? sc(r.efic) : '#222')
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: r.just ? 6 : 0
+      }
+    }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("span", {
+      style: {
+        color: '#fff',
+        fontWeight: 700,
+        fontSize: 13
+      }
+    }, r.cell), /*#__PURE__*/React.createElement("span", {
+      style: {
+        color: '#ddd',
+        fontSize: 11,
+        marginLeft: 8
+      }
+    }, r.date, " \xB7 ", r.shiftLbl)), /*#__PURE__*/React.createElement("div", {
+      style: {
+        textAlign: 'right'
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        color: r.efic !== null ? sc(r.efic) : '#444',
+        fontWeight: 700,
+        fontSize: 13
+      }
+    }, r.real !== null ? r.real.toLocaleString() : '—', /*#__PURE__*/React.createElement("span", {
+      style: {
+        color: '#ddd',
+        fontSize: 10
+      }
+    }, "/", r.meta)), r.efic !== null && /*#__PURE__*/React.createElement("div", {
+      style: {
+        color: sc(r.efic),
+        fontSize: 10,
+        fontWeight: 700
+      }
+    }, (r.efic * 100).toFixed(0), "%"))), /*#__PURE__*/React.createElement("div", {
+      style: {
+        color: '#ddd',
+        fontSize: 10,
+        marginBottom: r.just ? 4 : 0
+      }
+    }, r.periodLbl), r.just && /*#__PURE__*/React.createElement("div", {
+      style: {
+        color: '#ff9800',
+        fontSize: 12,
+        borderTop: '1px solid #222',
+        paddingTop: 6,
+        marginTop: 4
+      }
+    }, "\uD83D\uDCDD ", r.just));
+  }), filtered.length > 100 && /*#__PURE__*/React.createElement("div", {
+    style: {
+      color: '#ddd',
+      fontSize: 11,
+      textAlign: 'center',
+      padding: 8
+    }
+  }, "Mostrando 100 de ", filtered.length, ". Refine os filtros.")));
+
+  // Main list view
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      padding: 16
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: 14
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      color: '#fff',
+      fontWeight: 700,
+      fontSize: 18
+    }
+  }, "Hist\xF3rico"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      gap: 8
+    }
+  }, history.length > 0 && /*#__PURE__*/React.createElement("button", {
+    onClick: function onClick() {
+      return setView('log');
+    },
+    style: {
+      background: '#252525',
+      border: 'none',
+      color: '#fff',
+      borderRadius: 8,
+      padding: '8px 12px',
+      cursor: 'pointer',
+      fontSize: 12,
+      fontWeight: 600
+    }
+  }, "\uD83D\uDD0D Log"), history.length > 0 && /*#__PURE__*/React.createElement("button", {
+    onClick: exportExcel,
+    style: {
+      background: '#276221',
+      border: 'none',
+      color: '#fff',
+      borderRadius: 8,
+      padding: '8px 12px',
+      cursor: 'pointer',
+      fontSize: 12,
+      fontWeight: 700
+    }
+  }, "\uD83D\uDCE5 Excel"))), !history.length && /*#__PURE__*/React.createElement("div", {
+    style: {
+      color: '#ddd',
+      textAlign: 'center',
+      marginTop: 40,
+      fontSize: 15
+    }
+  }, "Nenhum turno encerrado ainda."), history.map(function (s, i) {
+    var _SHIFTS$s$shiftKey2;
+    var mts = allMetas(s, catalog);
+    var tM = CELLS.reduce(function (a, c) {
+      return (mts[c] || []).reduce(function (x, y) {
+        return x + y;
+      }, 0) + a;
+    }, 0);
+    var tR = CELLS.reduce(function (a, c) {
+      var _s$reals5;
+      return (((_s$reals5 = s.reals) === null || _s$reals5 === void 0 ? void 0 : _s$reals5[c]) || []).reduce(function (x, r) {
+        return x + (r === '' ? 0 : Number(r));
+      }, 0) + a;
+    }, 0);
+    var ef = tM > 0 ? tR / tM : null;
+    var hasJust = s.justificativas && Object.values(s.justificativas).some(function (pj) {
+      return Object.keys(pj).length > 0;
+    });
+    return /*#__PURE__*/React.createElement("button", {
+      key: i,
+      onClick: function onClick() {
+        setSel(i);
+        setView('detail');
+      },
+      style: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: 12,
+        background: '#141414',
+        border: '1px solid #1e1e1e',
+        borderRadius: 12,
+        padding: '14px 16px',
+        cursor: 'pointer',
+        textAlign: 'left',
+        width: '100%',
+        marginBottom: 8
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        flex: 1
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        color: '#fff',
+        fontWeight: 700
+      }
+    }, (_SHIFTS$s$shiftKey2 = SHIFTS[s.shiftKey]) === null || _SHIFTS$s$shiftKey2 === void 0 ? void 0 : _SHIFTS$s$shiftKey2.label, " \xB7 ", s.date), /*#__PURE__*/React.createElement("div", {
+      style: {
+        color: '#ddd',
+        fontSize: 11,
+        marginTop: 2
+      }
+    }, "Meta:", tM.toLocaleString(), " \xB7 Real:", tR.toLocaleString(), hasJust ? ' · 📝' : '')), /*#__PURE__*/React.createElement("div", {
+      style: {
+        textAlign: 'right'
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        color: sc(ef),
+        fontWeight: 800,
+        fontSize: 16
+      }
+    }, ef !== null ? "".concat((ef * 100).toFixed(1), "%") : '—'), /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 14
+      }
+    }, sl(ef))));
+  }));
 }
 
-function allMetas(shift,catalog){
-var sh=SHIFTS[shift.shiftKey];
-return Object.fromEntries(CELLS.map(function(c){return[c,sh.periods.map(function(p){return calcMeta(shift.cells[c]||mkCell(),p,shift.shiftKey,catalog);})];})
-);}
 
-function eficTotal(cid,metas,reals){
-var rs=0,ms=0;
-for(var i=0;i<8;i++){var m=(metas[cid]||[])[i]||0,r=(reals[cid]||[])[i];if(r!==''&&r!==null&&r!==undefined&&m>0){rs+=Number(r);ms+=m;}}
-return ms>0?rs/ms:null;
-}
-
-function capH(cid,metas,sk){
-var sh=SHIFTS[sk],ms=metas[cid]||[],mt=0,mint=0;
-sh.periods.forEach(function(p,i){if((ms[i]||0)>0){mt+=ms[i];mint+=p.pm;}});
-return mint>0?Math.round(mt*60/mint):0;
-}
-
-var sc=function(e){return e===null?'#444':e>=0.9?'#4caf50':e>=0.75?'#ff9800':'#f44336';};
-var sb=function(e){return e===null?'#1a1a1a':e>=0.9?'#0a1e0f':e>=0.75?'#1a1100':'#1a0008';};
-var sl=function(e){return e===null?'—':e>=0.9?'✅':e>=0.75?'⚠️':'🔴';};
-
-var iSt={background:'#0d0d0d',border:'1px solid #3a3a3a',borderRadius:8,padding:'10px 12px',color:'#fff',fontSize:14,outline:'none',width:'100%',boxSizing:'border-box',marginTop:4};
-var bSt={padding:'12px 18px',borderRadius:10,border:'none',cursor:'pointer',fontWeight:700,fontSize:14,color:'#fff'};
-
-var CELL_COLS={'C11':'D','C13':'E','C14':'F','C15':'G','C16':'H','C17':'I','C18':'J','C19':'K','C20':'L','C21':'M','C22':'N','C23':'O','C24':'P','C25':'Q','C26':'R','C27':'S'};
-var REAL_ROWS=[19,21,23,25,27,29,31,33];
-
-function exportPlanilha(shift,catalog){
-var wb=XLSX.utils.book_new();
-var sh=SHIFTS[shift.shiftKey];
-var mts=allMetas(shift,catalog);
-var data={};
-var set=function(col,row,val){data[col+row]=val;};
-CELLS.forEach(function(c){
-var col=CELL_COLS[c];
-var cell=(shift.cells&&shift.cells[c])||mkCell();
-var ch=capH(c,mts,shift.shiftKey);
-if(ch>0)set(col,6,ch);
-if(cell.operators)set(col,8,Number(cell.operators));
-if(cell.extraRef&&Number(cell.extraRef)>0)set(col,16,Number(cell.extraRef));
-cell.parts&&cell.parts.forEach(function(p,i){
-var pRow=10+i*2,tRow=10+i*2+1;
-if(p&&p.partId)set(col,pRow,p.partId);
-if(p&&p.startTime)set(col,tRow,p.startTime);
-});
-REAL_ROWS.forEach(function(row,pi){
-var r=shift.reals&&shift.reals[c]&&shift.reals[c][pi];
-if(r!==''&&r!==null&&r!==undefined)set(col,row,Number(r));
-});
-});
-var maxRow=40,cols='ABCDEFGHIJKLMNOPQRSTU'.split(''),aoa=[];
-for(var r=1;r<=maxRow;r++){var row=[];for(var ci=0;ci<cols.length;ci++){var key=cols[ci]+r;row.push(data[key]!==undefined?data[key]:null);}aoa.push(row);}
-var labels={5:'📋 DISPONIBILIDADE',6:'⚡ CAPACIDADE / HORA',7:'🎯 META OEE 90%',8:'👤 Nº OPERADORES DL',9:'📊 pç/HH (cap ÷ DL)',10:'🟢 PEÇA 1',11:'⏰ INÍCIO 1',12:'🟡 PEÇA 2',13:'⏰ INÍCIO 2',14:'🔴 PEÇA 3',15:'⏰ INÍCIO 3',16:'⏱️ EXTRA REFEIÇÃO (min)'};
-Object.entries(labels).forEach(function(pair){aoa[Number(pair[0])-1][0]=pair[1];});
-CELLS.forEach(function(c){aoa[3][cols.indexOf(CELL_COLS[c])]=c;});
-sh.periods.forEach(function(p,i){var mr=18+i*2-1,rr=mr+1;if(aoa[mr]){aoa[mr][0]='META';aoa[mr][1]=p.lbl;aoa[mr][2]=p.pm;}if(aoa[rr]){aoa[rr][0]='REAL';}});
-aoa[0]=['Controle Hora a Hora — '+sh.label+' — '+shift.date];
-aoa[1]=['Gerado pelo app UMM em '+new Date().toLocaleString('pt-BR')];
-var ws2=XLSX.utils.aoa_to_sheet(aoa);
-var sheetName=sh.label.replace('°','').replace(' ','_');
-XLSX.utils.book_append_sheet(wb,ws2,sheetName);
-var justRows=[['Período','Célula','Justificativa']];
-if(shift.justificativas){Object.entries(shift.justificativas).forEach(function(pair){var pi=pair[0],cells=pair[1];Object.entries(cells).forEach(function(pair2){var c=pair2[0],txt=pair2[1];if(txt)justRows.push([(sh.periods[pi]&&sh.periods[pi].lbl)||('Período '+(Number(pi)+1)),c,txt]);});});}
-if(justRows.length>1){XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(justRows),'Justificativas');}
-XLSX.writeFile(wb,'UMM_'+sheetName+'_'+shift.date+'.xlsx');
-}
-
-function App(){
-var tabState=useState('dash'),tab=tabState[0],setTab=tabState[1];
-var shiftState=useState(null),shift=shiftState[0],setShift=shiftState[1];
-var histState=useState([]),history=histState[0],setHistory=histState[1];
-var catState=useState(CATALOG_BASE),catalog=catState[0],setCatalog=catState[1];
-var loadState=useState(true),loading=loadState[0],setLoading=loadState[1];
-
-useEffect(function(){
-(async function(){
 try{
-var s=await storage.get('hah2_shift');if(s)setShift(JSON.parse(s.value));
-var h=await storage.get('hah2_hist');if(h)setHistory(JSON.parse(h.value));
-var c=await storage.get('hah2_cat');if(c)setCatalog(JSON.parse(c.value));
-}catch(e){}
-setLoading(false);
-})();
-},[]);
-
-var sv=useCallback(async function(s){
-setShift(s);
-try{await storage.set('hah2_shift',JSON.stringify(s));}catch(e){}
-},[]);
-
-var svH=useCallback(async function(h){
-setHistory(h);
-try{await storage.set('hah2_hist',JSON.stringify(h));}catch(e){}
-},[]);
-
-var svC=useCallback(async function(c){
-setCatalog(c);
-try{await storage.set('hah2_cat',JSON.stringify(c));}catch(e){}
-},[]);
-
-var close=useCallback(async function(){
-if(!shift)return;
-await svH([Object.assign({},shift,{closedAt:new Date().toISOString()})].concat(history).slice(0,50));
-await sv(null);
-setTab('dash');
-},[shift,history,sv,svH]);
-
-if(loading)return React.createElement('div',{style:{background:'#0a0a0a',height:'100vh',display:'flex',alignItems:'center',justifyContent:'center',color:'#fff',fontSize:18}},'Carregando...');
-
-var TABS=[{id:'dash',icon:'⬛',lbl:'Principal'},{id:'launch',icon:'✏️',lbl:'Lançar'},{id:'cells',icon:'⚙️',lbl:'Células'},{id:'hist',icon:'📋',lbl:'Histórico'}];
-
-return React.createElement('div',{style:{fontFamily:"'Helvetica Neue',Arial,sans-serif",background:'#0d0d0d',minHeight:'100vh',maxWidth:680,margin:'0 auto',display:'flex',flexDirection:'column',height:'100vh'}},
-React.createElement('div',{style:{background:'#000',padding:'12px 16px',display:'flex',alignItems:'center',justifyContent:'space-between',borderBottom:'2px solid '+R}},
-React.createElement('div',null,
-React.createElement('div',{style:{color:R,fontWeight:900,fontSize:20,letterSpacing:3}},'UMM'),
-React.createElement('div',{style:{color:'#444',fontSize:9,letterSpacing:2,textTransform:'uppercase'}},'Controle Hora a Hora')),
-shift&&React.createElement('div',{style:{textAlign:'right'}},
-React.createElement('div',{style:{color:'#fff',fontWeight:700,fontSize:14}},SHIFTS[shift.shiftKey]&&SHIFTS[shift.shiftKey].label),
-React.createElement('div',{style:{color:'#555',fontSize:11}},shift.date))),
-React.createElement('div',{style:{flex:1,overflowY:'auto',paddingBottom:64}},
-tab==='dash'&&React.createElement(Dash,{shift:shift,sv:sv,close:close,catalog:catalog}),
-tab==='launch'&&(shift?React.createElement(Launch,{shift:shift,sv:sv,catalog:catalog}):React.createElement(NoS,null)),
-tab==='cells'&&(shift?React.createElement(Cells,{shift:shift,sv:sv,catalog:catalog,svC:svC}):React.createElement(NoS,null)),
-tab==='hist'&&React.createElement(Hist,{history:history,catalog:catalog})),
-React.createElement('nav',{style:{position:'fixed',bottom:0,left:'50%',transform:'translateX(-50%)',width:'100%',maxWidth:680,background:'#141414',borderTop:'1px solid #222',display:'flex',zIndex:100}},
-TABS.map(function(t){return React.createElement('button',{key:t.id,onClick:function(){setTab(t.id);},style:{flex:1,padding:'10px 0',display:'flex',flexDirection:'column',alignItems:'center',background:'none',border:'none',cursor:'pointer',color:tab===t.id?R:'#555'}},
-React.createElement('span',{style:{fontSize:18}},t.icon),
-React.createElement('span',{style:{fontSize:10,marginTop:2,fontWeight:600}},t.lbl));})));
-}
-
-var NoS=function(){return React.createElement('div',{style:{padding:40,textAlign:'center',color:'#555'}},React.createElement('div',{style:{fontSize:48,marginBottom:12}},'⚠️'),React.createElement('div',null,'Inicie um turno na aba Principal.'));};
-var Card=function(props){return React.createElement('div',{style:Object.assign({background:'#161616',borderRadius:12,padding:16,border:'1px solid #252525'},props.style)},props.children);};
-var Lbl=function(props){return React.createElement('div',{style:Object.assign({color:'#555',fontSize:11,fontWeight:700,letterSpacing:.5,textTransform:'uppercase',marginBottom:2},props.style)},props.children);};
-var Sec=function(props){return React.createElement('div',{style:{color:'#444',fontSize:10,letterSpacing:1.5,textTransform:'uppercase',margin:'14px 0 8px'}},props.children);};
-var Stat=function(props){return React.createElement('div',{style:{background:'#161616',borderRadius:10,padding:'12px 8px',textAlign:'center',border:'1px solid #222'}},React.createElement('div',{style:{color:'#444',fontSize:10,textTransform:'uppercase',letterSpacing:.5}},props.lbl),React.createElement('div',{style:{color:props.accent||'#fff',fontWeight:800,fontSize:17,marginTop:4}},props.val));};
-
-function Dash(props){
-var shift=props.shift,sv=props.sv,close=props.close,catalog=props.catalog;
-var dateState=useState(new Date().toISOString().slice(0,10)),date=dateState[0],setDate=dateState[1];
-var skState=useState('3t'),sk=skState[0],setSk=skState[1];
-
-if(!shift)return React.createElement('div',{style:{padding:20}},
-React.createElement('div',{style:{color:'#fff',fontWeight:700,fontSize:18,marginBottom:14}},'Iniciar Turno'),
-React.createElement(Card,null,
-React.createElement(Lbl,null,'Data'),
-React.createElement('input',{type:'date',value:date,onChange:function(e){setDate(e.target.value);},style:iSt}),
-React.createElement(Lbl,{style:{marginTop:14}},'Turno'),
-React.createElement('div',{style:{display:'flex',gap:8,marginTop:6}},
-Object.entries(SHIFTS).map(function(pair){var k=pair[0],v=pair[1];return React.createElement('button',{key:k,onClick:function(){setSk(k);},style:{flex:1,padding:'11px 0',borderRadius:8,border:'none',cursor:'pointer',fontWeight:700,fontSize:13,background:sk===k?R:'#252525',color:'#fff'}},v.label);})),
-React.createElement('button',{onClick:function(){sv(mkShift(sk,date));},style:Object.assign({},bSt,{marginTop:18,width:'100%',background:R})},'🚀 Iniciar Turno')));
-
-var mts=allMetas(shift,catalog),sh=SHIFTS[shift.shiftKey];
-var tM=CELLS.reduce(function(a,c){return(mts[c]||[]).reduce(function(x,y){return x+y;},0)+a;},0);
-var tR=CELLS.reduce(function(a,c){return((shift.reals&&shift.reals[c])||[]).reduce(function(x,r){return x+(r===''?0:Number(r));},0)+a;},0);
-var ef=tM>0?tR/tM:null;
-
-return React.createElement('div',{style:{padding:16}},
-React.createElement('div',{style:{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:8,marginBottom:14}},
-React.createElement(Stat,{lbl:'Meta',val:tM.toLocaleString('pt-BR')}),
-React.createElement(Stat,{lbl:'Real',val:tR.toLocaleString('pt-BR'),accent:R}),
-React.createElement(Stat,{lbl:'Eficiência',val:ef!==null?(ef*100).toFixed(1)+'%':'—',accent:sc(ef)})),
-React.createElement(Sec,null,'Células'),
-React.createElement('div',{style:{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:5,marginBottom:14}},
-CELLS.map(function(c){
-var ef2=eficTotal(c,mts,shift.reals||{});
-var ch=capH(c,mts,shift.shiftKey);
-var rT=((shift.reals&&shift.reals[c])||[]).reduce(function(a,r){return a+(r===''?0:Number(r));},0);
-var mT=(mts[c]||[]).reduce(function(a,b){return a+b;},0);
-var has=((shift.reals&&shift.reals[c])||[]).some(function(r){return r!=='';});
-return React.createElement('div',{key:c,style:{background:sb(has?ef2:null),borderRadius:9,padding:'9px 6px',border:'1px solid '+(has?sc(ef2):'#222'),textAlign:'center'}},
-React.createElement('div',{style:{color:'#666',fontSize:10,fontWeight:700}},c),
-ch>0&&React.createElement('div',{style:{color:'#333',fontSize:9}},ch,' pç/h'),
-has?React.createElement(React.Fragment,null,
-React.createElement('div',{style:{color:'#fff',fontSize:14,fontWeight:800}},rT.toLocaleString()),
-React.createElement('div',{style:{color:'#333',fontSize:8}},'/'+mT.toLocaleString()),
-React.createElement('div',{style:{color:sc(ef2),fontSize:11,fontWeight:700}},ef2!==null?(ef2*100).toFixed(0)+'%':sl(ef2))):
-React.createElement('div',{style:{color:'#2a2a2a',fontSize:10,marginTop:4}},'—'));})),
-React.createElement(Sec,null,'Períodos'),
-React.createElement('div',{style:{display:'flex',flexDirection:'column',gap:4,marginBottom:14}},
-sh.periods.map(function(p,i){
-var pM=CELLS.reduce(function(s,c){return s+((mts[c]&&mts[c][i])||0);},0);
-var has=CELLS.some(function(c){return shift.reals&&shift.reals[c]&&shift.reals[c][i]!=='';});
-var pR=has?CELLS.reduce(function(s,c){var v=(shift.reals&&shift.reals[c]&&shift.reals[c][i]);return s+((!v||v==='')?0:Number(v));},0):null;
-var ef2=pM>0&&pR!==null?pR/pM:null;
-return React.createElement('div',{key:i,style:{display:'flex',alignItems:'center',gap:10,padding:'9px 14px',background:'#141414',borderRadius:8,border:'1px solid '+(has?sc(ef2):'#1e1e1e')}},
-React.createElement('div',{style:{color:'#555',fontSize:11,minWidth:100}},p.lbl),
-React.createElement('div',{style:{flex:1,height:3,background:'#222',borderRadius:2,overflow:'hidden'}},
-has&&React.createElement('div',{style:{height:'100%',background:sc(ef2),width:Math.min(100,(ef2||0)*100)+'%',transition:'width .4s'}})),
-React.createElement('div',{style:{minWidth:50,textAlign:'right',color:has?sc(ef2):'#2a2a2a',fontWeight:700,fontSize:13}},
-has?pR.toLocaleString():p.ev||'–'));})),
-React.createElement('div',{style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8,marginTop:14}},
-React.createElement('button',{onClick:function(){exportPlanilha(shift,catalog);},style:Object.assign({},bSt,{background:'#1a3a6b',border:'1px solid #2E75B6',fontSize:13})},'📊 Exportar Planilha'),
-React.createElement('button',{onClick:close,style:Object.assign({},bSt,{background:'#161616',color:'#f44336',border:'1px solid #f44336',fontSize:13})},'Encerrar Turno')));
-}
-
-function Launch(props){
-var shift=props.shift,sv=props.sv,catalog=props.catalog;
-var selState=useState(null),sel=selState[0],setSel=selState[1];
-var inpState=useState({}),inp=inpState[0],setInp=inpState[1];
-var justState=useState({}),just=justState[0],setJust=justState[1];
-var sh=SHIFTS[shift.shiftKey];
-var mts=allMetas(shift,catalog);
-
-var open=function(i){
-var c={};
-CELLS.forEach(function(c2){c[c2]=(shift.reals&&shift.reals[c2]&&shift.reals[c2][i]!==undefined)?shift.reals[c2][i]:'';});
-setInp(c);
-setJust((shift.justificativas&&shift.justificativas[i])||{});
-setSel(i);
-};
-
-var save=async function(){
-var nr=Object.assign({},shift.reals);
-CELLS.forEach(function(c){if(!nr[c])nr[c]=Array(8).fill('');nr[c]=nr[c].slice();nr[c][sel]=inp[c]!==undefined?inp[c]:'';});
-var nj=Object.assign({},shift.justificativas||{});
-var pj={};
-Object.entries(just).forEach(function(pair){if(pair[1].trim())pj[pair[0]]=pair[1].trim();});
-if(Object.keys(pj).length>0)nj[sel]=pj;else delete nj[sel];
-await sv(Object.assign({},shift,{reals:nr,justificativas:nj}));
-setSel(null);
-};
-
-if(sel!==null){
-var p=sh.periods[sel];
-return React.createElement('div',{style:{padding:16}},
-React.createElement('div',{style:{display:'flex',alignItems:'center',gap:12,marginBottom:16}},
-React.createElement('button',{onClick:function(){setSel(null);},style:{background:'#252525',border:'none',color:'#fff',borderRadius:8,padding:'8px 14px',cursor:'pointer',fontSize:13}},'← Voltar'),
-React.createElement('div',null,React.createElement('div',{style:{color:'#fff',fontWeight:700,fontSize:15}},p.lbl),React.createElement('div',{style:{color:'#444',fontSize:11}},p.ev+' · '+p.pm+' min'))),
-React.createElement('div',{style:{display:'flex',flexDirection:'column',gap:8}},
-CELLS.map(function(c){
-var m=(mts[c]&&mts[c][sel])||0,r=inp[c]||'';
-var ef=m>0&&r!==''?Number(r)/m:null;
-var ch=capH(c,mts,shift.shiftKey);
-var below=ef!==null&&ef<0.9;
-return React.createElement('div',{key:c,style:{background:'#141414',borderRadius:10,padding:'10px 14px',border:'1px solid '+(ef!==null?sc(ef):'#252525')}},
-React.createElement('div',{style:{display:'flex',alignItems:'center',gap:10}},
-React.createElement('div',{style:{minWidth:34,color:'#777',fontWeight:700,fontSize:12}},c),
-React.createElement('div',{style:{color:'#333',fontSize:11,minWidth:55}},'Meta:',React.createElement('span',{style:{color:'#555',marginLeft:4}},m)),
-ch>0&&React.createElement('div',{style:{color:'#2a2a2a',fontSize:10,minWidth:45}},ch+'pç/h'),
-React.createElement('input',{type:'number',min:0,value:r,placeholder:'Real',onChange:function(e){setInp(function(prev){var n=Object.assign({},prev);n[c]=e.target.value;return n;});},style:{flex:1,background:'#0a0a0a',border:'2px solid '+(ef!==null?sc(ef):'#333'),borderRadius:8,padding:'9px 8px',color:'#fff',fontSize:18,textAlign:'center',outline:'none'}}),
-ef!==null&&React.createElement('div',{style:{minWidth:28,textAlign:'center',color:sc(ef),fontWeight:700,fontSize:14}},sl(ef))),
-(below||(just[c]&&just[c].trim()))&&m>0&&React.createElement('div',{style:{marginTop:8}},
-React.createElement('div',{style:{color:below?'#ff9800':'#555',fontSize:10,fontWeight:700,marginBottom:4}},below?'⚠️ Justificativa':'📝 Justificativa'),
-React.createElement('textarea',{value:just[c]||'',onChange:function(e){setJust(function(prev){var n=Object.assign({},prev);n[c]=e.target.value;return n;});},placeholder:'Causa do desvio...',rows:2,style:{width:'100%',background:'#0a0a0a',border:'1px solid '+(below?'#ff9800':'#333'),borderRadius:8,padding:'8px',color:'#fff',fontSize:12,outline:'none',resize:'none',boxSizing:'border-box',fontFamily:'inherit'}})));})),
-React.createElement('button',{onClick:save,style:Object.assign({},bSt,{marginTop:14,width:'100%',background:R})},'💾 Salvar'));
-}
-
-return React.createElement('div',{style:{padding:16}},
-React.createElement('div',{style:{color:'#fff',fontWeight:700,fontSize:18,marginBottom:14}},'Lançar REAL'),
-React.createElement('div',{style:{display:'flex',flexDirection:'column',gap:8}},
-sh.periods.map(function(p,i){
-var has=CELLS.some(function(c){return shift.reals&&shift.reals[c]&&shift.reals[c][i]!=='';});
-var pM=CELLS.reduce(function(s,c){return s+((mts[c]&&mts[c][i])||0);},0);
-var pR=has?CELLS.reduce(function(s,c){var v=shift.reals&&shift.reals[c]&&shift.reals[c][i];return s+((!v||v==='')?0:Number(v));},0):null;
-var ef=pM>0&&pR!==null?pR/pM:null;
-return React.createElement('button',{key:i,onClick:function(){open(i);},style:{display:'flex',alignItems:'center',gap:12,background:'#141414',border:'1px solid '+(has?sc(ef):'#1e1e1e'),borderRadius:12,padding:'14px 16px',cursor:'pointer',textAlign:'left',width:'100%'}},
-React.createElement('div',{style:{fontSize:18,minWidth:22}},p.ev||'⏱'),
-React.createElement('div',{style:{flex:1}},React.createElement('div',{style:{color:'#fff',fontWeight:700,fontSize:14}},p.lbl),React.createElement('div',{style:{color:'#3a3a3a',fontSize:11}},p.pm+' min · Meta: '+pM.toLocaleString())),
-has?React.createElement('div',{style:{textAlign:'right'}},React.createElement('div',{style:{color:sc(ef),fontWeight:800,fontSize:15}},pR!==null?pR.toLocaleString():''),React.createElement('div',{style:{color:sc(ef),fontSize:11}},ef!==null?(ef*100).toFixed(0)+'%':'')):
-React.createElement('div',{style:{color:'#3a3a3a',fontSize:12}},'Lançar →'));})));
-}
-
-function Cells(props){
-var shift=props.shift,sv=props.sv,catalog=props.catalog,svC=props.svC;
-var selState=useState(null),sel=selState[0],setSel=selState[1];
-var cdState=useState(null),cd=cdState[0],setCd=cdState[1];
-var catState=useState(false),showCat=catState[0],setShowCat=catState[1];
-var fileRef=useRef();
-
-var open=function(c){
-setCd(JSON.parse(JSON.stringify((shift.cells&&shift.cells[c])||mkCell())));
-setSel(c);
-};
-
-var saveCell=async function(){
-await sv(Object.assign({},shift,{cells:Object.assign({},shift.cells,{[sel]:cd})}));
-setSel(null);
-};
-
-var setP=function(i,f,v){
-setCd(function(prev){
-var parts=prev.parts.slice();
-parts[i]=Object.assign({},parts[i],{[f]:v});
-return Object.assign({},prev,{parts:parts});
-});
-};
-
-var onPartId=function(i,v){
-setP(i,'partId',v);
-var cap=getLookup(v,sel,catalog);
-if(cap!==null)setP(i,'cap',String(cap));
-else if(v&&cap===null)setP(i,'cap','');
-};
-
-var importExcel=function(e){
-var file=e.target.files[0];if(!file)return;
-var reader=new FileReader();
-reader.onload=function(ev){
-try{
-var wb=XLSX.read(ev.target.result,{type:'array'});
-var ws=wb.Sheets['LISTA DE PEÇAS'];
-if(!ws){alert('Aba "LISTA DE PEÇAS" não encontrada.');return;}
-var rows=XLSX.utils.sheet_to_json(ws,{header:1});
-var hdrs=rows[0].slice(1);
-var nc=[];
-for(var r=1;r<rows.length;r++){
-var row=rows[r];if(!row[0])continue;
-var id=String(row[0]).trim();
-var caps={};
-hdrs.forEach(function(h,idx){if(row[idx+1])caps[h]=Number(row[idx+1]);});
-nc.push({id:id,caps:caps});
-}
-svC(nc);alert(nc.length+' peças importadas!');
-}catch(err){alert('Erro: '+err.message);}
-};
-reader.readAsArrayBuffer(file);
-e.target.value='';
-};
-
-if(showCat)return React.createElement(CatScreen,{catalog:catalog,svC:svC,onBack:function(){setShowCat(false);},fileRef:fileRef,importExcel:importExcel});
-
-if(sel&&cd){
-var colors=['#276221','#9C5700','#9C0006'];
-var lbls=['🟢 PEÇA 1','🟡 PEÇA 2','🔴 PEÇA 3'];
-return React.createElement('div',{style:{padding:16}},
-React.createElement('div',{style:{display:'flex',alignItems:'center',gap:12,marginBottom:16}},
-React.createElement('button',{onClick:function(){setSel(null);},style:{background:'#252525',border:'none',color:'#fff',borderRadius:8,padding:'8px 14px',cursor:'pointer',fontSize:13}},'← Voltar'),
-React.createElement('div',{style:{color:'#fff',fontWeight:700,fontSize:18}},'Célula '+sel)),
-React.createElement(Card,null,
-React.createElement('div',{style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10}},
-React.createElement('div',null,React.createElement(Lbl,null,'Operadores'),React.createElement('input',{type:'number',value:cd.operators,onChange:function(e){setCd(function(p){return Object.assign({},p,{operators:e.target.value});});},style:iSt})),
-React.createElement('div',null,React.createElement(Lbl,null,'Extra Refeição (min)'),React.createElement('input',{type:'number',value:cd.extraRef,onChange:function(e){setCd(function(p){return Object.assign({},p,{extraRef:e.target.value});});},style:iSt})))),
-[0,1,2].map(function(i){
-var p=cd.parts[i]||mkPart();
-var found=p.partId?getLookup(p.partId,sel,catalog):null;
-var isStop=!p.cap&&p.startTime&&i>0;
-return React.createElement(Card,{key:i,style:{marginTop:10,borderLeft:'3px solid '+colors[i]}},
-React.createElement('div',{style:{color:colors[i],fontWeight:700,fontSize:13,marginBottom:10}},lbls[i]),
-React.createElement('div',{style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8}},
-React.createElement('div',null,
-React.createElement(Lbl,null,'Nº da Peça'),
-React.createElement('input',{value:p.partId||'',placeholder:i===0?'Ex: 20000987':'Vazio = não usar',onChange:function(e){onPartId(i,e.target.value);},style:iSt}),
-p.partId&&found!==null&&React.createElement('div',{style:{color:'#276221',fontSize:10,marginTop:3}},'✅ '+found+' pç/h'),
-p.partId&&found===null&&React.createElement('div',{style:{color:'#9C5700',fontSize:10,marginTop:3}},'⚠️ Não encontrado para '+sel)),
-React.createElement('div',null,
-React.createElement(Lbl,null,'Capacidade (pç/h)'),
-React.createElement('input',{type:'number',value:p.cap||'',placeholder:'pç/h',onChange:function(e){setP(i,'cap',e.target.value);},style:iSt}),
-p.partId&&found!==null&&p.cap==String(found)&&React.createElement('div',{style:{color:'#333',fontSize:10,marginTop:3}},'auto do catálogo'))),
-React.createElement(Lbl,{style:{marginTop:10}},i===0?'Horário início (vazio = padrão do turno)':'Horário entrada / parada'),
-React.createElement('input',{type:'time',value:p.startTime||'',onChange:function(e){setP(i,'startTime',e.target.value);},style:iSt}),
-isStop&&React.createElement('div',{style:{color:'#9C5700',fontSize:10,marginTop:4}},'⏹ Parada às '+p.startTime+' (sem peça = stop)'));}),
-React.createElement('button',{onClick:saveCell,style:Object.assign({},bSt,{marginTop:16,width:'100%',background:R})},'💾 Salvar Célula'));
-}
-
-var mts=allMetas(shift,catalog);
-return React.createElement('div',{style:{padding:16}},
-React.createElement('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:14}},
-React.createElement('div',{style:{color:'#fff',fontWeight:700,fontSize:18}},'Configurar Células'),
-React.createElement('button',{onClick:function(){setShowCat(true);},style:{background:'#252525',border:'none',color:'#fff',borderRadius:8,padding:'8px 12px',cursor:'pointer',fontSize:12,fontWeight:600}},'📚 Catálogo')),
-React.createElement('div',{style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8}},
-CELLS.map(function(c){
-var cell=(shift.cells&&shift.cells[c])||mkCell();
-var ch=capH(c,mts,shift.shiftKey);
-return React.createElement('button',{key:c,onClick:function(){open(c);},style:{background:'#141414',border:'1px solid '+(ch>0?'#2a2a2a':'#1a1a1a'),borderRadius:12,padding:'14px',cursor:'pointer',textAlign:'left'}},
-React.createElement('div',{style:{color:'#fff',fontWeight:700,fontSize:15}},c),
-ch>0&&React.createElement('div',{style:{color:R,fontSize:13,fontWeight:700,marginTop:2}},ch+' pç/h'),
-React.createElement('div',{style:{color:'#333',fontSize:10,marginTop:3}},cell.operators+' op'),
-cell.parts[0]&&cell.parts[0].partId&&React.createElement('div',{style:{color:'#2a2a2a',fontSize:10,marginTop:2}},'P1: '+cell.parts[0].partId));})));
-}
-
-function CatScreen(props){
-var catalog=props.catalog,svC=props.svC,onBack=props.onBack,fileRef=props.fileRef,importExcel=props.importExcel;
-var qState=useState(''),q=qState[0],setQ=qState[1];
-var nIdState=useState(''),nId=nIdState[0],setNId=nIdState[1];
-var nCapsState=useState(Object.fromEntries(CELLS.map(function(c){return[c,''];}))),nCaps=nCapsState[0],setNCaps=nCapsState[1];
-var filtered=catalog.filter(function(e){return e.id.toLowerCase().includes(q.toLowerCase());});
-var add=function(){
-if(!nId.trim())return;
-var caps={};
-CELLS.forEach(function(c){if(nCaps[c])caps[c]=Number(nCaps[c]);});
-svC(catalog.filter(function(e){return e.id!==nId.trim();}).concat([{id:nId.trim(),caps:caps}]));
-setNId('');setNCaps(Object.fromEntries(CELLS.map(function(c){return[c,''];})));
-};
-return React.createElement('div',{style:{padding:16}},
-React.createElement('div',{style:{display:'flex',alignItems:'center',gap:10,marginBottom:16,flexWrap:'wrap'}},
-React.createElement('button',{onClick:onBack,style:{background:'#252525',border:'none',color:'#fff',borderRadius:8,padding:'8px 14px',cursor:'pointer',fontSize:13}},'← Voltar'),
-React.createElement('div',{style:{color:'#fff',fontWeight:700,fontSize:16,flex:1}},'Catálogo de Peças'),
-React.createElement('input',{ref:fileRef,type:'file',accept:'.xlsx,.xls',onChange:importExcel,style:{display:'none'}}),
-React.createElement('button',{onClick:function(){if(fileRef.current)fileRef.current.click();},style:{background:'#252525',border:'none',color:'#fff',borderRadius:8,padding:'8px 12px',cursor:'pointer',fontSize:12,fontWeight:600}},'📥 Importar Excel')),
-React.createElement(Card,{style:{marginBottom:12}},
-React.createElement(Lbl,null,'Adicionar Peça'),
-React.createElement('input',{value:nId,onChange:function(e){setNId(e.target.value);},style:iSt,placeholder:'Nº da peça'}),
-React.createElement(Lbl,{style:{marginTop:10}},'Capacidade por Célula'),
-React.createElement('div',{style:{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:4,marginTop:6}},
-CELLS.map(function(c){return React.createElement('div',{key:c,style:{display:'flex',flexDirection:'column',alignItems:'center'}},
-React.createElement('span',{style:{color:'#444',fontSize:9,fontWeight:700}},c),
-React.createElement('input',{type:'number',value:nCaps[c],onChange:function(e){setNCaps(function(p){var n=Object.assign({},p);n[c]=e.target.value;return n;});},style:Object.assign({},iSt,{padding:'6px 4px',fontSize:12,textAlign:'center',marginTop:2}),placeholder:'–'}));})),
-React.createElement('button',{onClick:add,style:Object.assign({},bSt,{marginTop:12,width:'100%',background:R})},'➕ Adicionar')),
-React.createElement('input',{value:q,onChange:function(e){setQ(e.target.value);},placeholder:'Buscar ('+catalog.length+' peças)...',style:Object.assign({},iSt,{marginBottom:8})}),
-React.createElement('div',{style:{display:'flex',flexDirection:'column',gap:4}},
-filtered.slice(0,60).map(function(e){
-return React.createElement('div',{key:e.id,style:{background:'#141414',borderRadius:9,padding:'10px 14px',display:'flex',justifyContent:'space-between',alignItems:'center'}},
-React.createElement('div',null,
-React.createElement('div',{style:{color:'#fff',fontWeight:700,fontSize:13}},e.id),
-React.createElement('div',{style:{color:'#444',fontSize:10}},Object.entries(e.caps).map(function(pair){return pair[0]+':'+pair[1];}).join(' · ')||'Sem cap.')),
-React.createElement('button',{onClick:function(){svC(catalog.filter(function(x){return x.id!==e.id;}));},style:{background:'none',border:'none',color:'#f44336',cursor:'pointer',fontSize:16,padding:4}},'🗑'));}),
-filtered.length>60&&React.createElement('div',{style:{color:'#444',fontSize:11,textAlign:'center',padding:8}},'+'+( filtered.length-60)+' — use a busca')));
-}
-
-function Hist(props){
-var history=props.history,catalog=props.catalog;
-var viewState=useState('list'),view=viewState[0],setView=viewState[1];
-var selState=useState(null),sel=selState[0],setSel=selState[1];
-var fCellState=useState(''),fCell=fCellState[0],setFCell=fCellState[1];
-var fShiftState=useState(''),fShift=fShiftState[0],setFShift=fShiftState[1];
-var fPeriodState=useState(''),fPeriod=fPeriodState[0],setFPeriod=fPeriodState[1];
-var fMonthState=useState(''),fMonth=fMonthState[0],setFMonth=fMonthState[1];
-var fYearState=useState(''),fYear=fYearState[0],setFYear=fYearState[1];
-
-var allRecords=[];
-history.forEach(function(s,si){
-var mts=allMetas(s,catalog);
-var sh=SHIFTS[s.shiftKey];
-var dateParts=s.date.split('-'),yr=dateParts[0],mo=dateParts[1],dy=dateParts[2];
-sh.periods.forEach(function(p,pi){
-CELLS.forEach(function(c){
-var m=(mts[c]&&mts[c][pi])||0;
-var r=s.reals&&s.reals[c]&&s.reals[c][pi];
-var rv=(r===''||r===undefined||r===null)?null:Number(r);
-var ef=m>0&&rv!==null?rv/m:null;
-var just=(s.justificativas&&s.justificativas[pi]&&s.justificativas[pi][c])||'';
-if(m>0||rv!==null||just){allRecords.push({si:si,date:s.date,yr:yr,mo:mo,dy:dy,shiftKey:s.shiftKey,shiftLbl:sh.label,pi:pi,periodLbl:p.lbl,cell:c,meta:m,real:rv,efic:ef,just:just});}
-});
-});
-});
-
-var years=[...new Set(allRecords.map(function(r){return r.yr;}))].sort().reverse();
-var months=[...new Set(allRecords.map(function(r){return r.mo;}))].sort();
-var filtered=allRecords.filter(function(r){
-if(fCell&&r.cell!==fCell)return false;
-if(fShift&&r.shiftKey!==fShift)return false;
-if(fPeriod&&String(r.pi)!==fPeriod)return false;
-if(fMonth&&r.mo!==fMonth)return false;
-if(fYear&&r.yr!==fYear)return false;
-return true;
-});
-
-var exportExcel=function(){
-var wb=XLSX.utils.book_new();
-var res=[['Data','Turno','Meta Total','Real Total','Eficiência %','Saldo']];
-history.forEach(function(s){
-var mts2=allMetas(s,catalog);
-var tM=CELLS.reduce(function(a,c){return(mts2[c]||[]).reduce(function(x,y){return x+y;},0)+a;},0);
-var tR=CELLS.reduce(function(a,c){return((s.reals&&s.reals[c])||[]).reduce(function(x,r){return x+(r===''?0:Number(r));},0)+a;},0);
-res.push([s.date,SHIFTS[s.shiftKey]&&SHIFTS[s.shiftKey].label,tM,tR,tM>0?+(tR/tM*100).toFixed(1):0,tR-tM]);
-});
-XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(res),'Resumo');
-var log=[['Data','Ano','Mês','Turno','Período','Célula','Meta','Real','Efic%','Justificativa']];
-allRecords.forEach(function(r){log.push([r.date,r.yr,r.mo,r.shiftLbl,r.periodLbl,r.cell,r.meta,r.real!==null?r.real:'',r.efic!==null?+(r.efic*100).toFixed(1):'',r.just]);});
-XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(log),'Log Células');
-XLSX.writeFile(wb,'UMM_HoraAHora_'+new Date().toISOString().slice(0,10)+'.xlsx');
-};
-
-if(view==='detail'&&sel!==null){
-var s=history[sel],mts=allMetas(s,catalog),sh=SHIFTS[s.shiftKey];
-var tM=CELLS.reduce(function(a,c){return(mts[c]||[]).reduce(function(x,y){return x+y;},0)+a;},0);
-var tR=CELLS.reduce(function(a,c){return((s.reals&&s.reals[c])||[]).reduce(function(x,r){return x+(r===''?0:Number(r));},0)+a;},0);
-var ef=tM>0?tR/tM:null;
-return React.createElement('div',{style:{padding:16}},
-React.createElement('div',{style:{display:'flex',alignItems:'center',gap:12,marginBottom:14}},
-React.createElement('button',{onClick:function(){setView('list');setSel(null);},style:{background:'#252525',border:'none',color:'#fff',borderRadius:8,padding:'8px 14px',cursor:'pointer',fontSize:13}},'← Voltar'),
-React.createElement('div',null,React.createElement('div',{style:{color:'#fff',fontWeight:700}},sh.label+' · '+s.date),ef!==null&&React.createElement('div',{style:{color:sc(ef),fontSize:12,fontWeight:700}},(ef*100).toFixed(1)+'%'))),
-React.createElement('div',{style:{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:8,marginBottom:14}},
-React.createElement(Stat,{lbl:'Meta',val:tM.toLocaleString('pt-BR')}),
-React.createElement(Stat,{lbl:'Real',val:tR.toLocaleString('pt-BR'),accent:R}),
-React.createElement(Stat,{lbl:'Saldo',val:(tR-tM).toLocaleString('pt-BR',{signDisplay:'always'}),accent:tR>=tM?'#4caf50':'#f44336'})),
-React.createElement('div',{style:{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:5,marginBottom:14}},
-CELLS.map(function(c){
-var ef2=eficTotal(c,mts,s.reals||{});
-var rT=((s.reals&&s.reals[c])||[]).reduce(function(a,r){return a+(r===''?0:Number(r));},0);
-var mT=(mts[c]||[]).reduce(function(a,b){return a+b;},0);
-return React.createElement('div',{key:c,style:{background:sb(ef2),borderRadius:9,padding:'9px 6px',border:'1px solid '+sc(ef2),textAlign:'center'}},
-React.createElement('div',{style:{color:'#666',fontSize:10,fontWeight:700}},c),
-React.createElement('div',{style:{color:'#fff',fontSize:13,fontWeight:800}},rT.toLocaleString()),
-React.createElement('div',{style:{color:'#333',fontSize:8}},'/'+mT.toLocaleString()),
-ef2!==null&&React.createElement('div',{style:{color:sc(ef2),fontSize:10,fontWeight:700}},(ef2*100).toFixed(0)+'%'));})),
-s.justificativas&&Object.keys(s.justificativas).length>0&&React.createElement('div',null,
-React.createElement('div',{style:{color:'#555',fontSize:11,fontWeight:700,letterSpacing:.5,textTransform:'uppercase',marginBottom:8}},'Justificativas'),
-Object.entries(s.justificativas).map(function(pair){var pi=pair[0],cells=pair[1];
-return Object.entries(cells).map(function(pair2){var c=pair2[0],txt=pair2[1];
-return React.createElement('div',{key:pi+'-'+c,style:{background:'#141414',borderRadius:8,padding:'10px 14px',marginBottom:6,borderLeft:'3px solid #ff9800'}},
-React.createElement('div',{style:{display:'flex',gap:8,marginBottom:3}},
-React.createElement('span',{style:{color:'#ff9800',fontSize:11,fontWeight:700}},sh.periods[pi]&&sh.periods[pi].lbl),
-React.createElement('span',{style:{color:'#555',fontSize:11}},'·'),
-React.createElement('span',{style:{color:'#fff',fontSize:11,fontWeight:700}},c)),
-React.createElement('div',{style:{color:'#ccc',fontSize:13}},txt));});})));
-}
-
-if(view==='log')return React.createElement('div',{style:{padding:16}},
-React.createElement('div',{style:{display:'flex',alignItems:'center',gap:12,marginBottom:14}},
-React.createElement('button',{onClick:function(){setView('list');},style:{background:'#252525',border:'none',color:'#fff',borderRadius:8,padding:'8px 14px',cursor:'pointer',fontSize:13}},'← Voltar'),
-React.createElement('div',{style:{color:'#fff',fontWeight:700,fontSize:16}},'Log por Célula'),
-React.createElement('button',{onClick:exportExcel,style:{marginLeft:'auto',background:'#276221',border:'none',color:'#fff',borderRadius:8,padding:'7px 12px',cursor:'pointer',fontSize:12,fontWeight:700}},'📥 Excel')),
-React.createElement('div',{style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:6,marginBottom:12}},
-[['Célula',fCell,setFCell,[''].concat(CELLS).map(function(v){return{v:v,l:v||'Todas'};})],
-['Turno',fShift,setFShift,[{v:'',l:'Todos'},{v:'3t',l:'3° Turno'},{v:'1t',l:'1° Turno'},{v:'2t',l:'2° Turno'}]],
-['Período',fPeriod,setFPeriod,[{v:'',l:'Todos'}].concat([0,1,2,3,4,5,6,7].map(function(x){return{v:String(x),l:(x+1)+'ª hora'};})
-)],
-['Mês',fMonth,setFMonth,[{v:'',l:'Todos'}].concat(months.map(function(m){return{v:m,l:m};}))],
-['Ano',fYear,setFYear,[{v:'',l:'Todos'}].concat(years.map(function(y){return{v:y,l:y};}))]
-].map(function(arr){var lbl=arr[0],val=arr[1],setter=arr[2],opts=arr[3];
-return React.createElement('div',{key:lbl},
-React.createElement('div',{style:{color:'#555',fontSize:10,fontWeight:700,marginBottom:3,textTransform:'uppercase'}},lbl),
-React.createElement('select',{value:val,onChange:function(e){setter(e.target.value);},style:{width:'100%',background:'#161616',border:'1px solid #333',borderRadius:8,padding:'8px 10px',color:'#fff',fontSize:13,outline:'none'}},
-opts.map(function(o){return React.createElement('option',{key:o.v,value:o.v},o.l);})));})),
-React.createElement('div',{style:{color:'#444',fontSize:11,marginBottom:8}},filtered.length+' registro(s)'),
-React.createElement('div',{style:{display:'flex',flexDirection:'column',gap:6}},
-filtered.slice(0,100).map(function(r,i){
-return React.createElement('div',{key:i,style:{background:'#141414',borderRadius:10,padding:'10px 14px',border:'1px solid '+(r.efic!==null?sc(r.efic):'#222')}},
-React.createElement('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:r.just?6:0}},
-React.createElement('div',null,
-React.createElement('span',{style:{color:'#fff',fontWeight:700,fontSize:13}},r.cell),
-React.createElement('span',{style:{color:'#444',fontSize:11,marginLeft:8}},r.date+' · '+r.shiftLbl)),
-React.createElement('div',{style:{textAlign:'right'}},
-React.createElement('div',{style:{color:r.efic!==null?sc(r.efic):'#444',fontWeight:700,fontSize:13}},r.real!==null?r.real.toLocaleString():'—',React.createElement('span',{style:{color:'#333',fontSize:10}},'/'+r.meta)),
-r.efic!==null&&React.createElement('div',{style:{color:sc(r.efic),fontSize:10,fontWeight:700}},(r.efic*100).toFixed(0)+'%'))),
-React.createElement('div',{style:{color:'#555',fontSize:10,marginBottom:r.just?4:0}},r.periodLbl),
-r.just&&React.createElement('div',{style:{color:'#ff9800',fontSize:12,borderTop:'1px solid #222',paddingTop:6,marginTop:4}},'📝 '+r.just));}),
-filtered.length>100&&React.createElement('div',{style:{color:'#444',fontSize:11,textAlign:'center',padding:8}},'Mostrando 100 de '+filtered.length+'. Refine os filtros.')));
-
-return React.createElement('div',{style:{padding:16}},
-React.createElement('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:14}},
-React.createElement('div',{style:{color:'#fff',fontWeight:700,fontSize:18}},'Histórico'),
-React.createElement('div',{style:{display:'flex',gap:8}},
-history.length>0&&React.createElement('button',{onClick:function(){setView('log');},style:{background:'#252525',border:'none',color:'#fff',borderRadius:8,padding:'8px 12px',cursor:'pointer',fontSize:12,fontWeight:600}},'🔍 Log'),
-history.length>0&&React.createElement('button',{onClick:exportExcel,style:{background:'#276221',border:'none',color:'#fff',borderRadius:8,padding:'8px 12px',cursor:'pointer',fontSize:12,fontWeight:700}},'📥 Excel'))),
-!history.length&&React.createElement('div',{style:{color:'#444',textAlign:'center',marginTop:40,fontSize:15}},'Nenhum turno encerrado ainda.'),
-history.map(function(s,i){
-var mts=allMetas(s,catalog);
-var tM=CELLS.reduce(function(a,c){return(mts[c]||[]).reduce(function(x,y){return x+y;},0)+a;},0);
-var tR=CELLS.reduce(function(a,c){return((s.reals&&s.reals[c])||[]).reduce(function(x,r){return x+(r===''?0:Number(r));},0)+a;},0);
-var ef=tM>0?tR/tM:null;
-var hasJust=s.justificativas&&Object.values(s.justificativas).some(function(pj){return Object.keys(pj).length>0;});
-return React.createElement('button',{key:i,onClick:function(){setSel(i);setView('detail');},style:{display:'flex',alignItems:'center',gap:12,background:'#141414',border:'1px solid #1e1e1e',borderRadius:12,padding:'14px 16px',cursor:'pointer',textAlign:'left',width:'100%',marginBottom:8}},
-React.createElement('div',{style:{flex:1}},
-React.createElement('div',{style:{color:'#fff',fontWeight:700}},(SHIFTS[s.shiftKey]&&SHIFTS[s.shiftKey].label)+' · '+s.date),
-React.createElement('div',{style:{color:'#333',fontSize:11,marginTop:2}},'Meta:'+tM.toLocaleString()+' · Real:'+tR.toLocaleString()+(hasJust?' · 📝':''))),
-React.createElement('div',{style:{textAlign:'right'}},
-React.createElement('div',{style:{color:sc(ef),fontWeight:800,fontSize:16}},ef!==null?(ef*100).toFixed(1)+'%':'—'),
-React.createElement('div',{style:{fontSize:14}},sl(ef))));}));
-}
-
-try{
-var container=document.getElementById('root');
-var root=ReactDOM.createRoot(container);
-root.render(React.createElement(App));
+  var container=document.getElementById('root');
+  var root=ReactDOM.createRoot(container);
+  root.render(React.createElement(App));
 }catch(err){
-document.getElementById('root').innerHTML='<div style="color:#f44336;padding:20px;font-family:sans-serif">Erro: '+err.message+'</div>';
+  document.getElementById('root').innerHTML='<div style="color:#f44336;padding:20px;font-family:sans-serif">Erro: '+err.message+'</div>';
 }
 </script>
 </body>
