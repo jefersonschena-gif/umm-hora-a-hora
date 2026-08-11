@@ -23,7 +23,7 @@ verificador as checa a cada tecla e mostra a nota na lateral direita.
 |---|---|
 | **O vídeo se entende sem áudio** | Toda cena precisa de texto grande. O verificador mede a fonte depois do ajuste automático e reclama abaixo de ~73 px em 1080. O painel "teste do mudo" lista só o que aparece escrito, na ordem — se essa lista já conta a história, o vídeo funciona no silencioso. |
 | **O áudio se entende sem vídeo** | A narração não pode apontar para a imagem. "na tela", "acima", "ao lado", "isso aqui" viram **erro**; "veja", "repare", "olha só" viram aviso. Se a cena mostra um número que a narração não fala, avisa. O painel "teste do cego" junta só a narração, para você ler de olhos fechados. |
-| **Estética fintech premium clara** | Paleta fixa: porcelana, cartão branco, sombra baixa, um acento por cena (verde para ação, azul para dado, vermelho só para alerta). Mais de uma cena vermelha vira aviso. |
+| **Estética fintech premium clara** | Paleta fixa: branco quente, grafite, vidro e metal escovado, um acento por cena (dourado para dado, verde para ação, vermelho só para alerta). Mais de uma cena vermelha vira aviso. |
 | **Faceless** | Nenhum visual tem gente. A biblioteca é de objetos: cartão, extrato, boleto, celular, cofre, gráfico. A narração que pressupõe alguém na câmera é sinalizada. |
 | **Texto grande em português** | Título com mais de 9 palavras vira aviso, porque obriga a fonte a encolher. Estrangeirismo evitável também. |
 | **Cenas concretas** | Cada cena escolhe um visual desenhado (ou uma mídia sua). Passar de uma cena "só tipografia" vira aviso, e o visual de mídia sem arquivo também. |
@@ -54,7 +54,7 @@ Firefox e Safari funcionam com o botão "Gravar".
 
 ## Fluxo de trabalho
 
-1. **Escolha um modelo** no alto da tela. Vêm três roteiros prontos em pt-BR,
+1. **Escolha um modelo** no alto da tela. Vêm quatro roteiros prontos em pt-BR,
    todos com nota 100 — servem de régua para o que você escrever depois.
 2. **Escolha o tom da cena.** Claro por padrão; escuro nas cenas de dívida,
    juros e vencimento.
@@ -128,8 +128,8 @@ ffmpeg -i video.webm -c:v libx264 -crf 18 -preset slow -pix_fmt yuv420p -c:a aac
 `fluxo` · `calendario` · `contrato` · `carteira` · `moedas` · `citacao` ·
 `chamada` · `midia`
 
-Todas são desenhadas em código — nada de banco de imagens, nada de licença,
-nada de crédito a dar. Os dados vêm de um campo de texto simples:
+Todas menos `midia` são desenhadas em código — nada de banco de imagens, nada
+de licença, nada de crédito a dar. Os dados vêm de um campo de texto simples:
 
 ```
 valor: R$ 1.240,00
