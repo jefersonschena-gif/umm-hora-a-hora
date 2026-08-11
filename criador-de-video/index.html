@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>UMM Studio — criador de vídeos fintech</title>
+<meta name="description" content="Criador de vídeos verticais faceless com estética fintech clara: texto grande em português, cenas concretas e narração gratuita."/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="estilo.css"/>
+</head>
+<body>
+
+<div class="app">
+
+  <header class="topo">
+    <div class="marca"><span class="selo">U</span> UMM Studio</div>
+    <input class="titulo-projeto" id="titulo-projeto" type="text" value="Novo vídeo" aria-label="Título do projeto"/>
+    <select id="formato" style="width:auto" aria-label="Formato"></select>
+    <label class="opcao-linha" style="margin:0" title="Reserva as áreas que o Instagram cobre com a própria interface">
+      <input type="checkbox" id="area-segura" checked/> área segura
+    </label>
+    <div class="espaco"></div>
+    <select id="modelos" style="width:auto" aria-label="Modelos de roteiro"></select>
+    <button class="btn" id="btn-abrir">Abrir…</button>
+    <button class="btn" id="btn-salvar">Salvar projeto</button>
+    <input type="file" id="arquivo-projeto" accept="application/json" hidden/>
+  </header>
+
+  <main class="grade">
+
+    <!-- ------------------- ROTEIRO ------------------- -->
+    <section class="painel">
+      <header>
+        <h2>Roteiro</h2>
+        <div class="espaco"></div>
+        <span id="resumo-roteiro" style="font-size:12px;color:var(--tinta3)"></span>
+        <button class="btn mini" id="btn-add-cena">+ cena</button>
+      </header>
+      <div class="rolagem"><div class="lista-cenas" id="lista-cenas"></div></div>
+    </section>
+
+    <!-- ------------------- PALCO ------------------- -->
+    <section class="painel palco">
+      <header>
+        <h2>Prévia</h2>
+        <div class="espaco"></div>
+        <label class="opcao-linha" style="margin:0"><input type="checkbox" id="ver-legendas" checked/> legendas</label>
+        <label class="opcao-linha" style="margin:0"><input type="checkbox" id="ver-guias"/> guias</label>
+      </header>
+      <div class="area"><canvas id="tela" width="1080" height="1920"></canvas></div>
+      <div class="transporte">
+        <button class="tocar" id="btn-tocar" aria-label="Reproduzir">▶</button>
+        <span class="tempo" id="tempo">0,0s / 0,0s</span>
+        <input type="range" id="linha-tempo" min="0" max="1000" value="0" step="1" aria-label="Linha do tempo"/>
+      </div>
+    </section>
+
+    <!-- ------------------- PAINEL DIREITO ------------------- -->
+    <section class="painel">
+      <div class="abas">
+        <button class="aba ativa" data-aba="padrao">Padrão <span class="badge" id="badge-padrao" hidden>0</span></button>
+        <button class="aba" data-aba="voz">Voz</button>
+        <button class="aba" data-aba="exportar">Exportar</button>
+      </div>
+      <div class="rolagem">
+
+        <!-- PADRÃO -->
+        <div class="conteudo-aba" id="aba-padrao">
+          <div class="nota">
+            <div class="valor" id="nota-valor">—<small>/100</small></div>
+            <div class="desc" id="nota-desc">Escreva o roteiro e o verificador acompanha.</div>
+          </div>
+          <div id="lista-regras"></div>
+
+          <h3 class="secao">Teste do mudo — só o que aparece escrito</h3>
+          <div class="leitura" id="leitura-muda"></div>
+          <p class="ajuda">Se esta lista já conta a história inteira, o vídeo funciona sem áudio.</p>
+
+          <h3 class="secao">Teste do cego — só o que se ouve</h3>
+          <div class="leitura" id="leitura-cega"></div>
+          <p class="ajuda">Leia em voz alta de olhos fechados. Se faltar informação, a narração está apoiada na imagem.</p>
+        </div>
+
+        <!-- VOZ -->
+        <div class="conteudo-aba oculto" id="aba-voz">
+          <h3 class="secao">Narração gratuita</h3>
+          <label class="campo"><span>Como gerar o áudio</span>
+            <select id="provedor-voz">
+              <option value="nenhum">Sem narração — vídeo mudo com legenda</option>
+              <option value="piper">Piper no navegador (pt-BR, grátis, offline depois do 1º uso)</option>
+              <option value="arquivos">Subir meus áudios por cena</option>
+            </select>
+          </label>
+
+          <div id="bloco-piper" hidden>
+            <label class="campo"><span>Voz</span>
+              <select id="voz-id"></select>
+            </label>
+            <p class="ajuda">O modelo tem cerca de 60 MB e é baixado uma única vez. Depois disso funciona sem internet.</p>
+            <div class="grupo-botoes" style="margin-top:10px">
+              <button class="btn primario" id="btn-gerar-voz">Gerar narração de todas as cenas</button>
+            </div>
+            <div class="barra" id="barra-voz" hidden><i></i></div>
+            <div id="status-voz"></div>
+          </div>
+
+          <div id="bloco-arquivos" hidden>
+            <p class="ajuda">Suba um arquivo por cena (WAV, MP3 ou M4A). A duração de cada cena passa a seguir o áudio.
+              O botão fica dentro de cada cena, no roteiro.</p>
+            <div class="aviso-caixa">Para gerar esses arquivos de graça, veja <code>ferramentas/tts-edge.mjs</code> no repositório: usa as vozes neurais do Edge, em português, sem chave nem cadastro.</div>
+          </div>
+
+          <h3 class="secao">Ouvir enquanto escreve</h3>
+          <p class="ajuda">A voz do próprio sistema lê a cena selecionada. Serve para conferir o ritmo — o navegador não permite gravar esse áudio, então ele <b>não</b> entra no arquivo exportado.</p>
+          <div class="grupo-botoes" style="margin-top:8px">
+            <button class="btn" id="btn-ouvir-cena">Ouvir a cena selecionada</button>
+            <button class="btn fantasma" id="btn-parar-voz">Parar</button>
+          </div>
+
+          <h3 class="secao">Narração pronta</h3>
+          <div id="estado-narracao" class="aviso-caixa">Nenhuma cena tem áudio ainda.</div>
+          <div class="grupo-botoes" style="margin-top:10px">
+            <button class="btn" id="btn-baixar-wav">Baixar narração (.wav)</button>
+            <button class="btn fantasma" id="btn-limpar-voz">Remover todos os áudios</button>
+          </div>
+        </div>
+
+        <!-- EXPORTAR -->
+        <div class="conteudo-aba oculto" id="aba-exportar">
+          <h3 class="secao">Vídeo</h3>
+          <div class="grupo-botoes">
+            <button class="btn acento" id="btn-mp4">Exportar exato (recomendado)</button>
+            <button class="btn" id="btn-gravar">Gravar em tempo real</button>
+            <button class="btn" id="btn-quadros">Quadros PNG (.zip) para ffmpeg</button>
+          </div>
+          <div class="barra" id="barra-export" hidden><i></i></div>
+          <div id="status-export"></div>
+          <p class="ajuda"><b>Exportar exato</b> codifica quadro a quadro com WebCodecs (Chrome, Edge, Opera) e empacota em WebM/VP9 com código do próprio repositório — sem CDN, funciona offline. É a melhor qualidade e não depende do computador dar conta em tempo real. <b>Gravar</b> funciona em qualquer navegador e costuma sair em MP4, mas leva o tempo do vídeo e a aba precisa ficar visível.</p>
+
+          <h3 class="secao">Texto</h3>
+          <div class="grupo-botoes">
+            <button class="btn" id="btn-srt">Legendas (.srt)</button>
+            <button class="btn" id="btn-roteiro">Roteiro (.md)</button>
+            <button class="btn" id="btn-json">Projeto (.json)</button>
+          </div>
+
+          <h3 class="secao">Qualidade</h3>
+          <div class="linha-campos">
+            <label class="campo" style="margin-top:0"><span>Quadros por segundo</span>
+              <select id="fps"><option>24</option><option selected>30</option><option>60</option></select>
+            </label>
+            <label class="campo" style="margin-top:0"><span>Legendas no vídeo</span>
+              <select id="legendas-export"><option value="1" selected>Gravadas</option><option value="0">Sem legenda</option></select>
+            </label>
+          </div>
+          <p class="ajuda">Legendas gravadas garantem que o vídeo se entenda no mudo mesmo onde a plataforma não gera legenda automática. O arquivo <code>.srt</code> continua servindo para acessibilidade.</p>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<script src="js/base.js"></script>
+<script src="js/visuais.js"></script>
+<script src="js/motor.js"></script>
+<script src="js/webm.js"></script>
+<script src="js/padrao.js"></script>
+<script src="js/voz.js"></script>
+<script src="js/exportar.js"></script>
+<script src="js/modelos.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
