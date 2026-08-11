@@ -2,22 +2,22 @@
    porcelana, cartão branco, sombra baixa, um acento por vez. */
 
 :root{
-  --fundo:#EEF2F7;
+  --fundo:#EFEBE4;
   --cartao:#FFFFFF;
-  --cartao2:#F7F9FC;
-  --tinta:#0A1526;
-  --tinta2:#4B5869;
-  --tinta3:#8E9AAB;
-  --linha:#E2E8F0;
-  --linha2:#CBD5E1;
-  --acento:#0B7A4B;
-  --acentoSuave:#E6F3EC;
-  --dado:#1B45E8;
-  --dadoSuave:#E9EDFF;
-  --alerta:#C0341C;
-  --alertaSuave:#FBEBE7;
-  --sombra:0 1px 2px rgba(10,21,38,.04), 0 8px 24px rgba(10,21,38,.06);
-  --sombra2:0 2px 6px rgba(10,21,38,.06), 0 18px 48px rgba(10,21,38,.10);
+  --cartao2:#F7F4EE;
+  --tinta:#22262B;
+  --tinta2:#5C626A;
+  --tinta3:#95999F;
+  --linha:#E5E0D8;
+  --linha2:#CCC5BA;
+  --acento:#0E7A50;
+  --acentoSuave:#E3F0E9;
+  --dado:#9A7524;
+  --dadoSuave:#F5EDDC;
+  --alerta:#A8391F;
+  --alertaSuave:#F7E7E1;
+  --sombra:0 1px 2px rgba(34,38,43,.05), 0 8px 24px rgba(34,38,43,.07);
+  --sombra2:0 2px 6px rgba(34,38,43,.07), 0 18px 48px rgba(34,38,43,.12);
   --raio:14px;
   --fonte:Inter,"Plus Jakarta Sans",system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
 }
@@ -134,7 +134,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--dado);bo
 .tipo-chip.alerta{background:var(--alertaSuave);color:var(--alerta)}
 
 /* ---------------- palco ---------------- */
-.palco{background:linear-gradient(180deg,#F7F9FC,#EDF1F6)}
+.palco{background:linear-gradient(180deg,#F8F5F0,#EBE6DE)}
 .palco .area{
   flex:1;min-height:0;display:grid;place-items:center;padding:16px;overflow:hidden
 }

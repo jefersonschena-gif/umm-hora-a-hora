@@ -121,6 +121,7 @@
     const totalQuadros = Math.max(1, Math.round(motor.duracao * fps));
     for (let i = 0; i < totalQuadros; i++) {
       if (falha) throw falha;
+      await motor.prepararQuadro(i / fps);   /* vídeo da cena parado no tempo certo */
       motor.desenhar(ctx, i / fps, { legendas: op.legendas !== false });
       const frame = new VideoFrame(canvas, {
         timestamp: Math.round((i * 1e6) / fps),
@@ -244,11 +245,13 @@
         if (t >= motor.duracao) {
           if (!parando) {
             parando = true;
+            motor.sincronizarMidias(motor.duracao, false);
             motor.desenhar(ctx, motor.duracao - 0.001, { legendas: op.legendas !== false });
             setTimeout(() => { try { gravador.stop(); } catch (e) { /* já parou */ } }, 240);
           }
           return;
         }
+        motor.sincronizarMidias(t, true);
         motor.desenhar(ctx, t, { legendas: op.legendas !== false });
         op.aoProgredir && op.aoProgredir({ fase: 'gravando', k: t / motor.duracao, texto: 'Gravando… ' + t.toFixed(1) + 's de ' + motor.duracao.toFixed(1) + 's' });
         requestAnimationFrame(passo);
@@ -337,6 +340,7 @@
     const total = Math.max(1, Math.round(motor.duracao * fps));
     const arquivos = [];
     for (let i = 0; i < total; i++) {
+      await motor.prepararQuadro(i / fps);
       motor.desenhar(ctx, i / fps, { legendas: op.legendas !== false });
       const blob = await new Promise(r => canvas.toBlob(r, 'image/png'));
       arquivos.push({

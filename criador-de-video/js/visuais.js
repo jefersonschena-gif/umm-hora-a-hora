@@ -3,8 +3,9 @@
    zero licença, zero custo). Cada visual recebe o "palco" (um retângulo) e o
    progresso p (0..1) da cena, e devolve algo que se entende SEM áudio.
 
-   Assinatura: desenhar(ctx, caixa, p, cena, A, d)
-     caixa = {x, y, w, h}   A = cor de acento    d = dados já lidos */
+   Assinatura: desenhar(ctx, caixa, p, cena, A, d, midia)
+     caixa = {x, y, w, h}   A = cor de acento    d = dados já lidos
+     midia = <img>/<video> da cena, quando houver */
 
 (function (U) {
   'use strict';
@@ -330,54 +331,105 @@
      ============================================================ */
   V.cartao = {
     rotulo: 'Cartão',
-    dica: 'Fatura, anuidade, limite, cashback.',
+    dica: 'Fatura, anuidade, limite, cashback. Metal escovado, vidro e reflexo de estúdio.',
     exemplo: 'banco: Seu banco\nfinal: 4417\nrotulo: Fatura fechada\nvalor: R$ 3.287,40',
     desenhar: function (ctx, c, p, cena, A, d) {
       const u = c.w / 936;
-      const reservaRotulo = d.valor ? 190 * u : 20 * u;
-      const cw = Math.min(c.w * 0.66, 560 * u, (c.h - reservaRotulo) / 0.63);
+      const reservaRotulo = d.valor ? 200 * u : 30 * u;
+      const cw = Math.min(c.w * 0.64, 560 * u, (c.h - reservaRotulo) / 0.92);
       const ch = cw * 0.63;
-      const cx = c.x + c.w / 2, cy = c.y + ch / 2 + 10 * u;
+      const cx = c.x + c.w / 2, cy = c.y + ch / 2 + 14 * u;
       const k = U.ease.firme(U.faixa(p, 0.03, 0.42));
+      const escuro = T.tom === 'escuro';
+
+      /* o corpo do cartão, isolado para poder ser desenhado de novo no reflexo */
+      function corpo(g, ox, oy) {
+        const x = ox - cw / 2, y = oy - ch / 2, r = 34 * u;
+        U.caminhoArredondado(g, x, y, cw, ch, r);
+        const base = g.createLinearGradient(x, y, x + cw, y + ch);
+        base.addColorStop(0, escuro ? '#3A4048' : '#2C3138');
+        base.addColorStop(0.5, escuro ? '#22272D' : '#161A1F');
+        base.addColorStop(1, escuro ? '#31373E' : '#23282E');
+        g.fillStyle = base;
+        g.fill();
+
+        g.save();
+        U.caminhoArredondado(g, x, y, cw, ch, r);
+        g.clip();
+        /* verniz diagonal */
+        const verniz = g.createLinearGradient(x, y, x + cw * 0.7, y + ch);
+        verniz.addColorStop(0, 'rgba(255,255,255,0.16)');
+        verniz.addColorStop(0.42, 'rgba(255,255,255,0.02)');
+        verniz.addColorStop(1, 'rgba(255,255,255,0.09)');
+        g.fillStyle = verniz;
+        g.fillRect(x, y, cw, ch);
+        /* leve calor do acento, canto inferior direito */
+        const calor = g.createRadialGradient(x + cw * 0.9, y + ch, 0, x + cw * 0.9, y + ch, cw * 0.7);
+        calor.addColorStop(0, A + '4D');
+        calor.addColorStop(1, A + '00');
+        g.fillStyle = calor;
+        g.fillRect(x, y, cw, ch);
+        g.restore();
+
+        /* borda de luz */
+        U.caminhoArredondado(g, x + 1, y + 1, cw - 2, ch - 2, r - 1);
+        g.strokeStyle = 'rgba(255,255,255,0.20)';
+        g.lineWidth = 2 * u;
+        g.stroke();
+
+        /* chip em metal escovado */
+        U.metalEscovado(g, x + 44 * u, y + 84 * u, 70 * u, 54 * u, 10 * u,
+          { claro: '#E7D6A4', escuro: '#A98A3F' });
+        g.save();
+        g.strokeStyle = 'rgba(0,0,0,0.30)';
+        g.lineWidth = 1.5 * u;
+        for (let i = 1; i < 3; i++) {
+          g.beginPath();
+          g.moveTo(x + 44 * u, y + 84 * u + (54 * u * i) / 3);
+          g.lineTo(x + 114 * u, y + 84 * u + (54 * u * i) / 3);
+          g.stroke();
+        }
+        g.restore();
+
+        const numero = '••••  ••••  ••••  ' + (d.final || '0000');
+        const an = U.ajustar(g, numero, {
+          max: 34 * u, min: 20 * u, peso: 600, maxLargura: cw - 88 * u, maxLinhas: 1
+        });
+        U.blocoTexto(g, an, x + 44 * u, y + ch - 100 * u,
+          { peso: 600, cor: 'rgba(255,255,255,0.94)', tracking: 1.5 });
+        U.texto(g, (d.banco || 'Banco').toUpperCase(), x + 44 * u, y + ch - 52 * u, {
+          tamanho: 22 * u, peso: 600, cor: 'rgba(255,255,255,0.52)', tracking: 3
+        });
+      }
+
       ctx.save();
       ctx.globalAlpha = Math.min(1, k * 1.4);
       ctx.translate(cx, cy);
-      ctx.rotate((1 - k) * -0.06);
+      ctx.rotate((1 - k) * -0.05);
       ctx.translate(0, (1 - k) * 40 * u);
-      U.cartao(ctx, -cw / 2, -ch / 2, cw, ch, 34 * u, { blur: 70, dy: 26, corSombra: T.sombraForte, fundo: T.tinta });
-      /* brilho diagonal */
-      U.comRecorte(ctx, -cw / 2, -ch / 2, cw, ch, 34 * u, function () {
-        const g = ctx.createLinearGradient(-cw / 2, -ch / 2, cw / 2, ch / 2);
-        g.addColorStop(0, 'rgba(255,255,255,0.14)');
-        g.addColorStop(0.45, 'rgba(255,255,255,0.02)');
-        g.addColorStop(1, 'rgba(255,255,255,0.10)');
-        ctx.fillStyle = g;
-        ctx.fillRect(-cw / 2, -ch / 2, cw, ch);
-        ctx.fillStyle = A + '55';
-        ctx.beginPath();
-        ctx.arc(cw * 0.42, ch * 0.5, cw * 0.36, 0, Math.PI * 2);
-        ctx.fill();
-      });
-      /* chip */
-      U.caminhoArredondado(ctx, -cw / 2 + 44 * u, -ch / 2 + 82 * u, 68 * u, 52 * u, 10 * u);
-      ctx.fillStyle = '#D8B25E';
-      ctx.fill();
-      /* número mascarado */
-      U.texto(ctx, '••••  ••••  ••••  ' + (d.final || '0000'), -cw / 2 + 44 * u, ch / 2 - 96 * u, {
-        tamanho: 34 * u, peso: 600, cor: 'rgba(255,255,255,0.92)', tracking: 2
-      });
-      U.texto(ctx, (d.banco || 'Banco').toUpperCase(), -cw / 2 + 44 * u, ch / 2 - 50 * u, {
-        tamanho: 22 * u, peso: 600, cor: 'rgba(255,255,255,0.55)', tracking: 3
-      });
+
+      U.sombraContato(ctx, 0, ch / 2 + 26 * u, cw * 1.05, 48 * u, escuro ? 0.5 : 0.3);
+      U.reflexo(ctx, -cw / 2, -ch / 2, cw, ch, 14 * u, function (g) { corpo(g, 0, 0); }, 0.38);
+
+      ctx.save();
+      ctx.shadowColor = T.sombraForte;
+      ctx.shadowBlur = 70 * u;
+      ctx.shadowOffsetY = 26 * u;
+      corpo(ctx, 0, 0);
+      ctx.restore();
+
+      /* a luz atravessa o cartão uma vez, no meio da cena */
+      U.brilhoVidro(ctx, -cw / 2, -ch / 2, cw, ch, 34 * u,
+        U.faixa(p, 0.30, 0.68), 0.26);
       ctx.restore();
 
       if (d.valor) {
         const ky = U.aparecer(p, 0.42, 0.3);
-        U.texto(ctx, d.rotulo || 'Total', cx, c.y + c.h - 116 * u, {
+        U.texto(ctx, d.rotulo || 'Total', cx, c.y + c.h - 122 * u, {
           tamanho: 30 * u, peso: 600, cor: T.tinta3, align: 'center', opacidade: ky
         });
         const val = U.animarNumero(d.valor, U.ease.saida(U.faixa(p, 0.45, 0.85)));
-        U.texto(ctx, val, cx, c.y + c.h - 74 * u, {
+        U.texto(ctx, val, cx, c.y + c.h - 78 * u, {
           tamanho: 62 * u, peso: 800, cor: T.tinta, align: 'center', opacidade: ky
         });
       }
@@ -1186,6 +1238,70 @@
         U.texto(ctx, d.reforco, x + w / 2, y + h - 56 * u, {
           tamanho: 30 * u, peso: 600, cor: 'rgba(255,255,255,0.78)', align: 'center',
           opacidade: U.aparecer(p, 0.4, 0.3)
+        });
+      }
+      ctx.restore();
+    }
+  };
+
+  /* ============================================================
+     21. MÍDIA PRÓPRIA — a ponte com filmagem gerada fora do Studio
+     ============================================================ */
+  V.midia = {
+    rotulo: 'Mídia própria (imagem ou vídeo)',
+    dica: 'Sua filmagem entra como a cena. O texto grande, a legenda e o verificador continuam por cima.',
+    exemplo: 'legenda: crédito ou observação (opcional)',
+    precisaMidia: true,
+    desenhar: function (ctx, c, p, cena, A, d, midia) {
+      const u = c.w / 936;
+      const r = 34 * u;
+      const k = U.aparecer(p, 0.02, 0.32);
+
+      if (!midia) {
+        U.cartao(ctx, c.x, c.y, c.w, c.h, r, { fundo: T.cartaoSuave, borda: T.linhaForte, sombra: false });
+        const aj = U.ajustar(ctx, 'Nenhuma mídia nesta cena.\nUse o botão “mídia…” no roteiro.', {
+          max: 34 * u, min: 24 * u, peso: 600, maxLargura: c.w - 120 * u, maxLinhas: 3
+        });
+        U.blocoTexto(ctx, aj, c.x + c.w / 2, c.y + c.h / 2 - aj.altura / 2,
+          { align: 'center', cor: T.tinta3, peso: 600 });
+        return;
+      }
+
+      ctx.save();
+      ctx.globalAlpha = k;
+      ctx.translate(0, (1 - k) * 24 * u);
+      U.sombraContato(ctx, c.x + c.w / 2, c.y + c.h + 14 * u, c.w * 0.92, 44 * u,
+        T.tom === 'escuro' ? 0.5 : 0.26);
+      ctx.save();
+      ctx.shadowColor = T.sombraForte;
+      ctx.shadowBlur = 60 * u;
+      ctx.shadowOffsetY = 22 * u;
+      ctx.fillStyle = T.cartao;
+      U.caminhoArredondado(ctx, c.x, c.y, c.w, c.h, r);
+      ctx.fill();
+      ctx.restore();
+
+      U.comRecorte(ctx, c.x, c.y, c.w, c.h, r, function () {
+        U.desenharCobrindo(ctx, midia, c.x, c.y, c.w, c.h);
+        /* vinheta suave: assenta a imagem no quadro e sustenta a legenda */
+        const g = ctx.createLinearGradient(0, c.y, 0, c.y + c.h);
+        g.addColorStop(0, 'rgba(0,0,0,0)');
+        g.addColorStop(0.62, 'rgba(0,0,0,0)');
+        g.addColorStop(1, 'rgba(0,0,0,0.34)');
+        ctx.fillStyle = g;
+        ctx.fillRect(c.x, c.y, c.w, c.h);
+      });
+
+      /* fio de luz na borda, para não parecer imagem colada */
+      U.caminhoArredondado(ctx, c.x + 1, c.y + 1, c.w - 2, c.h - 2, r - 1);
+      ctx.strokeStyle = T.tom === 'escuro' ? 'rgba(255,255,255,0.14)' : 'rgba(255,255,255,0.55)';
+      ctx.lineWidth = 2 * u;
+      ctx.stroke();
+
+      if (d.legenda) {
+        U.texto(ctx, d.legenda, c.x + 34 * u, c.y + c.h - 44 * u, {
+          tamanho: 26 * u, peso: 600, cor: 'rgba(255,255,255,0.88)',
+          opacidade: U.aparecer(p, 0.3, 0.3)
         });
       }
       ctx.restore();

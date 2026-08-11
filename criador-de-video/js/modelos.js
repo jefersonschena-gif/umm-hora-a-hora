@@ -183,6 +183,71 @@
     }
   ];
 
+  /* ============================================================
+     Segue o arco da referência: cartão premium no claro, mergulho escuro
+     na dívida e nos juros, volta ao claro no controle e no investimento.
+     ============================================================ */
+  U.MODELOS.push({
+    chave: 'cartao-conta-controle',
+    nome: 'O cartão, a conta e o controle',
+    resumo: '7 cenas · ~55s · claro → escuro na dívida → claro no controle',
+    projeto: {
+      versao: 1,
+      titulo: 'O cartao, a conta e o controle',
+      formato: '9x16',
+      fps: 30,
+      escala: 1,
+      areaSegura: true,
+      marca: { nome: 'Dinheiro Claro', arroba: '@dinheiroclaro' },
+      voz: { provedor: 'nenhum', vozId: 'pt_BR-faber-medium', velocidade: 1 },
+      cenas: [
+        U.novaCena({
+          tipo: 'gancho', visual: 'cartao', tom: 'claro', selo: 'o começo',
+          titulo: 'O cartão não é o vilão',
+          apoio: 'o que você faz com ele é',
+          dados: 'banco: Seu banco\nfinal: 4417\nrotulo: Limite disponível\nvalor: R$ 8.400,00',
+          narracao: 'Um cartão com oito mil e quatrocentos reais de limite não é dívida. Ele vira dívida no dia em que o limite passa a ser tratado como renda.'
+        }),
+        U.novaCena({
+          tipo: 'contexto', visual: 'notificacao', tom: 'claro', selo: 'todo dia',
+          titulo: 'Cada compra parece pequena',
+          dados: 'app: Seu banco\ntitulo: Compra aprovada\ncorpo: R$ 129,90 em assinatura anual\nhora: agora',
+          narracao: 'Cento e vinte e nove reais aqui, oitenta ali. Cada aviso isolado parece pequeno, e é exatamente por isso que ninguém soma.'
+        }),
+        U.novaCena({
+          tipo: 'alerta', visual: 'boleto', tom: 'escuro', selo: 'dia 10',
+          titulo: 'A conta chega somada',
+          dados: 'valor: R$ 3.280,00\nvencimento: 10/09\nsituacao: VENCIDO\ntom: alerta',
+          narracao: 'No dia dez chega a soma: três mil duzentos e oitenta reais. E aqui começa a parte cara.'
+        }),
+        U.novaCena({
+          tipo: 'dado', visual: 'numero', tom: 'escuro', selo: 'rotativo',
+          titulo: 'O juro do rotativo é outro patamar',
+          dados: 'valor: 431%\nrotulo: ao ano, na média do crédito rotativo\nnota: pagar o mínimo aciona essa taxa',
+          narracao: 'O rotativo do cartão trabalha na casa dos quatrocentos por cento ao ano. Pagar o mínimo não adia o problema, ele multiplica.'
+        }),
+        U.novaCena({
+          tipo: 'passo', visual: 'checklist', tom: 'claro', selo: 'a virada',
+          titulo: 'Três movimentos para sair',
+          dados: 'itens: Troque o rotativo por um empréstimo mais barato | Corte as assinaturas do extrato | Pague a fatura inteira, sempre',
+          narracao: 'São três movimentos: trocar o rotativo por um crédito mais barato, cortar as assinaturas do extrato e voltar a pagar a fatura inteira.'
+        }),
+        U.novaCena({
+          tipo: 'dado', visual: 'carteira', tom: 'claro', selo: 'depois',
+          titulo: 'O mesmo dinheiro, do outro lado',
+          dados: 'rotulo: Investido\nvalor: R$ 24.600,00\nvariacao: +1,04% no mês\nitens: 9|10|12|13|15|17|20|24',
+          narracao: 'O que ia para o juro passa a render pouco mais de um por cento ao mês. É o mesmo dinheiro, trabalhando para você.'
+        }),
+        U.novaCena({
+          tipo: 'cta', visual: 'chamada', tom: 'claro', selo: 'hoje',
+          titulo: 'Abra a fatura antes do dia 10',
+          dados: 'acao: Some as assinaturas da fatura e cancele as duas maiores que você não usou\nreforco: cinco minutos, uma vez',
+          narracao: 'Abra a fatura ainda hoje, some as assinaturas e cancele as duas maiores que você não usou neste mês.'
+        })
+      ]
+    }
+  });
+
   U.modeloVazio = function () {
     const p = U.novoProjeto();
     p.cenas = [

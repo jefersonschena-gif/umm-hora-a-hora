@@ -23,6 +23,8 @@
       apoio: '',
       dados: '',
       narracao: '',
+      tom: 'claro',     /* 'escuro' só para dívida, juros, vencimento */
+      midiaCheia: false,/* mídia própria ocupando o quadro inteiro */
       dur: 0            /* 0 = automático (pela narração ou pelo áudio) */
     }, base || {});
   };
@@ -33,6 +35,7 @@
       titulo: 'Novo vídeo',
       formato: '9x16',
       fps: 30,
+      escala: 1,        /* 1 = 1080x1920 · 1.333 = 1440x2560 (2K) */
       areaSegura: true,
       marca: { nome: '', arroba: '' },
       voz: { provedor: 'nenhum', vozId: 'pt_BR-faber-medium', velocidade: 1 },
@@ -45,7 +48,9 @@
      --------------------------------------------------------------- */
   U.layout = function (projeto) {
     const f = U.FORMATOS[projeto.formato] || U.FORMATOS['9x16'];
-    const W = f.w, H = f.h;
+    const e = Number(projeto.escala) > 0 ? Number(projeto.escala) : 1;
+    /* múltiplo de 2: codificador de vídeo não aceita dimensão ímpar */
+    const W = Math.round(f.w * e / 2) * 2, H = Math.round(f.h * e / 2) * 2;
     const vertical = f.orientacao === 'v';
     const alto = H / W >= 1.5;                    /* só 9:16 tem UI da plataforma por cima */
     const seguro = projeto.areaSegura && alto;
@@ -94,6 +99,7 @@
   function Motor(projeto) {
     this.projeto = projeto;
     this.audio = {};        /* índice da cena -> AudioBuffer (opcional) */
+    this.midias = {};       /* índice da cena -> HTMLImageElement | HTMLVideoElement */
     this._cacheDados = {};
     this.recalcular();
   }
@@ -184,12 +190,26 @@
     const pos = this.cenaEm(t);
     ctx.save();
     ctx.clearRect(0, 0, L.W, L.H);
-    fundo(ctx, L, pos ? this.acento(P.cenas[pos.i]) : T.dado);
+    U.aplicarTom(pos ? P.cenas[pos.i].tom : 'claro');
+    fundo(ctx, L, pos ? this.acento(P.cenas[pos.i]) : T.ouro);
     if (!pos) { ctx.restore(); return; }
 
     const cena = P.cenas[pos.i];
     const A = this.acento(cena);
     const p = pos.p;
+
+    /* mídia própria ocupando o quadro inteiro: desfocada e sob véu, porque
+       quem carrega a mensagem continua sendo o texto grande. */
+    const midia = this.midias[pos.i];
+    const fundoCheio = !!(midia && cena.midiaCheia);
+    if (fundoCheio) {
+      const sobra = Math.round(L.W * 0.06);   /* margem extra: o desfoque come as bordas */
+      ctx.save();
+      if ('filter' in ctx) ctx.filter = 'blur(' + Math.round(L.W * 0.016) + 'px)';
+      desenharCobrindo(ctx, midia, -sobra, -sobra, L.W + sobra * 2, L.H + sobra * 2);
+      ctx.restore();
+      veu(ctx, L, cena.tom === 'escuro');
+    }
 
     cabecalho(ctx, L, P, pos.i, P.cenas.length);
 
@@ -240,16 +260,20 @@
         }
       : L.palco;
 
-    const visual = U.VISUAIS[cena.visual] || U.VISUAIS.citacao;
-    const saida = 1 - U.faixa(p, 0.955, 1);
-    ctx.save();
-    ctx.globalAlpha = saida;
-    try {
-      visual.desenhar(ctx, palco, p, cena, A, this.dados(cena));
-    } catch (e) {
-      U.texto(ctx, 'erro no visual: ' + e.message, palco.x, palco.y, { tamanho: 26, cor: T.alerta });
+    /* com a mídia no quadro inteiro, redesenhar o mesmo arquivo no palco só
+       duplicaria a imagem — o fundo já é a cena. */
+    if (!(fundoCheio && cena.visual === 'midia')) {
+      const visual = U.VISUAIS[cena.visual] || U.VISUAIS.citacao;
+      const saida = 1 - U.faixa(p, 0.955, 1);
+      ctx.save();
+      ctx.globalAlpha = saida;
+      try {
+        visual.desenhar(ctx, palco, p, cena, A, this.dados(cena), this.midias[pos.i]);
+      } catch (e) {
+        U.texto(ctx, 'erro no visual: ' + e.message, palco.x, palco.y, { tamanho: 26, cor: T.alerta });
+      }
+      ctx.restore();
     }
-    ctx.restore();
 
     /* ---- LEGENDA (o áudio virando texto) ---- */
     if (op.legendas !== false) legenda(ctx, L, cena, pos.local, A);
@@ -266,17 +290,61 @@
      --------------------------------------------------------------- */
   function fundo(ctx, L, A) {
     const g = ctx.createLinearGradient(0, 0, 0, L.H);
-    g.addColorStop(0, '#FFFFFF');
-    g.addColorStop(0.55, T.fundo);
-    g.addColorStop(1, '#EAEFF5');
+    g.addColorStop(0, T.fundoTopo);
+    g.addColorStop(0.52, T.fundo);
+    g.addColorStop(1, T.fundoBase);
     ctx.fillStyle = g;
     ctx.fillRect(0, 0, L.W, L.H);
 
-    /* halo de acento, quase invisível — dá profundidade sem sujar */
-    const r = ctx.createRadialGradient(L.W * 0.82, L.H * 0.12, 0, L.W * 0.82, L.H * 0.12, L.W * 0.9);
-    r.addColorStop(0, A + '14');
-    r.addColorStop(1, A + '00');
-    ctx.fillStyle = r;
+    /* luz de estúdio: uma fonte alta à direita, larga e macia */
+    const luz = ctx.createRadialGradient(
+      L.W * 0.78, L.H * 0.06, 0, L.W * 0.78, L.H * 0.06, L.W * 1.05);
+    luz.addColorStop(0, T.tom === 'escuro' ? 'rgba(255,255,255,0.10)' : 'rgba(255,255,255,0.85)');
+    luz.addColorStop(0.45, T.tom === 'escuro' ? 'rgba(255,255,255,0.03)' : 'rgba(255,255,255,0.20)');
+    luz.addColorStop(1, 'rgba(255,255,255,0)');
+    ctx.fillStyle = luz;
+    ctx.fillRect(0, 0, L.W, L.H);
+
+    /* um sopro do acento, quase invisível, para o quadro não ficar neutro demais */
+    const halo = ctx.createRadialGradient(
+      L.W * 0.18, L.H * 0.86, 0, L.W * 0.18, L.H * 0.86, L.W * 0.85);
+    halo.addColorStop(0, A + (T.tom === 'escuro' ? '22' : '16'));
+    halo.addColorStop(1, A + '00');
+    ctx.fillStyle = halo;
+    ctx.fillRect(0, 0, L.W, L.H);
+  }
+
+  /* Desenha imagem ou vídeo cobrindo a área, sem distorcer (object-fit: cover). */
+  function desenharCobrindo(ctx, el, x, y, w, h) {
+    const lw = el.videoWidth || el.naturalWidth || el.width;
+    const lh = el.videoHeight || el.naturalHeight || el.height;
+    if (!lw || !lh) return;
+    const escala = Math.max(w / lw, h / lh);
+    const dw = lw * escala, dh = lh * escala;
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(x, y, w, h);
+    ctx.clip();
+    try {
+      ctx.drawImage(el, x + (w - dw) / 2, y + (h - dh) / 2, dw, dh);
+    } catch (e) { /* quadro ainda não decodificado */ }
+    ctx.restore();
+  }
+  U.desenharCobrindo = desenharCobrindo;
+
+  /* Véu sobre a mídia: sem ele o texto grande brigaria com a imagem. */
+  function veu(ctx, L, escuro) {
+    const g = ctx.createLinearGradient(0, 0, 0, L.H);
+    if (escuro) {
+      g.addColorStop(0, 'rgba(16,18,22,0.86)');
+      g.addColorStop(0.45, 'rgba(16,18,22,0.74)');
+      g.addColorStop(1, 'rgba(16,18,22,0.90)');
+    } else {
+      g.addColorStop(0, 'rgba(250,248,245,0.93)');
+      g.addColorStop(0.45, 'rgba(250,248,245,0.82)');
+      g.addColorStop(1, 'rgba(250,248,245,0.95)');
+    }
+    ctx.fillStyle = g;
     ctx.fillRect(0, 0, L.W, L.H);
   }
 
@@ -376,6 +444,59 @@
     ctx.strokeRect(palco.x, palco.y, palco.w, palco.h);
     ctx.restore();
   }
+
+  /* ---------------------------------------------------------------
+     Mídia própria (imagem ou vídeo) por cena
+     --------------------------------------------------------------- */
+
+  /* Exportação exata: cada quadro precisa do vídeo parado no tempo certo. */
+  Motor.prototype.prepararQuadro = function (t) {
+    const pos = this.cenaEm(t);
+    if (!pos) return Promise.resolve();
+    const el = this.midias[pos.i];
+    if (!el || el.tagName !== 'VIDEO' || !el.duration || !isFinite(el.duration)) return Promise.resolve();
+    const alvo = Math.min(el.duration - 0.03, pos.local % Math.max(0.2, el.duration));
+    if (Math.abs(el.currentTime - alvo) < 0.006) return Promise.resolve();
+    return new Promise(function (ok) {
+      let pronto = false;
+      const fim = function () {
+        if (pronto) return;
+        pronto = true;
+        el.removeEventListener('seeked', fim);
+        ok();
+      };
+      el.addEventListener('seeked', fim);
+      setTimeout(fim, 500);
+      try { el.currentTime = alvo; } catch (e) { fim(); }
+    });
+  };
+
+  /* Prévia e gravação em tempo real: o vídeo da cena atual roda sozinho. */
+  Motor.prototype.sincronizarMidias = function (t, tocando) {
+    const pos = this.cenaEm(t);
+    const chaves = Object.keys(this.midias);
+    for (let j = 0; j < chaves.length; j++) {
+      const i = Number(chaves[j]);
+      const el = this.midias[i];
+      if (!el || el.tagName !== 'VIDEO') continue;
+      const atual = pos && i === pos.i;
+      if (atual && tocando) {
+        if (el.paused) {
+          try {
+            el.currentTime = Math.min(el.duration || 0, pos.local);
+            const q = el.play();
+            if (q && q.catch) q.catch(function () { /* sem gesto do usuário ainda */ });
+          } catch (e) { /* segue mudo */ }
+        }
+      } else {
+        if (!el.paused) el.pause();
+        if (atual && !tocando && isFinite(el.duration)) {
+          try { el.currentTime = Math.min(el.duration - 0.03, pos.local % Math.max(0.2, el.duration)); }
+          catch (e) { /* ignora */ }
+        }
+      }
+    }
+  };
 
   /* ---------------------------------------------------------------
      Saídas de texto

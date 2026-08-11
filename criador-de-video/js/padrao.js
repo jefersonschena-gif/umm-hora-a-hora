@@ -104,7 +104,7 @@
       return montar(itens, projeto, motor);
     }
 
-    let abstratas = 0, alertas = 0;
+    let abstratas = 0, alertas = 0, escuras = 0;
 
     cenas.forEach(function (c, i) {
       const n = i + 1;
@@ -187,14 +187,22 @@
           'Escolha um visual da lista.');
       } else {
         if (visual.abstrato) abstratas++;
-        const precisaDados = visual.exemplo && visual.exemplo.indexOf(':') >= 0;
-        const vazio = !String(c.dados || '').trim();
-        if (precisaDados && vazio) {
-          add('aviso', n, 'concreta', 'Cena ' + n + ' usa "' + visual.rotulo + '" sem dados.',
-            'Preencha os campos do visual. Um gráfico sem número é decoração, não cena concreta.');
+        if (visual.precisaMidia) {
+          if (!(motor && motor.midias && motor.midias[i])) {
+            add('aviso', n, 'concreta', 'Cena ' + n + ' está no visual de mídia própria, mas sem arquivo.',
+              'Carregue a imagem ou o vídeo no botão "imagem ou vídeo…" da cena, ou troque para uma cena desenhada.');
+          }
+        } else {
+          const precisaDados = visual.exemplo && visual.exemplo.indexOf(':') >= 0;
+          const vazio = !String(c.dados || '').trim();
+          if (precisaDados && vazio) {
+            add('aviso', n, 'concreta', 'Cena ' + n + ' usa "' + visual.rotulo + '" sem dados.',
+              'Preencha os campos do visual. Um gráfico sem número é decoração, não cena concreta.');
+          }
         }
       }
       if (c.tipo === 'alerta') alertas++;
+      if (c.tom === 'escuro') escuras++;
 
       /* --- ritmo --- */
       if (dur && dur < 2.2) {
@@ -211,6 +219,11 @@
     if (abstratas > 1) {
       add('aviso', null, 'concreta', abstratas + ' cenas são só tipografia.',
         'O padrão pede cena concreta: cartão, extrato, boleto, gráfico, celular. Deixe no máximo uma frase solta.');
+    }
+    if (escuras && escuras > Math.ceil(cenas.length / 3)) {
+      add('aviso', null, 'estetica', escuras + ' de ' + cenas.length + ' cenas estão no tom escuro.',
+        'A direção é clara. O escuro é pontuação para dívida, juros e vencimento: entra, aperta e sai. ' +
+        'Passando de um terço do vídeo, ele vira o clima em vez do susto.');
     }
     if (alertas > 1) {
       add('aviso', null, 'estetica', alertas + ' cenas de alerta (vermelho).',

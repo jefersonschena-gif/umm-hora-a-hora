@@ -9,37 +9,86 @@ window.UMM = window.UMM || {};
 
   /* ---------------------------------------------------------------
      TEMA — fintech premium claro
-     Fundo porcelana, cartões brancos, sombra baixa, um acento só por cena.
+     Direção de arte: branco quente limpo, cinza suave, grafite, vidro e metal
+     escovado, com verde e dourado como únicos acentos. Luz de estúdio, sombra
+     nítida, reflexo elegante. Nada de azul: a paleta é quente.
+
+     U.TEMA é MUTÁVEL de propósito. Cenas de tom escuro trocam os valores no
+     mesmo objeto (U.aplicarTom), então todo visual desenha na paleta certa sem
+     precisar receber cor por parâmetro.
      --------------------------------------------------------------- */
-  U.TEMA = {
-    fundo:       '#F1F4F8',
-    fundoBrilho: '#FFFFFF',
+  U.PALETA_CLARA = {
+    tom:         'claro',
+    fundo:       '#F5F2ED',
+    fundoTopo:   '#FFFFFF',
+    fundoBase:   '#EBE6DE',
     cartao:      '#FFFFFF',
-    cartaoSuave: '#F7F9FC',
-    tinta:       '#0A1526',
-    tinta2:      '#4B5869',
-    tinta3:      '#909CAD',
-    linha:       '#E2E8F0',
-    linhaForte:  '#CBD5E1',
-    acento:      '#0B7A4B',
-    acentoSuave: '#E6F3EC',
-    dado:        '#1B45E8',
-    dadoSuave:   '#E9EDFF',
-    alerta:      '#C0341C',
-    alertaSuave: '#FBEBE7',
-    ouro:        '#B8892B',
-    sombra:      'rgba(10,21,38,0.10)',
-    sombraForte: 'rgba(10,21,38,0.18)',
+    cartaoSuave: '#F2EEE7',
+    tinta:       '#22262B',
+    tinta2:      '#5C626A',
+    tinta3:      '#9BA0A7',
+    linha:       '#E5E0D8',
+    linhaForte:  '#CCC5BA',
+    acento:      '#0E7A50',
+    acentoSuave: '#E3F0E9',
+    dado:        '#9A7524',
+    dadoSuave:   '#F5EDDC',
+    alerta:      '#A8391F',
+    alertaSuave: '#F7E7E1',
+    ouro:        '#B8912F',
+    ouroClaro:   '#E3C979',
+    metal:       '#C8CCD1',
+    metalEscuro: '#8E949B',
+    sombra:      'rgba(34,38,43,0.13)',
+    sombraForte: 'rgba(34,38,43,0.26)',
+    vidro:       'rgba(255,255,255,0.55)',
     fonte: 'Inter, "Plus Jakarta Sans", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif'
   };
 
-  /* Acento por tipo de cena — mantém a paleta disciplinada. */
+  /* Tom escuro: usado só nas cenas de dívida, juros e vencimento. É pontuação,
+     não o clima do vídeo — o verificador reclama se passar de um terço das cenas. */
+  U.PALETA_ESCURA = {
+    tom:         'escuro',
+    fundo:       '#1C1F23',
+    fundoTopo:   '#2A2E34',
+    fundoBase:   '#131518',
+    cartao:      '#262A30',
+    cartaoSuave: '#2E333A',
+    tinta:       '#F4F1EC',
+    tinta2:      '#B4B9C0',
+    tinta3:      '#7C828A',
+    linha:       '#383D45',
+    linhaForte:  '#4C525B',
+    acento:      '#3FBE87',
+    acentoSuave: '#1E3A2E',
+    dado:        '#E3C979',
+    dadoSuave:   '#3A3222',
+    alerta:      '#E4674A',
+    alertaSuave: '#3A2019',
+    ouro:        '#E3C979',
+    ouroClaro:   '#F3E2AE',
+    metal:       '#8E949B',
+    metalEscuro: '#5B6169',
+    sombra:      'rgba(0,0,0,0.45)',
+    sombraForte: 'rgba(0,0,0,0.62)',
+    vidro:       'rgba(255,255,255,0.10)',
+    fonte: 'Inter, "Plus Jakarta Sans", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif'
+  };
+
+  U.TEMA = Object.assign({}, U.PALETA_CLARA);
+
+  U.aplicarTom = function (tom) {
+    Object.assign(U.TEMA, tom === 'escuro' ? U.PALETA_ESCURA : U.PALETA_CLARA);
+    return U.TEMA;
+  };
+
+  /* Acento por tipo de cena — só verde e dourado, como manda a direção. */
   U.ACENTO_POR_TIPO = {
-    gancho:      'dado',
+    gancho:      'ouro',
     contexto:    'tinta',
-    dado:        'dado',
+    dado:        'ouro',
     passo:       'acento',
-    comparativo: 'dado',
+    comparativo: 'ouro',
     alerta:      'alerta',
     cta:         'acento'
   };
@@ -317,6 +366,118 @@ window.UMM = window.UMM || {};
     ctx.lineTo(x2 - s * Math.cos(ang + 0.42), y2 - s * Math.sin(ang + 0.42));
     ctx.closePath();
     ctx.fill();
+    ctx.restore();
+  };
+
+  /* ---------------------------------------------------------------
+     MATERIAIS — vidro, metal escovado, luz de estúdio
+     É o que separa "gráfico bonito" de "premium". Tudo em canvas puro.
+     --------------------------------------------------------------- */
+
+  /* Metal escovado: base em degradê mais fibras finas na horizontal. */
+  U.metalEscovado = function (ctx, x, y, w, h, r, op) {
+    op = op || {};
+    const claro = op.claro || U.TEMA.metal;
+    const escuro = op.escuro || U.TEMA.metalEscuro;
+    ctx.save();
+    U.caminhoArredondado(ctx, x, y, w, h, r);
+    ctx.clip();
+    const g = ctx.createLinearGradient(x, y, x + w * 0.35, y + h);
+    g.addColorStop(0, claro);
+    g.addColorStop(0.42, escuro);
+    g.addColorStop(0.62, claro);
+    g.addColorStop(1, escuro);
+    ctx.fillStyle = g;
+    ctx.fillRect(x, y, w, h);
+    /* fibras */
+    ctx.globalAlpha = 0.10;
+    ctx.strokeStyle = '#FFFFFF';
+    ctx.lineWidth = 1;
+    for (let i = 0; i < h; i += 3) {
+      ctx.globalAlpha = 0.04 + ((i * 37) % 11) / 160;
+      ctx.beginPath();
+      ctx.moveTo(x, y + i + 0.5);
+      ctx.lineTo(x + w, y + i + 0.5);
+      ctx.stroke();
+    }
+    ctx.restore();
+  };
+
+  /* Varredura especular: a faixa de luz que atravessa vidro e plástico.
+     k vai de 0 (fora, à esquerda) a 1 (fora, à direita). */
+  U.brilhoVidro = function (ctx, x, y, w, h, r, k, forca) {
+    if (k <= 0 || k >= 1) return;
+    ctx.save();
+    U.caminhoArredondado(ctx, x, y, w, h, r);
+    ctx.clip();
+    const larg = w * 0.42;
+    const cx = x - larg + k * (w + larg * 2);
+    const g = ctx.createLinearGradient(cx - larg / 2, y, cx + larg / 2, y + h);
+    g.addColorStop(0, 'rgba(255,255,255,0)');
+    g.addColorStop(0.5, 'rgba(255,255,255,' + (forca == null ? 0.30 : forca) + ')');
+    g.addColorStop(1, 'rgba(255,255,255,0)');
+    ctx.fillStyle = g;
+    ctx.fillRect(x, y, w, h);
+    ctx.restore();
+  };
+
+  /* Sombra de contato: a elipse macia que assenta o objeto na superfície. */
+  U.sombraContato = function (ctx, cx, cy, w, h, forca) {
+    ctx.save();
+    const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, Math.max(w, h) / 2);
+    const a = forca == null ? 0.28 : forca;
+    g.addColorStop(0, 'rgba(20,22,26,' + a + ')');
+    g.addColorStop(0.55, 'rgba(20,22,26,' + a * 0.45 + ')');
+    g.addColorStop(1, 'rgba(20,22,26,0)');
+    ctx.translate(cx, cy);
+    ctx.scale(1, h / Math.max(1, w));
+    ctx.translate(-cx, -cy);
+    ctx.fillStyle = g;
+    ctx.beginPath();
+    ctx.arc(cx, cy, w / 2, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  };
+
+  /* Reflexo de estúdio: cópia espelhada logo abaixo do objeto, desbotando. */
+  let _espelho = null;
+  U.reflexo = function (ctx, x, y, w, h, vao, desenhar, fracao) {
+    const frac = fracao == null ? 0.42 : fracao;
+    const lw = Math.ceil(w), lh = Math.ceil(h);
+    if (!_espelho) _espelho = document.createElement('canvas');
+    if (_espelho.width < lw || _espelho.height < lh) {
+      _espelho.width = Math.max(_espelho.width, lw);
+      _espelho.height = Math.max(_espelho.height, lh);
+    }
+    const c2 = _espelho.getContext('2d');
+    c2.save();
+    c2.setTransform(1, 0, 0, 1, 0, 0);
+    c2.clearRect(0, 0, _espelho.width, _espelho.height);
+    c2.translate(-x, -y);
+    desenhar(c2);
+    c2.restore();
+
+    /* apaga o topo (que vira o fundo do reflexo) */
+    c2.save();
+    c2.setTransform(1, 0, 0, 1, 0, 0);
+    c2.globalCompositeOperation = 'destination-out';
+    const g = c2.createLinearGradient(0, 0, 0, lh);
+    g.addColorStop(0, 'rgba(0,0,0,1)');
+    g.addColorStop(0.55, 'rgba(0,0,0,0.86)');
+    g.addColorStop(1, 'rgba(0,0,0,0.42)');
+    c2.fillStyle = g;
+    c2.fillRect(0, 0, lw, lh);
+    c2.restore();
+
+    ctx.save();
+    ctx.globalAlpha = 0.20;
+    /* o recorte vem em coordenadas do quadro, antes de espelhar */
+    ctx.beginPath();
+    ctx.rect(x, y + h + (vao || 0), w, h * frac);
+    ctx.clip();
+    ctx.translate(x, y + h + (vao || 0));
+    ctx.scale(1, -1);
+    ctx.drawImage(_espelho, 0, 0, lw, lh, 0, -lh, lw, lh);
     ctx.restore();
   };
 

@@ -60,6 +60,7 @@
     $('#formato').value = projeto.formato;
     $('#area-segura').checked = !!projeto.areaSegura;
     $('#fps').value = String(projeto.fps || 30);
+    $('#escala').value = String(projeto.escala || 1);
     $('#provedor-voz').value = (projeto.voz && projeto.voz.provedor) || 'nenhum';
     if (projeto.voz && projeto.voz.vozId) $('#voz-id').value = projeto.voz.vozId;
     trocarProvedor();
@@ -90,10 +91,13 @@
     verificar();
     atualizarTempo();
     desenhar();
+    const alvo = $('#resolucao');
+    if (alvo) alvo.textContent = resolucaoAtual();
     salvarLocal();
   }
 
   function desenhar() {
+    motor.sincronizarMidias(t, tocando);
     motor.desenhar(ctx, t, {
       legendas: $('#ver-legendas').checked,
       guias: $('#ver-guias').checked
@@ -144,6 +148,7 @@
     const palavrasT = (c.titulo || '').trim().split(/\s+/).filter(Boolean).length;
     const palavrasN = (c.narracao || '').trim().split(/\s+/).filter(Boolean).length;
     const temAudio = !!motor.audio[i];
+    const temMidia = !!motor.midias[i];
 
     return '<div class="corpo">' +
       '<div class="linha-campos">' +
@@ -168,6 +173,26 @@
         '<label class="campo"><span>Duração <em>0 = auto</em></span>' +
           '<input type="number" data-campo="dur" min="0" max="20" step="0.1" value="' + (c.dur || 0) + '"/></label>' +
       '</div>' +
+
+      '<div class="linha-campos">' +
+        '<label class="campo"><span>Tom</span>' +
+          '<select data-campo="tom">' +
+            '<option value="claro"' + (c.tom !== 'escuro' ? ' selected' : '') + '>Claro (padrão)</option>' +
+            '<option value="escuro"' + (c.tom === 'escuro' ? ' selected' : '') + '>Escuro — dívida, juros, vencimento</option>' +
+          '</select></label>' +
+        '<label class="campo"><span>Mídia própria ' +
+          (temMidia ? '<em>' + esc(c.midiaNome || 'carregada') + '</em>' : '') + '</span>' +
+          '<span style="display:flex;gap:6px">' +
+            '<button class="btn mini" data-acao="midia" type="button" style="flex:1">' +
+              (temMidia ? 'trocar…' : 'imagem ou vídeo…') + '</button>' +
+            (temMidia ? '<button class="btn mini" data-acao="tirar-midia" type="button">tirar</button>' : '') +
+          '</span>' +
+          '<input type="file" accept="image/*,video/*" data-acao="arquivo-midia" hidden/></label>' +
+      '</div>' +
+      (temMidia
+        ? '<label class="opcao-linha"><input type="checkbox" data-campo="midiaCheia"' +
+            (c.midiaCheia ? ' checked' : '') + '/> usar a mídia no quadro inteiro, com véu por trás do texto</label>'
+        : '') +
 
       '<label class="campo"><span>Linha de apoio</span>' +
         '<input type="text" data-campo="apoio" value="' + esc(c.apoio) + '" placeholder="opcional, menor, embaixo do título"/></label>' +
@@ -287,6 +312,7 @@
     $('#formato').addEventListener('change', e => { projeto.formato = e.target.value; reconstruir(); });
     $('#area-segura').addEventListener('change', e => { projeto.areaSegura = e.target.checked; reconstruir(); });
     $('#fps').addEventListener('change', e => { projeto.fps = Number(e.target.value); salvarLocal(); });
+    $('#escala').addEventListener('change', e => { projeto.escala = Number(e.target.value); reconstruir(); });
     $('#ver-legendas').addEventListener('change', desenhar);
     $('#ver-guias').addEventListener('change', desenhar);
 
@@ -294,6 +320,7 @@
       const v = e.target.value;
       if (!v) return;
       if (!confirm('Isso substitui o roteiro atual. Continuar?')) { e.target.value = ''; return; }
+      Object.keys(motor.midias).forEach(k => soltarMidia(Number(k)));
       projeto = v === '__vazio' ? U.modeloVazio() : clonar(U.MODELOS.find(m => m.chave === v).projeto);
       motor = new U.Motor(projeto);
       trilha = null; sel = 0; t = 0;
@@ -304,7 +331,7 @@
 
     $('#btn-add-cena').addEventListener('click', function () {
       projeto.cenas.splice(sel + 1, 0, U.novaCena({ tipo: 'dado', visual: 'numero' }));
-      deslocarAudios(sel + 1, 1);
+      deslocarAnexos(sel + 1, 1);
       sel = sel + 1;
       reconstruir();
     });
@@ -337,17 +364,25 @@
         return;
       }
       if (acao === 'audio') { art.querySelector('[data-acao="arquivo-audio"]').click(); return; }
+      if (acao === 'midia') { art.querySelector('[data-acao="arquivo-midia"]').click(); return; }
+      if (acao === 'tirar-midia') {
+        soltarMidia(i);
+        delete projeto.cenas[i].midiaNome;
+        projeto.cenas[i].midiaCheia = false;
+        reconstruir(); return;
+      }
       if (acao === 'tirar-audio') { delete motor.audio[i]; refazerTrilha(); reconstruir(); return; }
       if (acao === 'subir' && i > 0) { mover(i, i - 1); return; }
       if (acao === 'descer' && i < projeto.cenas.length - 1) { mover(i, i + 1); return; }
       if (acao === 'duplicar') {
         projeto.cenas.splice(i + 1, 0, Object.assign(clonar(projeto.cenas[i]), { id: U.id() }));
-        deslocarAudios(i + 1, 1); sel = i + 1; reconstruir(); return;
+        deslocarAnexos(i + 1, 1); sel = i + 1; reconstruir(); return;
       }
       if (acao === 'remover' && projeto.cenas.length > 1) {
         projeto.cenas.splice(i, 1);
         delete motor.audio[i];
-        deslocarAudios(i, -1);
+        soltarMidia(i);
+        deslocarAnexos(i, -1);
         if (sel >= projeto.cenas.length) sel = projeto.cenas.length - 1;
         refazerTrilha(); reconstruir(); return;
       }
@@ -372,6 +407,15 @@
       if (e.target.dataset.acao === 'arquivo-audio' && e.target.files[0]) {
         const i = Number(e.target.closest('.cena').dataset.i);
         carregarAudioCena(i, e.target.files[0]);
+      }
+      if (e.target.dataset.acao === 'arquivo-midia' && e.target.files[0]) {
+        const i = Number(e.target.closest('.cena').dataset.i);
+        carregarMidiaCena(i, e.target.files[0]);
+      }
+      if (e.target.dataset.campo === 'midiaCheia') {
+        const i = Number(e.target.closest('.cena').dataset.i);
+        projeto.cenas[i].midiaCheia = e.target.checked;
+        desenhar(); salvarLocal();
       }
     });
 
@@ -431,6 +475,11 @@
 
   function semInternos(chave, valor) { return chave === '_legendas' ? undefined : valor; }
 
+  function resolucaoAtual() {
+    const L = U.layout(projeto);
+    return L.W + '×' + L.H;
+  }
+
   function atualizarResumoCena(i) {
     const art = document.querySelector('.cena[data-i="' + i + '"]');
     if (!art) return;
@@ -443,21 +492,26 @@
   function mover(de, para) {
     const c = projeto.cenas.splice(de, 1)[0];
     projeto.cenas.splice(para, 0, c);
-    const a = motor.audio[de], b = motor.audio[para];
-    if (a) motor.audio[para] = a; else delete motor.audio[para];
-    if (b) motor.audio[de] = b; else delete motor.audio[de];
+    [ 'audio', 'midias' ].forEach(function (campo) {
+      const a = motor[campo][de], b = motor[campo][para];
+      if (a) motor[campo][para] = a; else delete motor[campo][para];
+      if (b) motor[campo][de] = b; else delete motor[campo][de];
+    });
     sel = para;
     refazerTrilha();
     reconstruir();
   }
 
-  function deslocarAudios(apartir, delta) {
-    const novo = {};
-    Object.keys(motor.audio).forEach(function (k) {
-      const i = Number(k);
-      novo[i >= apartir ? i + delta : i] = motor.audio[k];
+  /* Inserir ou remover cena renumera as cenas: os anexos precisam acompanhar. */
+  function deslocarAnexos(apartir, delta) {
+    ['audio', 'midias'].forEach(function (campo) {
+      const novo = {};
+      Object.keys(motor[campo]).forEach(function (k) {
+        const i = Number(k);
+        novo[i >= apartir ? i + delta : i] = motor[campo][k];
+      });
+      motor[campo] = novo;
     });
-    motor.audio = novo;
   }
 
   function pularParaCena(i, manterSeDentro) {
@@ -551,6 +605,42 @@
       reconstruir();
     } catch (e) {
       alert('Não consegui ler esse áudio: ' + e.message);
+    }
+  }
+
+  /* Mídia própria: imagem ou vídeo, guardados só na memória desta aba. */
+  function soltarMidia(i) {
+    const el = motor.midias[i];
+    if (el && el.src && el.src.indexOf('blob:') === 0) URL.revokeObjectURL(el.src);
+    delete motor.midias[i];
+  }
+
+  function carregarMidiaCena(i, arquivo) {
+    soltarMidia(i);
+    const url = URL.createObjectURL(arquivo);
+    const ehVideo = /^video\//.test(arquivo.type);
+    const el = document.createElement(ehVideo ? 'video' : 'img');
+    el.src = url;
+    if (ehVideo) { el.muted = true; el.playsInline = true; el.preload = 'auto'; el.loop = true; }
+
+    const pronto = function () {
+      motor.midias[i] = el;
+      projeto.cenas[i].midiaNome = arquivo.name;
+      if (projeto.cenas[i].visual !== 'midia' && !projeto.cenas[i].midiaCheia) {
+        projeto.cenas[i].visual = 'midia';
+      }
+      reconstruir();
+    };
+    const falhou = function () {
+      URL.revokeObjectURL(url);
+      alert('Não consegui ler esse arquivo. Imagens: PNG, JPG, WEBP. Vídeos: MP4 ou WEBM que o navegador saiba tocar.');
+    };
+    if (ehVideo) {
+      el.onloadeddata = pronto;
+      el.onerror = falhou;
+    } else {
+      el.onload = pronto;
+      el.onerror = falhou;
     }
   }
 

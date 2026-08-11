@@ -5,6 +5,11 @@ grande em português e cenas concretas. Roda inteiro no navegador: nenhum
 servidor, nenhuma conta, nenhuma assinatura, nenhum arquivo enviado para lugar
 nenhum.
 
+**Direção de arte:** branco quente limpo, cinza suave, grafite, vidro e metal
+escovado, com **verde e dourado** como únicos acentos. Luz de estúdio, sombra
+nítida, reflexo. Cenas de dívida, juros e vencimento entram num **tom escuro**
+que aperta e sai — o claro é o clima, o escuro é pontuação.
+
 ![formato](https://img.shields.io/badge/9%3A16-1080x1920-0B7A4B) ![custo](https://img.shields.io/badge/custo-R%24%200-0B7A4B)
 
 ---
@@ -21,7 +26,8 @@ verificador as checa a cada tecla e mostra a nota na lateral direita.
 | **Estética fintech premium clara** | Paleta fixa: porcelana, cartão branco, sombra baixa, um acento por cena (verde para ação, azul para dado, vermelho só para alerta). Mais de uma cena vermelha vira aviso. |
 | **Faceless** | Nenhum visual tem gente. A biblioteca é de objetos: cartão, extrato, boleto, celular, cofre, gráfico. A narração que pressupõe alguém na câmera é sinalizada. |
 | **Texto grande em português** | Título com mais de 9 palavras vira aviso, porque obriga a fonte a encolher. Estrangeirismo evitável também. |
-| **Cenas concretas** | Cada cena escolhe um visual desenhado. Passar de uma cena "só tipografia" vira aviso. |
+| **Cenas concretas** | Cada cena escolhe um visual desenhado (ou uma mídia sua). Passar de uma cena "só tipografia" vira aviso, e o visual de mídia sem arquivo também. |
+| **O escuro é pontuação** | Passando de um terço das cenas no tom escuro, vira aviso: a direção é clara, o escuro serve ao susto da dívida. |
 
 Nota 100 quer dizer: nenhum erro, nenhum aviso.
 
@@ -50,14 +56,16 @@ Firefox e Safari funcionam com o botão "Gravar".
 
 1. **Escolha um modelo** no alto da tela. Vêm três roteiros prontos em pt-BR,
    todos com nota 100 — servem de régua para o que você escrever depois.
-2. **Escreva cena a cena.** Cada cena tem duas colunas de conteúdo:
+2. **Escolha o tom da cena.** Claro por padrão; escuro nas cenas de dívida,
+   juros e vencimento.
+3. **Escreva cena a cena.** Cada cena tem duas colunas de conteúdo:
    *texto grande na tela* (o que se lê) e *narração* (o que se ouve). Escreva
    como se cada um fosse o único canal.
-3. **Escolha a cena concreta** e preencha os dados. O botão *usar exemplo*
+4. **Escolha a cena concreta** e preencha os dados. O botão *usar exemplo*
    preenche o formato certo.
-4. **Olhe a nota.** Clique num aviso para pular direto para a cena.
-5. **Gere a narração** (opcional) na aba Voz.
-6. **Exporte** na aba Exportar.
+5. **Olhe a nota.** Clique num aviso para pular direto para a cena.
+6. **Gere a narração** (opcional) na aba Voz.
+7. **Exporte** na aba Exportar.
 
 A duração de cada cena é calculada da narração (2,55 palavras por segundo) ou
 da duração real do áudio, quando houver. Dá para travar no campo *duração*.
@@ -118,7 +126,7 @@ ffmpeg -i video.webm -c:v libx264 -crf 18 -preset slow -pix_fmt yuv420p -c:a aac
 `numero` · `linha` · `barras` · `comparativo` · `cartao` · `pix` · `boleto` ·
 `extrato` · `notificacao` · `checklist` · `juros` · `cofre` · `alerta` ·
 `fluxo` · `calendario` · `contrato` · `carteira` · `moedas` · `citacao` ·
-`chamada`
+`chamada` · `midia`
 
 Todas são desenhadas em código — nada de banco de imagens, nada de licença,
 nada de crédito a dar. Os dados vêm de um campo de texto simples:
@@ -133,9 +141,32 @@ itens: Poupança=6,2 | CDB=11,4 | Tesouro=10,9
 
 ---
 
+## Mídia própria: usar filmagem gerada fora do Studio
+
+As cenas desenhadas em código não viram foto. Quando você quiser produto
+fotorrealista — cartão em macro, vidro, metal, dashboard renderizado — gere a
+filmagem onde preferir e traga para dentro:
+
+1. Na cena, clique em **imagem ou vídeo…** e escolha o arquivo (PNG, JPG, WEBP,
+   MP4, WEBM — qualquer coisa que o seu navegador toque).
+2. A cena passa para o visual **Mídia própria**: o arquivo vira o palco, dentro
+   da moldura, com sombra de contato e fio de luz na borda.
+3. Marque **usar a mídia no quadro inteiro** para ela ocupar todo o quadro. Aí
+   ela entra desfocada e sob véu, e o texto grande continua sendo o que se lê.
+
+O texto grande, a legenda sincronizada e o verificador continuam funcionando por
+cima — é o que garante que o vídeo siga se entendendo no mudo. Na exportação
+exata, cada quadro é buscado no vídeo antes de ser codificado, então o resultado
+fica sincronizado mesmo em máquina lenta.
+
+Os arquivos ficam só na memória da aba: não são enviados a lugar nenhum e não
+entram no `.json` do projeto. Ao reabrir um projeto, recarregue as mídias.
+
 ## Formatos
 
 `9:16` (1080×1920) · `4:5` (1080×1350) · `1:1` (1080×1080) · `16:9` (1920×1080)
+
+Cada um pode sair em **2K** (1440×2560 no vertical), na aba Exportar.
 
 A opção **área segura** encolhe o conteúdo para a faixa que o Instagram não
 cobre com a própria interface. Marque "guias" na prévia para enxergar os

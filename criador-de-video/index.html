@@ -146,15 +146,21 @@
             <button class="btn" id="btn-json">Projeto (.json)</button>
           </div>
 
-          <h3 class="secao">Qualidade</h3>
+          <h3 class="secao">Qualidade <em style="float:right;font-style:normal;text-transform:none;letter-spacing:0" id="resolucao"></em></h3>
           <div class="linha-campos">
             <label class="campo" style="margin-top:0"><span>Quadros por segundo</span>
               <select id="fps"><option>24</option><option selected>30</option><option>60</option></select>
             </label>
-            <label class="campo" style="margin-top:0"><span>Legendas no vídeo</span>
-              <select id="legendas-export"><option value="1" selected>Gravadas</option><option value="0">Sem legenda</option></select>
+            <label class="campo" style="margin-top:0"><span>Resolução</span>
+              <select id="escala">
+                <option value="1" selected>Padrão (1080p)</option>
+                <option value="1.3333">2K (1440×2560)</option>
+              </select>
             </label>
           </div>
+          <label class="campo"><span>Legendas no vídeo</span>
+            <select id="legendas-export"><option value="1" selected>Gravadas</option><option value="0">Sem legenda</option></select>
+          </label>
           <p class="ajuda">Legendas gravadas garantem que o vídeo se entenda no mudo mesmo onde a plataforma não gera legenda automática. O arquivo <code>.srt</code> continua servindo para acessibilidade.</p>
         </div>
 
