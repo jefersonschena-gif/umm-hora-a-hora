@@ -46,6 +46,9 @@
     $('#formato').innerHTML = Object.keys(U.FORMATOS)
       .map(k => '<option value="' + k + '">' + esc(U.FORMATOS[k].rotulo) + '</option>').join('');
 
+    $('#clima').innerHTML = Object.keys(U.CLIMAS)
+      .map(k => '<option value="' + k + '">' + esc(U.CLIMAS[k].rotulo) + '</option>').join('');
+
     $('#modelos').innerHTML =
       '<option value="">Começar de um modelo…</option>' +
       U.MODELOS.map(m => '<option value="' + m.chave + '">' + esc(m.nome) + ' — ' + esc(m.resumo) + '</option>').join('') +
@@ -58,6 +61,7 @@
   function aplicarProjetoNaTopo() {
     $('#titulo-projeto').value = projeto.titulo || '';
     $('#formato').value = projeto.formato;
+    $('#clima').value = projeto.clima || 'claro';
     $('#area-segura').checked = !!projeto.areaSegura;
     $('#fps').value = String(projeto.fps || 30);
     $('#escala').value = String(projeto.escala || 1);
@@ -177,7 +181,7 @@
       '<div class="linha-campos">' +
         '<label class="campo"><span>Tom</span>' +
           '<select data-campo="tom">' +
-            '<option value="claro"' + (c.tom !== 'escuro' ? ' selected' : '') + '>Claro (padrão)</option>' +
+            '<option value="claro"' + (c.tom !== 'escuro' ? ' selected' : '') + '>Clima do projeto</option>' +
             '<option value="escuro"' + (c.tom === 'escuro' ? ' selected' : '') + '>Escuro — dívida, juros, vencimento</option>' +
           '</select></label>' +
         '<label class="campo"><span>Mídia própria ' +
@@ -310,6 +314,7 @@
   function ligarEventos() {
     $('#titulo-projeto').addEventListener('input', e => { projeto.titulo = e.target.value; salvarLocal(); });
     $('#formato').addEventListener('change', e => { projeto.formato = e.target.value; reconstruir(); });
+    $('#clima').addEventListener('change', e => { projeto.clima = e.target.value; reconstruir(); });
     $('#area-segura').addEventListener('change', e => { projeto.areaSegura = e.target.checked; reconstruir(); });
     $('#fps').addEventListener('change', e => { projeto.fps = Number(e.target.value); salvarLocal(); });
     $('#escala').addEventListener('change', e => { projeto.escala = Number(e.target.value); reconstruir(); });

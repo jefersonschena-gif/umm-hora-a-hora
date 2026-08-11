@@ -35,6 +35,7 @@
       titulo: 'Novo vídeo',
       formato: '9x16',
       fps: 30,
+      clima: 'claro',   /* 'claro' | 'grafite' | 'escuro' */
       escala: 1,        /* 1 = 1080x1920 · 1.333 = 1440x2560 (2K) */
       areaSegura: true,
       marca: { nome: '', arroba: '' },
@@ -190,7 +191,7 @@
     const pos = this.cenaEm(t);
     ctx.save();
     ctx.clearRect(0, 0, L.W, L.H);
-    U.aplicarTom(pos ? P.cenas[pos.i].tom : 'claro');
+    U.aplicarTom(P.clima, pos ? P.cenas[pos.i].tom : 'claro');
     fundo(ctx, L, pos ? this.acento(P.cenas[pos.i]) : T.ouro);
     if (!pos) { ctx.restore(); return; }
 
@@ -297,10 +298,12 @@
     ctx.fillRect(0, 0, L.W, L.H);
 
     /* luz de estúdio: uma fonte alta à direita, larga e macia */
+    const forcaLuz = { claro: [0.85, 0.20], grafite: [0.22, 0.06], escuro: [0.10, 0.03] }[T.tom] ||
+      [0.85, 0.20];
     const luz = ctx.createRadialGradient(
-      L.W * 0.78, L.H * 0.06, 0, L.W * 0.78, L.H * 0.06, L.W * 1.05);
-    luz.addColorStop(0, T.tom === 'escuro' ? 'rgba(255,255,255,0.10)' : 'rgba(255,255,255,0.85)');
-    luz.addColorStop(0.45, T.tom === 'escuro' ? 'rgba(255,255,255,0.03)' : 'rgba(255,255,255,0.20)');
+      L.W * 0.78, L.H * 0.06, 0, L.W * 0.78, L.H * 0.06, L.W * (T.tom === 'grafite' ? 0.85 : 1.05));
+    luz.addColorStop(0, 'rgba(255,255,255,' + forcaLuz[0] + ')');
+    luz.addColorStop(0.45, 'rgba(255,255,255,' + forcaLuz[1] + ')');
     luz.addColorStop(1, 'rgba(255,255,255,0)');
     ctx.fillStyle = luz;
     ctx.fillRect(0, 0, L.W, L.H);
@@ -308,7 +311,7 @@
     /* um sopro do acento, quase invisível, para o quadro não ficar neutro demais */
     const halo = ctx.createRadialGradient(
       L.W * 0.18, L.H * 0.86, 0, L.W * 0.18, L.H * 0.86, L.W * 0.85);
-    halo.addColorStop(0, A + (T.tom === 'escuro' ? '22' : '16'));
+    halo.addColorStop(0, A + (T.tom === 'claro' ? '16' : '22'));
     halo.addColorStop(1, A + '00');
     ctx.fillStyle = halo;
     ctx.fillRect(0, 0, L.W, L.H);
@@ -334,6 +337,7 @@
 
   /* Véu sobre a mídia: sem ele o texto grande brigaria com a imagem. */
   function veu(ctx, L, escuro) {
+    escuro = escuro || T.tom !== 'claro';
     const g = ctx.createLinearGradient(0, 0, 0, L.H);
     if (escuro) {
       g.addColorStop(0, 'rgba(16,18,22,0.86)');

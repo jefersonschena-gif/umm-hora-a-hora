@@ -5,10 +5,19 @@ grande em português e cenas concretas. Roda inteiro no navegador: nenhum
 servidor, nenhuma conta, nenhuma assinatura, nenhum arquivo enviado para lugar
 nenhum.
 
-**Direção de arte:** branco quente limpo, cinza suave, grafite, vidro e metal
-escovado, com **verde e dourado** como únicos acentos. Luz de estúdio, sombra
-nítida, reflexo. Cenas de dívida, juros e vencimento entram num **tom escuro**
-que aperta e sai — o claro é o clima, o escuro é pontuação.
+**Direção de arte:** vidro, metal escovado e luz de estúdio, com **verde e
+dourado** como únicos acentos. O projeto escolhe um **clima** e cada cena pode
+mergulhar no escuro.
+
+| Clima | Como é | Quando usar |
+|---|---|---|
+| **Claro** | branco quente, luz alta, sombra nítida | conteúdo de organização, controle, investimento |
+| **Grafite** | campo de carvão quente, painel de vidro, cartão em aço escovado como objeto iluminado | quando você quer peso e produto — é o meio-termo entre claro e escuro |
+| **Escuro** | quase preto, clima de alerta | vídeo inteiro sobre dívida ou golpe |
+
+Independente do clima, uma cena pode ter **tom escuro**: ela mergulha para o
+quase preto e volta. É a pontuação da dívida, do juro e do vencimento — o
+verificador reclama se passar de um terço do vídeo.
 
 ![formato](https://img.shields.io/badge/9%3A16-1080x1920-0B7A4B) ![custo](https://img.shields.io/badge/custo-R%24%200-0B7A4B)
 
@@ -23,11 +32,11 @@ verificador as checa a cada tecla e mostra a nota na lateral direita.
 |---|---|
 | **O vídeo se entende sem áudio** | Toda cena precisa de texto grande. O verificador mede a fonte depois do ajuste automático e reclama abaixo de ~73 px em 1080. O painel "teste do mudo" lista só o que aparece escrito, na ordem — se essa lista já conta a história, o vídeo funciona no silencioso. |
 | **O áudio se entende sem vídeo** | A narração não pode apontar para a imagem. "na tela", "acima", "ao lado", "isso aqui" viram **erro**; "veja", "repare", "olha só" viram aviso. Se a cena mostra um número que a narração não fala, avisa. O painel "teste do cego" junta só a narração, para você ler de olhos fechados. |
-| **Estética fintech premium clara** | Paleta fixa: branco quente, grafite, vidro e metal escovado, um acento por cena (dourado para dado, verde para ação, vermelho só para alerta). Mais de uma cena vermelha vira aviso. |
+| **Estética fintech premium** | Três climas fechados (claro, grafite, escuro), um acento por cena (dourado para dado, verde para ação, vermelho só para alerta). Mais de uma cena vermelha vira aviso. |
 | **Faceless** | Nenhum visual tem gente. A biblioteca é de objetos: cartão, extrato, boleto, celular, cofre, gráfico. A narração que pressupõe alguém na câmera é sinalizada. |
 | **Texto grande em português** | Título com mais de 9 palavras vira aviso, porque obriga a fonte a encolher. Estrangeirismo evitável também. |
 | **Cenas concretas** | Cada cena escolhe um visual desenhado (ou uma mídia sua). Passar de uma cena "só tipografia" vira aviso, e o visual de mídia sem arquivo também. |
-| **O escuro é pontuação** | Passando de um terço das cenas no tom escuro, vira aviso: a direção é clara, o escuro serve ao susto da dívida. |
+| **O escuro é pontuação** | Passando de um terço das cenas em mergulho escuro, vira aviso — aí é caso de trocar o clima do projeto, não de escurecer cena a cena. |
 
 Nota 100 quer dizer: nenhum erro, nenhum aviso.
 
@@ -56,8 +65,8 @@ Firefox e Safari funcionam com o botão "Gravar".
 
 1. **Escolha um modelo** no alto da tela. Vêm quatro roteiros prontos em pt-BR,
    todos com nota 100 — servem de régua para o que você escrever depois.
-2. **Escolha o tom da cena.** Claro por padrão; escuro nas cenas de dívida,
-   juros e vencimento.
+2. **Escolha o clima** no alto da tela e o **tom** de cada cena: tom do projeto
+   por padrão, escuro nas cenas de dívida, juros e vencimento.
 3. **Escreva cena a cena.** Cada cena tem duas colunas de conteúdo:
    *texto grande na tela* (o que se lê) e *narração* (o que se ouve). Escreva
    como se cada um fosse o único canal.

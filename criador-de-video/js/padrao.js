@@ -220,10 +220,17 @@
       add('aviso', null, 'concreta', abstratas + ' cenas são só tipografia.',
         'O padrão pede cena concreta: cartão, extrato, boleto, gráfico, celular. Deixe no máximo uma frase solta.');
     }
-    if (escuras && escuras > Math.ceil(cenas.length / 3)) {
-      add('aviso', null, 'estetica', escuras + ' de ' + cenas.length + ' cenas estão no tom escuro.',
-        'A direção é clara. O escuro é pontuação para dívida, juros e vencimento: entra, aperta e sai. ' +
-        'Passando de um terço do vídeo, ele vira o clima em vez do susto.');
+    const clima = projeto.clima || 'claro';
+    if (clima !== 'escuro' && escuras && escuras > Math.ceil(cenas.length / 3)) {
+      add('aviso', null, 'estetica', escuras + ' de ' + cenas.length + ' cenas mergulham no tom escuro.',
+        'O mergulho é pontuação para dívida, juros e vencimento: entra, aperta e sai. ' +
+        'Passando de um terço do vídeo, ele vira o clima em vez do susto — se é isso que você quer, ' +
+        'troque o clima do projeto e devolva as cenas ao tom do projeto.');
+    }
+    if (clima === 'escuro' && escuras) {
+      add('aviso', null, 'estetica', 'O clima já é escuro, e ' + escuras + ' cena(s) ainda pedem mergulho.',
+        'Num clima escuro o mergulho não muda quase nada. Devolva essas cenas ao tom do projeto ' +
+        'ou troque o clima para grafite, que deixa espaço para o escuro apertar.');
     }
     if (alertas > 1) {
       add('aviso', null, 'estetica', alertas + ' cenas de alerta (vermelho).',

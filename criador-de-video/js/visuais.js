@@ -340,16 +340,25 @@
       const ch = cw * 0.63;
       const cx = c.x + c.w / 2, cy = c.y + ch / 2 + 14 * u;
       const k = U.ease.firme(U.faixa(p, 0.03, 0.42));
-      const escuro = T.tom === 'escuro';
+      const escuro = T.tom !== 'claro';
 
       /* o corpo do cartão, isolado para poder ser desenhado de novo no reflexo */
       function corpo(g, ox, oy) {
         const x = ox - cw / 2, y = oy - ch / 2, r = 34 * u;
         U.caminhoArredondado(g, x, y, cw, ch, r);
+        /* Num campo escuro o cartão vira aço escovado claro: numa foto de
+           estúdio o herói é o objeto iluminado, não mais uma mancha preta. */
         const base = g.createLinearGradient(x, y, x + cw, y + ch);
-        base.addColorStop(0, escuro ? '#3A4048' : '#2C3138');
-        base.addColorStop(0.5, escuro ? '#22272D' : '#161A1F');
-        base.addColorStop(1, escuro ? '#31373E' : '#23282E');
+        if (escuro) {
+          base.addColorStop(0, '#7A828C');
+          base.addColorStop(0.38, '#454C55');
+          base.addColorStop(0.62, '#69717A');
+          base.addColorStop(1, '#3A4149');
+        } else {
+          base.addColorStop(0, '#2C3138');
+          base.addColorStop(0.5, '#161A1F');
+          base.addColorStop(1, '#23282E');
+        }
         g.fillStyle = base;
         g.fill();
 
@@ -371,10 +380,10 @@
         g.fillRect(x, y, cw, ch);
         g.restore();
 
-        /* borda de luz */
+        /* borda de luz — mais forte no escuro, para recortar do fundo */
         U.caminhoArredondado(g, x + 1, y + 1, cw - 2, ch - 2, r - 1);
-        g.strokeStyle = 'rgba(255,255,255,0.20)';
-        g.lineWidth = 2 * u;
+        g.strokeStyle = escuro ? 'rgba(255,255,255,0.42)' : 'rgba(255,255,255,0.20)';
+        g.lineWidth = (escuro ? 2.5 : 2) * u;
         g.stroke();
 
         /* chip em metal escovado */
@@ -420,7 +429,7 @@
 
       /* a luz atravessa o cartão uma vez, no meio da cena */
       U.brilhoVidro(ctx, -cw / 2, -ch / 2, cw, ch, 34 * u,
-        U.faixa(p, 0.30, 0.68), 0.26);
+        U.faixa(p, 0.30, 0.68), escuro ? 0.38 : 0.26);
       ctx.restore();
 
       if (d.valor) {

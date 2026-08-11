@@ -75,10 +75,51 @@ window.UMM = window.UMM || {};
     fonte: 'Inter, "Plus Jakarta Sans", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif'
   };
 
+  /* Estúdio grafite — o meio-termo entre a versão clara e a escura.
+     Campo de carvão quente com luz de estúdio forte, painéis de vidro mais
+     claros e quentes que os do tom escuro, e o dourado como acento principal.
+     É o clima de fotografia de produto: fundo fechado, objeto iluminado. */
+  U.PALETA_GRAFITE = {
+    tom:         'grafite',
+    fundo:       '#24282D',
+    fundoTopo:   '#373D45',
+    fundoBase:   '#181B1F',
+    cartao:      '#2E343B',
+    cartaoSuave: '#373E46',
+    tinta:       '#F7F4EE',
+    tinta2:      '#C2C7CE',
+    tinta3:      '#8B929A',
+    linha:       '#434A53',
+    linhaForte:  '#5C646E',
+    acento:      '#38C085',
+    acentoSuave: '#1F4034',
+    dado:        '#DEC684',
+    dadoSuave:   '#3D3524',
+    alerta:      '#E4674A',
+    alertaSuave: '#3D211A',
+    ouro:        '#DEC684',
+    ouroClaro:   '#F2E3B4',
+    metal:       '#B3B9C0',
+    metalEscuro: '#6D747C',
+    sombra:      'rgba(0,0,0,0.48)',
+    sombraForte: 'rgba(0,0,0,0.66)',
+    vidro:       'rgba(255,255,255,0.14)',
+    fonte: 'Inter, "Plus Jakarta Sans", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif'
+  };
+
+  U.CLIMAS = {
+    claro:   { rotulo: 'Claro — branco quente e luz alta', paleta: 'PALETA_CLARA' },
+    grafite: { rotulo: 'Grafite — estúdio fechado, objeto iluminado', paleta: 'PALETA_GRAFITE' },
+    escuro:  { rotulo: 'Escuro — quase preto, clima de alerta', paleta: 'PALETA_ESCURA' }
+  };
+
   U.TEMA = Object.assign({}, U.PALETA_CLARA);
 
-  U.aplicarTom = function (tom) {
-    Object.assign(U.TEMA, tom === 'escuro' ? U.PALETA_ESCURA : U.PALETA_CLARA);
+  /* O clima é do projeto; o tom é da cena. Uma cena em tom escuro sempre
+     mergulha para a paleta mais fechada, seja qual for o clima. */
+  U.aplicarTom = function (clima, tomCena) {
+    const base = U[(U.CLIMAS[clima] || U.CLIMAS.claro).paleta] || U.PALETA_CLARA;
+    Object.assign(U.TEMA, tomCena === 'escuro' ? U.PALETA_ESCURA : base);
     return U.TEMA;
   };
 
