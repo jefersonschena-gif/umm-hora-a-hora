@@ -101,6 +101,7 @@
     desenhar();
     const alvo = $('#resolucao');
     if (alvo) alvo.textContent = resolucaoAtual();
+    renderPrompt();
     salvarLocal();
   }
 
@@ -587,6 +588,7 @@
     });
 
     ligarVoz();
+    ligarPrompts();
     ligarExportacao();
 
     document.addEventListener('keydown', function (e) {
@@ -784,6 +786,76 @@
       el.textContent = n + ' de ' + projeto.cenas.length + ' cenas com narração' +
         (trilha ? ' · trilha de ' + trilha.duration.toFixed(1).replace('.', ',') + 's' : '') + '.';
     }
+  }
+
+  /* =============================================================
+     Prompts para o gerador de filmagem
+     ============================================================= */
+  function ligarPrompts() {
+    $('#tipo-prompt').addEventListener('change', renderPrompt);
+    $('#cena-prompt').addEventListener('change', renderPrompt);
+
+    $('#btn-copiar-prompt').addEventListener('click', async function () {
+      const txt = $('#texto-prompt').textContent;
+      try {
+        await navigator.clipboard.writeText(txt);
+        statusPrompt('Prompt copiado. Cole no gerador e traga o arquivo de volta pelo botão "imagem ou vídeo…" da cena.', 'ok');
+      } catch (e) {
+        /* sem permissão de área de transferência: seleciona para o usuário copiar */
+        const faixa = document.createRange();
+        faixa.selectNodeContents($('#texto-prompt'));
+        const sel = window.getSelection();
+        sel.removeAllRanges();
+        sel.addRange(faixa);
+        statusPrompt('Não consegui usar a área de transferência. O texto está selecionado — use Ctrl+C.', 'erro');
+      }
+    });
+
+    $('#btn-baixar-prompts').addEventListener('click', function () {
+      U.Exportar.baixarTexto(U.Prompts.documento(projeto, motor),
+        U.Exportar.nomeArquivo(projeto, 'prompts.md'), 'text/markdown');
+    });
+  }
+
+  function renderPrompt() {
+    const tipo = $('#tipo-prompt').value;
+    $('#seletor-cena-prompt').hidden = tipo !== 'cena';
+
+    if (tipo === 'cena') {
+      const atual = Number($('#cena-prompt').value) || 0;
+      $('#cena-prompt').innerHTML = projeto.cenas.map(function (c, i) {
+        return '<option value="' + i + '"' + (i === Math.min(atual, projeto.cenas.length - 1) ? ' selected' : '') +
+          '>' + (i + 1) + '. ' + esc(c.titulo || 'sem título') + '</option>';
+      }).join('');
+    }
+
+    /* onde a filmagem gerada rende, e onde ela vai errar */
+    const diag = U.Prompts.diagnostico(projeto);
+    const partes = [];
+    if (diag.filmar.length) {
+      partes.push('<b>Vale gerar</b> as cenas ' + diag.filmar.join(', ') +
+        ' — o sentido delas está no objeto.');
+    }
+    if (diag.desenhar.length) {
+      partes.push('<b>Deixe desenhadas</b> as cenas ' + diag.desenhar.join(', ') +
+        ' — o sentido delas está no número, e gerador de vídeo não escreve número certo.');
+    }
+    $('#diagnostico-prompt').innerHTML = partes.length
+      ? '<div class="aviso-caixa">' + partes.join('<br>') + '</div>' : '';
+
+    let txt;
+    if (tipo === 'imagem') txt = U.Prompts.imagemBase(projeto);
+    else if (tipo === 'cena') {
+      const i = Math.min(Number($('#cena-prompt').value) || 0, projeto.cenas.length - 1);
+      txt = U.Prompts.porCena(projeto, motor, i);
+    } else txt = U.Prompts.videoInteiro(projeto, motor);
+
+    $('#texto-prompt').textContent = txt;
+  }
+
+  function statusPrompt(texto, tom) {
+    $('#status-prompt').innerHTML = texto
+      ? '<div class="aviso-caixa ' + (tom || '') + '">' + esc(texto) + '</div>' : '';
   }
 
   /* =============================================================

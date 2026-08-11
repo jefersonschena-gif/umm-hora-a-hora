@@ -181,6 +181,47 @@ node ferramentas/tts-edge.mjs --vozes          # lista as vozes em português
 
 ---
 
+## Prompts para o gerador de filmagem
+
+Cenas desenhadas em código não viram foto. Quando você quiser produto
+fotorrealista, o Studio transforma o roteiro **já verificado** em prompt para o
+gerador que você usar — Higgsfield, Sora, Runway, Kling.
+
+Na aba **Prompt**, três saídas:
+
+| Saída | Para quê |
+|---|---|
+| **Vídeo inteiro** | um prompt só, com a lista de planos cronometrada e o áudio da narração como referência de tempo. Mais barato e coeso. |
+| **Cena a cena** | um prompt por cena, cada um virando um clipe. Controle fino, mais caro. |
+| **Imagem de referência** | o quadro que define o look da série, para reusar como referência em todas as gerações. |
+
+Duas decisões vão dentro de todo prompt gerado:
+
+**A filmagem sai sem texto legível.** O texto grande, a legenda e a marca entram
+depois, aqui, onde o verificador cobra que o vídeo se entenda no mudo. Deixar o
+gerador escrever é abrir mão disso — e gerador de vídeo erra ortografia em
+português com frequência.
+
+**O prompt reserva espaço.** Ele pede terço superior livre para o título e terço
+inferior livre para a legenda, senão a filmagem briga com o texto.
+
+### Onde a filmagem gerada ajuda, e onde atrapalha
+
+O Studio olha o seu roteiro e diz, cena a cena, o que vale gerar e o que é
+melhor deixar desenhado:
+
+- **Vale gerar** — cenas de objeto: cartão, cofre, boleto, celular, contrato,
+  calendário. O sentido está na coisa.
+- **Deixe desenhado** — cenas cujo sentido está no número: a conta, o extrato,
+  o gráfico, a recapitulação, a definição. Gerador de vídeo não escreve número
+  certo, e aqui o valor é exato e a fonte é legível.
+
+O caminho completo fica assim: escrever e verificar aqui → gerar filmagem só
+das cenas que rendem → trazer os arquivos de volta pelo botão **imagem ou
+vídeo…** → exportar com o texto e a legenda por cima.
+
+---
+
 ## Exportação
 
 | Botão | O que sai | Quando usar |

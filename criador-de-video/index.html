@@ -64,6 +64,7 @@
       <div class="abas">
         <button class="aba ativa" data-aba="padrao">Padrão <span class="badge" id="badge-padrao" hidden>0</span></button>
         <button class="aba" data-aba="voz">Voz</button>
+        <button class="aba" data-aba="prompt">Prompt</button>
         <button class="aba" data-aba="exportar">Exportar</button>
       </div>
       <div class="rolagem">
@@ -141,6 +142,37 @@
           </div>
         </div>
 
+        <!-- PROMPT -->
+        <div class="conteudo-aba oculto" id="aba-prompt">
+          <p class="ajuda">O roteiro já verificado vira prompt para o gerador de filmagem.
+            A filmagem sai <b>sem texto legível</b> — o texto grande, a legenda e a marca entram
+            aqui no Studio, onde o verificador cobra que o vídeo se entenda no mudo. Depois é só
+            trazer o arquivo de volta pelo botão <b>imagem ou vídeo…</b> de cada cena.</p>
+
+          <div id="diagnostico-prompt"></div>
+
+          <label class="campo"><span>O que gerar</span>
+            <select id="tipo-prompt">
+              <option value="inteiro">Vídeo inteiro, com o áudio como referência de tempo</option>
+              <option value="cena">Cena a cena — um clipe por cena</option>
+              <option value="imagem">Imagem de referência do estilo</option>
+            </select>
+          </label>
+
+          <div id="seletor-cena-prompt" hidden>
+            <label class="campo"><span>Cena</span><select id="cena-prompt"></select></label>
+          </div>
+
+          <div class="grupo-botoes" style="margin-top:12px">
+            <button class="btn primario" id="btn-copiar-prompt">Copiar</button>
+            <button class="btn" id="btn-baixar-prompts">Baixar todos os prompts (.md)</button>
+          </div>
+          <div id="status-prompt"></div>
+
+          <h3 class="secao">Prompt</h3>
+          <pre id="texto-prompt" class="prompt"></pre>
+        </div>
+
         <!-- EXPORTAR -->
         <div class="conteudo-aba oculto" id="aba-exportar">
           <h3 class="secao">Vídeo</h3>
@@ -191,6 +223,7 @@
 <script src="js/padrao.js"></script>
 <script src="js/voz.js"></script>
 <script src="js/exportar.js"></script>
+<script src="js/prompts.js"></script>
 <script src="js/modelos.js"></script>
 <script src="js/app.js"></script>
 </body>

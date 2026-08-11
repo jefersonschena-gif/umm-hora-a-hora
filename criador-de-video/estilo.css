@@ -253,3 +253,11 @@ p.ajuda code{background:var(--cartao2);border:1px solid var(--linha);border-radi
 }
 .recurso.falta .marca{background:var(--linha2);color:var(--tinta3)}
 .recurso small{color:var(--tinta3);font-size:11.5px}
+
+/* ---------------- prompts ---------------- */
+pre.prompt{
+  background:var(--cartao2);border:1px solid var(--linha);border-radius:10px;
+  padding:12px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  font-size:11.5px;line-height:1.55;white-space:pre-wrap;word-break:break-word;
+  color:var(--tinta2);max-height:420px;overflow:auto
+}
