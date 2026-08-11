@@ -137,20 +137,38 @@ window.UMM = window.UMM || {};
     conceito:      'tinta',
     exemplo:       'ouro',
     erro:          'alerta',
-    recapitulacao: 'acento'
+    recapitulacao: 'acento',
+    /* papéis da interseção */
+    previsao:      'ouro',
+    surpresa:      'ouro',
+    resgate:       'acento'
   };
 
   /* Papéis de cena por modo. Em aula a história é outra: pergunta, conceito,
      exemplo, erro comum, recapitulação — e não gancho, dado, chamada. */
   U.TIPOS = {
-    retencao: ['gancho', 'contexto', 'dado', 'passo', 'comparativo', 'alerta', 'cta'],
-    aula:     ['pergunta', 'conceito', 'exemplo', 'dado', 'erro', 'passo', 'recapitulacao', 'cta']
+    retencao:  ['gancho', 'contexto', 'dado', 'passo', 'comparativo', 'alerta', 'cta'],
+    aula:      ['pergunta', 'conceito', 'exemplo', 'dado', 'erro', 'passo', 'recapitulacao', 'cta'],
+    intersecao: ['pergunta', 'previsao', 'conceito', 'exemplo', 'surpresa', 'dado',
+                 'erro', 'passo', 'resgate', 'recapitulacao', 'cta']
   };
 
   U.MODOS = {
-    retencao: { rotulo: 'Retenção — prender e converter', pps: 2.55, respiro: 0.0, min: 15, max: 95 },
-    aula:     { rotulo: 'Aula — ensinar e fixar',         pps: 2.30, respiro: 0.6, min: 45, max: 240 }
+    retencao:   { rotulo: 'Retenção — prender e converter', pps: 2.55, respiro: 0.0, min: 15, max: 95 },
+    aula:       { rotulo: 'Aula — ensinar e fixar',         pps: 2.30, respiro: 0.6, min: 45, max: 240 },
+    intersecao: { rotulo: 'Interseção — ensinar segurando', pps: 2.42, respiro: 0.3, min: 40, max: 150 }
   };
+
+  /* Os recursos que servem aos dois lados ao mesmo tempo. É esta lista que o
+     modo interseção persegue — e que a curva do vídeo mede. */
+  U.RECURSOS_INTERSECAO = [
+    { chave: 'lacuna',   nome: 'Pergunta que abre lacuna', retencao: 'é o gancho',            aprendizado: 'é organizador prévio' },
+    { chave: 'previsao', nome: 'Previsão antes da revelação', retencao: 'cria suspense',      aprendizado: 'é efeito de geração' },
+    { chave: 'surpresa', nome: 'Expectativa quebrada',      retencao: 'segura no susto',      aprendizado: 'fixa a memória' },
+    { chave: 'conta',    nome: 'Conta revelada linha a linha', retencao: 'micro-suspense',    aprendizado: 'é exemplo trabalhado' },
+    { chave: 'resgate',  nome: 'Resgate no meio',           retencao: 'reengaja',             aprendizado: 'é prática de recuperação' },
+    { chave: 'laco',     nome: 'Laço fechado no fim',       retencao: 'entrega o prometido',  aprendizado: 'consolida' }
+  ];
 
   /* ---------------------------------------------------------------
      FORMATOS

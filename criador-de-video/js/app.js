@@ -262,8 +262,111 @@
         }).join('')
       : '<div class="tudo-certo">Nada a corrigir.</div>';
 
+    desenharCurva(relatorio.curva);
     $('#leitura-muda').textContent = relatorio.leituraMuda;
     $('#leitura-cega').textContent = relatorio.leituraCega || '(sem narração)';
+  }
+
+  /* A curva só faz sentido quando o vídeo se propõe às duas coisas. */
+  function desenharCurva(curva) {
+    const bloco = $('#bloco-curva');
+    if (!curva || projeto.modo !== 'intersecao' || !curva.pontos.length) {
+      bloco.hidden = true;
+      return;
+    }
+    bloco.hidden = false;
+
+    const cv = $('#curva');
+    const c = cv.getContext('2d');
+    const W = cv.width, H = cv.height;
+    const pad = { e: 34, d: 14, t: 16, b: 34 };
+    const gw = W - pad.e - pad.d, gh = H - pad.t - pad.b;
+    const css = getComputedStyle(document.documentElement);
+    const cor = n => css.getPropertyValue(n).trim();
+
+    c.clearRect(0, 0, W, H);
+    c.fillStyle = '#fff';
+    c.fillRect(pad.e, pad.t, gw, gh);
+
+    c.strokeStyle = cor('--linha');
+    c.lineWidth = 1;
+    for (let i = 0; i <= 4; i++) {
+      const yy = pad.t + (gh * i) / 4;
+      c.beginPath(); c.moveTo(pad.e, yy + 0.5); c.lineTo(pad.e + gw, yy + 0.5); c.stroke();
+    }
+
+    const total = motor.duracao || 1;
+    const x = t => pad.e + (t / total) * gw;
+    const y = v => pad.t + gh * (1 - v);
+
+    /* cada cena é um degrau: a medida vale para o trecho inteiro */
+    function linha(campo, corLinha, preencher) {
+      c.beginPath();
+      curva.pontos.forEach(function (p, i) {
+        const x1 = x(p.inicio), x2 = x(p.inicio + p.dur), yy = y(p[campo]);
+        if (i === 0) c.moveTo(x1, yy); else c.lineTo(x1, yy);
+        c.lineTo(x2, yy);
+      });
+      c.strokeStyle = corLinha;
+      c.lineWidth = 2.5;
+      c.lineJoin = 'round';
+      c.stroke();
+      if (preencher) {
+        c.lineTo(pad.e + gw, pad.t + gh);
+        c.lineTo(pad.e, pad.t + gh);
+        c.closePath();
+        c.fillStyle = corLinha + '1F';
+        c.fill();
+      }
+    }
+    linha('aprendizado', cor('--acento'), true);
+    linha('atencao', cor('--dado'), false);
+
+    /* linha de corte: abaixo dela a cena não está fazendo o trabalho dela */
+    c.save();
+    c.setLineDash([5, 4]);
+    c.strokeStyle = cor('--tinta3');
+    c.lineWidth = 1;
+    const yCorte = pad.t + gh * 0.55;
+    c.beginPath(); c.moveTo(pad.e, yCorte); c.lineTo(pad.e + gw, yCorte); c.stroke();
+    c.restore();
+    c.fillStyle = cor('--tinta3');
+    c.font = '600 10px ' + css.getPropertyValue('--fonte');
+    c.textAlign = 'left';
+    c.fillText('linha de corte', pad.e + 4, yCorte - 4);
+
+    /* marca os vales: onde as duas caem juntas */
+    curva.pontos.forEach(function (p) {
+      if (p.atencao < 0.35 && p.aprendizado < 0.35) {
+        c.fillStyle = 'rgba(168,57,31,0.13)';
+        c.fillRect(x(p.inicio), pad.t, Math.max(2, x(p.inicio + p.dur) - x(p.inicio)), gh);
+      }
+    });
+
+    /* eixos */
+    c.fillStyle = cor('--tinta3');
+    c.font = '600 11px ' + css.getPropertyValue('--fonte');
+    c.textAlign = 'right';
+    c.fillText('alto', pad.e - 6, pad.t + 10);
+    c.fillText('baixo', pad.e - 6, pad.t + gh);
+    c.textAlign = 'right';
+    c.font = '600 11px ' + css.getPropertyValue('--fonte');
+    c.fillText(total.toFixed(0) + 's', pad.e + gw, H - 6);
+    c.textAlign = 'center';
+    curva.pontos.forEach(function (p, i) {
+      c.fillText(String(i + 1), x(p.inicio + p.dur / 2), H - 22);
+    });
+
+    /* os seis recursos da interseção */
+    $('#recursos-intersecao').innerHTML = '<div class="recursos">' +
+      U.RECURSOS_INTERSECAO.map(function (r) {
+        const tem = !!curva.recursos[r.chave];
+        return '<div class="recurso' + (tem ? '' : ' falta') + '">' +
+          '<span class="marca">' + (tem ? '✓' : '·') + '</span>' +
+          '<span><b>' + esc(r.nome) + '</b><br><small>' +
+            esc(r.retencao) + ' · ' + esc(r.aprendizado) + '</small></span>' +
+        '</div>';
+      }).join('') + '</div>';
   }
 
   function rotuloRegra(r) {
@@ -276,6 +379,7 @@
       'portugues': 'português',
       'estetica': 'estética',
       'didatica': 'didática',
+      'intersecao': 'interseção',
       'ritmo': 'ritmo',
       'estrutura': 'estrutura'
     }[r] || r;

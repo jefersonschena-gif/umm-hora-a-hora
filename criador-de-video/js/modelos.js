@@ -314,6 +314,80 @@
     }
   });
 
+  /* ============================================================
+     INTERSEÇÃO — cada cena tenta segurar E ensinar ao mesmo tempo.
+     A pergunta da abertura volta respondida no fim: o laço fecha.
+     ============================================================ */
+  U.MODELOS.push({
+    chave: 'intersecao-minimo',
+    nome: 'Interseção: o mínimo da fatura',
+    resumo: '8 cenas · ~85s · pergunta → previsão → conta → surpresa → resgate → laço fechado',
+    projeto: {
+      versao: 1,
+      titulo: 'O minimo da fatura',
+      formato: '9x16',
+      fps: 30,
+      modo: 'intersecao',
+      clima: 'grafite',
+      escala: 1,
+      areaSegura: true,
+      marca: { nome: 'Dinheiro Claro', arroba: '@dinheiroclaro' },
+      voz: { provedor: 'nenhum', vozId: 'pt_BR-faber-medium', velocidade: 1 },
+      cenas: [
+        U.novaCena({
+          tipo: 'pergunta', visual: 'pergunta', selo: 'a pergunta',
+          titulo: 'Pagar o mínimo tira quanto da dívida?',
+          dados: 'pergunta: Fatura de R$ 3.280. Você paga o mínimo. Quanto a dívida diminui?\ndica: guarde um número na cabeça',
+          narracao: 'Numa fatura de três mil duzentos e oitenta reais, quanto a dívida diminui se você pagar só o mínimo? Guarde um número.'
+        }),
+        U.novaCena({
+          tipo: 'previsao', visual: 'comparativo', selo: 'arrisque',
+          titulo: 'A maioria chuta um destes dois',
+          dados: 'aRotulo: Cai uns 15%\naValor: R$ 492\nbRotulo: Cai quase nada\nbValor: R$ 74\nvence: b',
+          narracao: 'Quase todo mundo responde quatrocentos e noventa e dois reais, o valor que saiu do bolso. Segure sua resposta mais dez segundos.'
+        }),
+        U.novaCena({
+          tipo: 'conceito', visual: 'definicao', selo: 'o termo',
+          titulo: 'Por que some tão pouco?',
+          apoio: 'a resposta tem nome, e não aparece na fatura',
+          dados: 'termo: Rotativo\nclasse: crédito automático do cartão\nsignifica: o pedaço da fatura que você não pagou e que o banco empresta na hora, com a maior taxa de juros do mercado brasileiro\nnaoConfunda: com o parcelamento da fatura, que é outro contrato e cobra menos da metade',
+          narracao: 'O que sobra da fatura vira rotativo, um empréstimo automático que ninguém assina, mas que cobra a maior taxa do mercado brasileiro.'
+        }),
+        U.novaCena({
+          tipo: 'exemplo', visual: 'conta', selo: 'a conta',
+          titulo: 'R$ 492 saem. Quanto some da dívida?',
+          dados: 'itens: Fatura do mês=R$ 3.280,00 | Mínimo pago, 15%=− R$ 492,00 | Sobra no rotativo=R$ 2.788,00 | Juro de 15% no mês=+ R$ 418,20\nresultado: R$ 3.206,20\nrotuloResultado: sua dívida no mês seguinte',
+          narracao: 'Saem quatrocentos e noventa e dois reais, sobram dois mil setecentos e oitenta e oito, mas o juro de quinze por cento devolve quatrocentos e dezoito para a conta.'
+        }),
+        U.novaCena({
+          tipo: 'surpresa', visual: 'numero', tom: 'escuro', selo: 'a resposta',
+          titulo: 'A dívida caiu R$ 74',
+          apoio: 'você tirou R$ 492 do bolso',
+          dados: 'valor: R$ 74,00\nrotulo: foi só isso que saiu da dívida\nnota: 2% em um mês inteiro',
+          narracao: 'Setenta e quatro reais. Você tirou quatrocentos e noventa e dois do bolso, mas a dívida só caiu setenta e quatro, porque o resto virou juro.'
+        }),
+        U.novaCena({
+          tipo: 'erro', visual: 'erroComum', selo: 'o erro',
+          titulo: 'Por isso o mínimo não resolve',
+          dados: 'errado: Pagar o mínimo todo mês para manter o nome limpo\ncerto: Trocar a fatura inteira por um empréstimo pessoal e quitar o cartão',
+          narracao: 'Pagar o mínimo mantém o nome limpo e a dívida viva. Trocar por um empréstimo pessoal corta o juro para menos de um terço.'
+        }),
+        U.novaCena({
+          tipo: 'resgate', visual: 'checklist', selo: 'lembra?',
+          titulo: 'Lembra do número que você guardou?',
+          dados: 'itens: Você imaginou uma queda grande | A queda real foi de R$ 74 | A diferença tem nome: rotativo',
+          narracao: 'Compare com o número que você guardou no começo. A distância entre os dois tem nome, e o nome é rotativo.'
+        }),
+        U.novaCena({
+          tipo: 'recapitulacao', visual: 'recapitulacao', selo: 'a resposta',
+          titulo: 'Pagar o mínimo tira R$ 74 da dívida',
+          dados: 'itens: O mínimo de R$ 492 derruba só R$ 74 da fatura | O resto vira rotativo, a 15% ao mês | Trocar por empréstimo pessoal corta o juro para menos de um terço',
+          narracao: 'Respondendo a pergunta do começo: pagar o mínimo de quatrocentos e noventa e dois reais tira setenta e quatro reais da dívida. O resto vira rotativo.'
+        })
+      ]
+    }
+  });
+
   U.modeloVazio = function () {
     const p = U.novoProjeto();
     p.cenas = [

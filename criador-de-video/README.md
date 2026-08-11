@@ -21,18 +21,56 @@ verificador reclama se passar de um terço do vídeo.
 
 ---
 
-## Dois modos: prender ou ensinar
+## Três modos: prender, ensinar, ou os dois
 
 O vídeo que prende e o vídeo que ensina não têm a mesma estrutura, nem o mesmo
 ritmo, nem os mesmos erros. O modo do projeto muda os três.
 
-| | **Retenção** | **Aula** |
+| | **Retenção** | **Aula** | **Interseção** |
+|---|---|---|---|
+| Estrutura | gancho → dado → chamada | pergunta → conceito → conta → erro → recapitulação | pergunta → previsão → conceito → conta → surpresa → resgate → laço fechado |
+| Ritmo | 2,55 palavras/s | 2,30 + 0,6 s de respiro | 2,42 + 0,3 s |
+| Duração | 15 a 95 s | 45 a 240 s | 40 a 150 s |
+| O verificador cobra | gancho na abertura, chamada no fim | conceito, exemplo com números, recapitulação, **nenhum jargão sem definição** | tudo da aula **mais os seis recursos de interseção**, e o laço fechado |
+
+### A interseção
+
+Retenção e didática não são opostos. Existe um conjunto de recursos em que o
+que segura é exatamente o que ensina — e o modo **interseção** persegue esses
+seis:
+
+| Recurso | Por que segura | Por que ensina |
 |---|---|---|
-| Estrutura | gancho → dado → chamada | pergunta → conceito → conta → erro comum → recapitulação |
-| Papéis de cena | gancho, contexto, dado, passo, comparativo, alerta, cta | pergunta, conceito, exemplo, dado, erro, passo, recapitulação |
-| Ritmo | 2,55 palavras por segundo | 2,30 e mais 0,6 s de respiro por cena |
-| Duração esperada | 15 a 95 s | 45 a 240 s |
-| O verificador cobra | gancho na abertura, chamada no fim | pergunta na abertura, conceito, exemplo com números, recapitulação no fim, e **nenhum jargão sem definição** |
+| Pergunta que abre lacuna | é o gancho | é organizador prévio |
+| Previsão antes da revelação | cria suspense | é efeito de geração |
+| Expectativa quebrada | segura no susto | fixa a memória |
+| Conta revelada linha a linha | micro-suspense | é exemplo trabalhado |
+| Resgate no meio | reengaja | é prática de recuperação |
+| Laço fechado no fim | entrega o prometido | consolida |
+
+### A curva do vídeo
+
+No modo interseção, o painel desenha duas medidas cena a cena, na mesma linha
+do tempo: **atenção** (o quanto a cena dá motivo para continuar) e
+**aprendizado** (o quanto ela entrega algo que a pessoa leva embora).
+
+- Onde as duas caem juntas, a pessoa sai — o trecho aparece marcado em vermelho.
+- Onde só a atenção sobe, o vídeo está prendendo sem ensinar.
+- Onde só o aprendizado sobe, está ensinando para quem já foi embora.
+
+O verificador usa a mesma medida para acusar **vales acima de 18 segundos sem
+nada que segure**, conteúdo que **só chega depois da metade** do vídeo, e
+desequilíbrio geral entre as duas curvas. E cobra o **laço fechado**: as
+palavras da pergunta de abertura precisam reaparecer nas duas últimas cenas.
+Sem isso é erro, não aviso — o vídeo entregou informação e quebrou a promessa.
+
+Para calibrar, os modelos que acompanham medem assim:
+
+| Modelo | atenção | aprendizado |
+|---|---|---|
+| Retenção (4 modelos) | 0,16 – 0,29 | 0,16 – 0,27 |
+| Aula | 0,32 | 0,40 |
+| Interseção | **0,59** | **0,48** |
 
 No modo aula entram cinco cenas que só existem para ensinar:
 
@@ -99,9 +137,9 @@ Firefox e Safari funcionam com o botão "Gravar".
 
 ## Fluxo de trabalho
 
-1. **Escolha o modo** — retenção ou aula — e um modelo. Vêm cinco roteiros
-   prontos em pt-BR, todos com nota 100, sendo um deles uma aula completa.
-   Servem de régua para o que você escrever depois.
+1. **Escolha o modo** — retenção, aula ou interseção — e um modelo. Vêm seis
+   roteiros prontos em pt-BR, todos com nota 100. Servem de régua para o que
+   você escrever depois.
 2. **Escolha o clima** no alto da tela e o **tom** de cada cena: tom do projeto
    por padrão, escuro nas cenas de dívida, juros e vencimento.
 3. **Escreva cena a cena.** Cada cena tem duas colunas de conteúdo:
