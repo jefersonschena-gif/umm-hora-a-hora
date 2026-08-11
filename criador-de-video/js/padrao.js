@@ -67,6 +67,16 @@
     'trezentos', 'mil', 'milhao', 'milhoes', 'bilhao', 'metade', 'dobro', 'triplo',
     'por cento', 'reais', 'real', 'centavos'];
 
+  /* Jargão de finanças que um iniciante não entende sozinho. Quem ensina
+     define antes de usar — ou perde a pessoa na primeira frase. */
+  const JARGAO = [
+    'cdi', 'selic', 'ipca', 'rotativo', 'liquidez', 'amortizacao', 'iof', 'cet',
+    'custo efetivo total', 'aporte', 'volatilidade', 'come-cotas', 'come cotas',
+    'spread', 'fgc', 'lci', 'lca', 'alavancagem', 'renda variavel', 'renda fixa',
+    'taxa de administracao', 'patrimonio liquido', 'dividendo', 'debenture',
+    'marcacao a mercado', 'juros compostos', 'score'
+  ];
+
   let ctxMedida = null;
   function medidor() {
     if (!ctxMedida) {
@@ -236,22 +246,33 @@
       add('aviso', null, 'estetica', alertas + ' cenas de alerta (vermelho).',
         'Numa estética clara e premium, vermelho é pontuação. Use em uma cena só.');
     }
-    if (cenas[0] && cenas[0].tipo !== 'gancho') {
-      add('aviso', 1, 'estrutura', 'A primeira cena não está marcada como gancho.',
-        'Os 2 primeiros segundos decidem o vídeo. Abra com tensão ou com um número.');
-    }
-    if (cenas.length > 1 && cenas[cenas.length - 1].tipo !== 'cta') {
-      add('aviso', cenas.length, 'estrutura', 'A última cena não é uma chamada.',
-        'Termine com um passo concreto que a pessoa faz hoje.');
+    const modo = projeto.modo === 'aula' ? 'aula' : 'retencao';
+
+    if (modo === 'retencao') {
+      if (cenas[0] && cenas[0].tipo !== 'gancho') {
+        add('aviso', 1, 'estrutura', 'A primeira cena não está marcada como gancho.',
+          'Os 2 primeiros segundos decidem o vídeo. Abra com tensão ou com um número.');
+      }
+      if (cenas.length > 1 && cenas[cenas.length - 1].tipo !== 'cta') {
+        add('aviso', cenas.length, 'estrutura', 'A última cena não é uma chamada.',
+          'Termine com um passo concreto que a pessoa faz hoje.');
+      }
+    } else {
+      verificarAula(cenas, add, motor);
     }
     if (motor) {
       const t = motor.duracao;
-      if (t < 15) {
+      const faixaModo = U.MODOS[modo] || U.MODOS.retencao;
+      if (t < faixaModo.min) {
         add('aviso', null, 'ritmo', 'O vídeo tem ' + t.toFixed(1) + 's.',
-          'Abaixo de 15s não dá para entregar argumento e chamada. Some uma cena de dado.');
-      } else if (t > 95) {
+          modo === 'aula'
+            ? 'Abaixo de ' + faixaModo.min + 's não cabe conceito, exemplo e recapitulação. Falta aula aqui.'
+            : 'Abaixo de ' + faixaModo.min + 's não dá para entregar argumento e chamada. Some uma cena de dado.');
+      } else if (t > faixaModo.max) {
         add('aviso', null, 'ritmo', 'O vídeo tem ' + t.toFixed(1) + 's.',
-          'Acima de 90s a retenção despenca em Reels. Corte a cena mais fraca.');
+          modo === 'aula'
+            ? 'Acima de ' + faixaModo.max + 's é melhor quebrar em duas aulas do que perder a pessoa no meio.'
+            : 'Acima de 90s a retenção despenca em Reels. Corte a cena mais fraca.');
       }
       const palavrasTitulos = cenas.map(c => c.titulo || '').join(' ').split(/\s+/).filter(Boolean).length;
       if (cenas.length >= 3 && palavrasTitulos < 12) {
@@ -262,6 +283,72 @@
 
     return montar(itens, projeto, motor);
   };
+
+  /* ---------------------------------------------------------------
+     Didática — só roda no modo aula
+     --------------------------------------------------------------- */
+  function verificarAula(cenas, add, motor) {
+    const papeis = cenas.map(function (c) { return c.tipo; });
+    const visuais = cenas.map(function (c) { return c.visual; });
+
+    const abre = papeis[0];
+    if (abre !== 'pergunta' && abre !== 'gancho' && abre !== 'conceito') {
+      add('aviso', 1, 'didatica', 'A aula não abre com pergunta.',
+        'Quem aprende precisa saber o que vai responder. Abra com a pergunta que a aula resolve, ' +
+        'e dê tempo da pessoa arriscar uma resposta antes de você dar a sua.');
+    }
+
+    const temConceito = papeis.indexOf('conceito') >= 0 || visuais.indexOf('definicao') >= 0;
+    if (!temConceito) {
+      add('aviso', null, 'didatica', 'A aula não tem nenhuma cena de conceito.',
+        'Sem o conceito, o exemplo vira truque decorado: funciona naquele número e em mais nenhum.');
+    }
+
+    const temExemplo = papeis.indexOf('exemplo') >= 0 || visuais.indexOf('conta') >= 0;
+    if (!temExemplo) {
+      add('aviso', null, 'didatica', 'A aula não tem exemplo com números.',
+        'Faça a conta na frente de quem assiste, linha por linha. O visual "Conta passo a passo" existe para isso.');
+    }
+
+    const ultimas = papeis.slice(-2).concat(visuais.slice(-2));
+    if (ultimas.indexOf('recapitulacao') < 0) {
+      add('aviso', cenas.length, 'didatica', 'A aula termina sem recapitulação.',
+        'O que não é repetido no fim não sobra. Feche com até 3 pontos numerados.');
+    }
+
+    const definidos = cenas.filter(function (c) { return c.visual === 'definicao'; })
+      .map(function (c) { return U.normalizar(U.lerDados(c.dados).termo || ''); })
+      .join(' | ');
+    const textoTodo = U.normalizar(cenas.map(function (c) {
+      return [c.titulo, c.apoio, c.narracao, c.dados].join(' ');
+    }).join(' '));
+    const semDefinir = JARGAO.filter(function (t) {
+      return new RegExp('\\b' + t.replace(/-/g, '[- ]') + '\\b').test(textoTodo) &&
+             definidos.indexOf(t) < 0;
+    });
+    if (semDefinir.length) {
+      add('aviso', null, 'didatica',
+        'Termo técnico sem definição: ' + semDefinir.slice(0, 4).join(', ') + '.',
+        'Adicione uma cena "Definição de termo" antes do primeiro uso. Quem já sabe pula em 3 segundos; ' +
+        'quem não sabe abandona o vídeo.');
+    }
+
+    cenas.forEach(function (c, i) {
+      if (!motor) return;
+      const ehConceito = c.tipo === 'conceito' || c.visual === 'definicao';
+      if (ehConceito && motor.duracoes[i] < 4.5) {
+        add('aviso', i + 1, 'didatica',
+          'Cena ' + (i + 1) + ' explica um conceito em só ' + motor.duracoes[i].toFixed(1) + 's.',
+          'Conceito precisa de tempo de leitura. Alongue a narração ou fixe a duração em 5 segundos ou mais.');
+      }
+      const frases = String(c.narracao || '').split(/[.!?]+/).map(function (f) { return f.trim(); })
+        .filter(function (f) { return f.split(/\s+/).length > 3; });
+      if (frases.length > 2) {
+        add('aviso', i + 1, 'didatica', 'Cena ' + (i + 1) + ' tem ' + frases.length + ' ideias na narração.',
+          'Uma ideia por cena. Quebre em duas — a tela muda junto e a pessoa acompanha.');
+      }
+    });
+  }
 
   function montar(itens, projeto, motor) {
     const erros = itens.filter(i => i.nivel === 'erro').length;

@@ -248,6 +248,72 @@
     }
   });
 
+  /* ============================================================
+     AULA — outra estrutura: pergunta, conceito, conta, erro, recapitulação.
+     Nada de gancho e chamada; aqui o objetivo é a pessoa saber fazer sozinha.
+     ============================================================ */
+  U.MODELOS.push({
+    chave: 'aula-rotativo',
+    nome: 'Aula: como o rotativo do cartão funciona',
+    resumo: '7 cenas · ~95s · pergunta → conceito → conta → erro → recapitulação',
+    projeto: {
+      versao: 1,
+      titulo: 'Aula - o rotativo do cartao',
+      formato: '9x16',
+      fps: 30,
+      modo: 'aula',
+      clima: 'grafite',
+      escala: 1,
+      areaSegura: true,
+      marca: { nome: 'Dinheiro Claro', arroba: '@dinheiroclaro' },
+      voz: { provedor: 'nenhum', vozId: 'pt_BR-faber-medium', velocidade: 1 },
+      cenas: [
+        U.novaCena({
+          tipo: 'pergunta', visual: 'pergunta', selo: 'aula 1',
+          titulo: 'Quanto custa pagar só o mínimo?',
+          dados: 'pergunta: Se a fatura é R$ 3.280 e você paga o mínimo, quanto deve no mês seguinte?\ndica: arrisque um número antes de continuar',
+          narracao: 'Se a sua fatura é de três mil duzentos e oitenta reais e você paga só o mínimo, quanto você deve no mês seguinte? Pense num número.'
+        }),
+        U.novaCena({
+          tipo: 'conceito', visual: 'definicao', selo: 'o termo',
+          titulo: 'Primeiro, o que é rotativo',
+          dados: 'termo: Rotativo\nclasse: crédito automático do cartão\nsignifica: o pedaço da fatura que você não pagou e que o banco empresta para você, cobrando a maior taxa de juros do mercado brasileiro\nnaoConfunda: com o parcelamento da fatura, que é outro contrato e costuma cobrar menos da metade',
+          narracao: 'Rotativo é o pedaço da fatura que você não pagou e que o banco empresta automaticamente para você. É o crédito mais caro do país, e ele começa sem ninguém assinar nada.'
+        }),
+        U.novaCena({
+          tipo: 'exemplo', visual: 'conta', selo: 'a conta',
+          titulo: 'Agora a conta, linha por linha',
+          dados: 'itens: Fatura do mês=R$ 3.280,00 | Você paga o mínimo, 15%=− R$ 492,00 | Sobra no rotativo=R$ 2.788,00 | Juro de 15% no mês=+ R$ 418,20\nresultado: R$ 3.206,20\nrotuloResultado: sua dívida no mês seguinte',
+          narracao: 'Você paga quatrocentos e noventa e dois reais e sobram dois mil setecentos e oitenta e oito no rotativo. O juro de quinze por cento devolve quatrocentos e dezoito reais para a conta.'
+        }),
+        U.novaCena({
+          tipo: 'dado', visual: 'numero', selo: 'a resposta',
+          titulo: 'Você pagou e deve quase o mesmo',
+          dados: 'valor: R$ 3.206,20\nrotulo: depois de pagar R$ 492,00\nnota: a dívida caiu 2% e o mês inteiro passou',
+          narracao: 'Você tirou quatrocentos e noventa e dois reais do bolso e a dívida caiu setenta e quatro reais. Dois por cento. Esse é o buraco.'
+        }),
+        U.novaCena({
+          tipo: 'erro', visual: 'erroComum', selo: 'o erro',
+          titulo: 'O erro que quase todo mundo comete',
+          dados: 'errado: Pagar o mínimo todo mês para manter o nome limpo\ncerto: Trocar a fatura inteira por um empréstimo pessoal e pagar o cartão de uma vez',
+          narracao: 'Pagar o mínimo mantém o nome limpo e a dívida viva. Trocar a fatura por um empréstimo pessoal corta o juro para menos de um terço.'
+        }),
+        U.novaCena({
+          tipo: 'passo', visual: 'checklist', selo: 'como sair',
+          titulo: 'Como sair, em três passos',
+          dados: 'itens: Peça a portabilidade da dívida no seu banco | Compare o custo total, não a parcela | Guarde o cartão até quitar',
+          narracao: 'São três passos: pedir a portabilidade da dívida, comparar o custo total em vez da parcela, e guardar o cartão até quitar.'
+        }),
+        U.novaCena({
+          tipo: 'recapitulacao', visual: 'recapitulacao', selo: 'para levar',
+          titulo: 'O que precisa ficar',
+          dados: 'itens: O rotativo cobra cerca de 15% ao mês | Pagar o mínimo é o que aciona o rotativo | Trocar por empréstimo pessoal corta o juro para menos de um terço',
+          narracao: 'Três coisas: o rotativo cobra perto de quinze por cento ao mês, pagar o mínimo é o que aciona ele, e trocar por empréstimo pessoal corta o juro para menos de um terço.'
+        })
+      ]
+    }
+  });
+
   U.modeloVazio = function () {
     const p = U.novoProjeto();
     p.cenas = [

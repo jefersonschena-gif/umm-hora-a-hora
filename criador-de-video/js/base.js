@@ -131,7 +131,25 @@ window.UMM = window.UMM || {};
     passo:       'acento',
     comparativo: 'ouro',
     alerta:      'alerta',
-    cta:         'acento'
+    cta:         'acento',
+    /* papéis de aula */
+    pergunta:      'ouro',
+    conceito:      'tinta',
+    exemplo:       'ouro',
+    erro:          'alerta',
+    recapitulacao: 'acento'
+  };
+
+  /* Papéis de cena por modo. Em aula a história é outra: pergunta, conceito,
+     exemplo, erro comum, recapitulação — e não gancho, dado, chamada. */
+  U.TIPOS = {
+    retencao: ['gancho', 'contexto', 'dado', 'passo', 'comparativo', 'alerta', 'cta'],
+    aula:     ['pergunta', 'conceito', 'exemplo', 'dado', 'erro', 'passo', 'recapitulacao', 'cta']
+  };
+
+  U.MODOS = {
+    retencao: { rotulo: 'Retenção — prender e converter', pps: 2.55, respiro: 0.0, min: 15, max: 95 },
+    aula:     { rotulo: 'Aula — ensinar e fixar',         pps: 2.30, respiro: 0.6, min: 45, max: 240 }
   };
 
   /* ---------------------------------------------------------------

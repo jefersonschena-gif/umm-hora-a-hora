@@ -1317,6 +1317,302 @@
     }
   };
 
+  /* ============================================================
+     CENAS DE AULA — existem só para ensinar
+     ============================================================ */
+
+  /* 22. PERGUNTA — abre o assunto e dá tempo de pensar antes da resposta. */
+  V.pergunta = {
+    rotulo: 'Pergunta (com tempo para pensar)',
+    dica: 'Abre a aula. O anel marca o tempo de pensar — não corte curto.',
+    exemplo: 'pergunta: Quanto custa pagar só o mínimo da fatura?\ndica: pense num valor antes de continuar',
+    aula: true,
+    desenhar: function (ctx, c, p, cena, A, d) {
+      const u = c.w / 936;
+      const aj = U.ajustar(ctx, d.pergunta || '', {
+        max: 60 * u, min: 34 * u, peso: 700, maxLargura: c.w - 120 * u, maxLinhas: 4
+      });
+      const cyP = c.y + c.h * 0.40;
+      U.blocoTexto(ctx, aj, c.x + c.w / 2, cyP - aj.altura / 2,
+        { align: 'center', cor: T.tinta, peso: 700, progresso: p, atraso: 0.02 });
+
+      /* anel de tempo: mostra que a pausa é proposital */
+      const r = Math.min(56 * u, c.h * 0.11);
+      const cy = c.y + c.h - r - 60 * u;
+      const cx = c.x + c.w / 2;
+      ctx.save();
+      ctx.lineWidth = 7 * u;
+      ctx.strokeStyle = T.linha;
+      ctx.beginPath();
+      ctx.arc(cx, cy, r, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.strokeStyle = A;
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.arc(cx, cy, r, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * U.faixa(p, 0.12, 0.95));
+      ctx.stroke();
+      ctx.restore();
+      U.texto(ctx, '?', cx, cy + 2 * u, {
+        tamanho: r * 1.1, peso: 800, cor: A, align: 'center', baseline: 'middle'
+      });
+
+      if (d.dica) {
+        U.texto(ctx, d.dica, cx, c.y + c.h - 22 * u, {
+          tamanho: 28 * u, peso: 600, cor: T.tinta3, align: 'center',
+          opacidade: U.aparecer(p, 0.3, 0.3)
+        });
+      }
+    }
+  };
+
+  /* 23. DEFINIÇÃO — o termo técnico traduzido antes de ser usado. */
+  V.definicao = {
+    rotulo: 'Definição de termo',
+    dica: 'Todo jargão precisa de uma destas antes de aparecer no resto da aula.',
+    exemplo: 'termo: Rotativo\nclasse: crédito automático do cartão\nsignifica: o que sobra da fatura quando você não paga tudo, e que passa a render juros contra você\nnaoConfunda: com o parcelamento da fatura, que tem juros menores',
+    aula: true,
+    desenhar: function (ctx, c, p, cena, A, d) {
+      const u = c.w / 936;
+      const k = U.aparecer(p, 0.02, 0.3);
+      const pad = 46 * u;
+      ctx.save();
+      ctx.globalAlpha = k;
+      ctx.translate(0, (1 - k) * 22 * u);
+      U.cartao(ctx, c.x, c.y, c.w, c.h, 32 * u, { borda: T.linha, blur: 46, dy: 18 });
+
+      /* barra de acento à esquerda: marca "isto é uma definição" */
+      U.caminhoArredondado(ctx, c.x, c.y, 10 * u, c.h, 5 * u);
+      ctx.fillStyle = A;
+      ctx.fill();
+
+      let y = c.y + pad;
+      const at = U.ajustar(ctx, d.termo || 'Termo', {
+        max: 72 * u, min: 44 * u, peso: 800, maxLargura: c.w - pad * 2 - 20 * u, maxLinhas: 1
+      });
+      U.blocoTexto(ctx, at, c.x + pad + 14 * u, y, { peso: 800, cor: T.tinta, tracking: -1.5 * u });
+      y += at.altura + 6 * u;
+
+      if (d.classe) {
+        U.texto(ctx, d.classe, c.x + pad + 14 * u, y, {
+          tamanho: 28 * u, peso: 600, cor: A, opacidade: U.aparecer(p, 0.12, 0.25)
+        });
+        y += 44 * u;
+      }
+      y += 10 * u;
+      U.linhaH(ctx, c.x + pad + 14 * u, y, c.w - pad * 2 - 14 * u);
+      y += 26 * u;
+
+      /* mede o "não confunda" primeiro: ele tem prioridade de espaço, e o que
+         sobra define até onde a explicação pode crescer. */
+      let alturaAviso = 0, avisoAj = null;
+      if (d.naoconfunda) {
+        avisoAj = U.ajustar(ctx, 'Não confunda ' + d.naoconfunda, {
+          max: 27 * u, min: 19 * u, peso: 600, maxLargura: c.w - pad * 2 - 56 * u,
+          maxLinhas: 3, entrelinha: 1.28
+        });
+        alturaAviso = avisoAj.altura + 50 * u;
+      }
+      const sobra = (c.y + c.h - pad) - y - alturaAviso;
+      const asig = U.ajustar(ctx, d.significa || '', {
+        max: 38 * u, min: 22 * u, peso: 500, maxLargura: c.w - pad * 2 - 20 * u,
+        maxLinhas: 5, maxAltura: Math.max(60 * u, sobra), entrelinha: 1.32
+      });
+      U.blocoTexto(ctx, asig, c.x + pad + 14 * u, y,
+        { peso: 500, cor: T.tinta2, progresso: p, atraso: 0.18 });
+      y += asig.altura;
+
+      if (avisoAj) {
+        y = Math.min(y + 22 * u, c.y + c.h - pad - avisoAj.altura - 22 * u);
+        ctx.save();
+        ctx.globalAlpha = U.aparecer(p, 0.45, 0.3);
+        U.caminhoArredondado(ctx, c.x + pad, y - 14 * u,
+          c.w - pad * 2, avisoAj.altura + 28 * u, 14 * u);
+        ctx.fillStyle = T.alertaSuave;
+        ctx.fill();
+        U.blocoTexto(ctx, avisoAj, c.x + pad + 18 * u, y, { peso: 600, cor: T.alerta });
+        ctx.restore();
+      }
+      ctx.restore();
+    }
+  };
+
+  /* 24. CONTA — o cálculo feito na frente de quem assiste, linha por linha.
+     É a cena que mais ensina em conteúdo de dinheiro. */
+  V.conta = {
+    rotulo: 'Conta passo a passo',
+    dica: 'Uma linha por vez, com o resultado só no fim. Não pule etapa.',
+    exemplo: 'linhas: Fatura do mês=R$ 3.280,00 | Você paga o mínimo, 15%=− R$ 492,00 | Sobra no rotativo=R$ 2.788,00 | Juro de 15% ao mês=+ R$ 418,20\nresultado: R$ 3.206,20\nrotuloResultado: você deve isto no mês seguinte',
+    aula: true,
+    desenhar: function (ctx, c, p, cena, A, d) {
+      const u = c.w / 936;
+      const linhas = d.itens;
+      if (!linhas.length) return;
+
+      const temResultado = !!d.resultado;
+      const w = Math.min(c.w, 880 * u);
+      const x = c.x + (c.w - w) / 2;
+      const hLinha = Math.min(92 * u, (c.h - (temResultado ? 230 * u : 60 * u)) / linhas.length);
+      const alturaTotal = hLinha * linhas.length + 40 * u + (temResultado ? 186 * u : 0);
+      const y = c.y + (c.h - alturaTotal) / 2;
+
+      U.cartao(ctx, x, y, w, alturaTotal, 30 * u, { borda: T.linha, blur: 44, dy: 16 });
+
+      /* cada linha entra no seu tempo: a conta acontece, não aparece pronta */
+      const passo = 0.62 / linhas.length;
+      linhas.forEach(function (item, i) {
+        const ini = 0.06 + i * passo;
+        const k = U.aparecer(p, ini, 0.24);
+        if (k <= 0) return;
+        const ly = y + 20 * u + i * hLinha;
+        ctx.save();
+        ctx.globalAlpha = k;
+        ctx.translate((1 - k) * 22 * u, 0);
+        const valor = String(item.valor == null ? '' : item.valor);
+        const negativo = /^\s*[−-]/.test(valor);
+        const positivo = /^\s*\+/.test(valor);
+        U.texto(ctx, item.rotulo, x + 40 * u, ly + hLinha / 2, {
+          tamanho: 32 * u, peso: 600, cor: T.tinta2, baseline: 'middle'
+        });
+        U.texto(ctx, valor, x + w - 40 * u, ly + hLinha / 2, {
+          tamanho: 36 * u, peso: 700, align: 'right', baseline: 'middle',
+          cor: negativo ? T.alerta : positivo ? A : T.tinta
+        });
+        ctx.restore();
+      });
+
+      if (temResultado) {
+        const ry = y + 20 * u + linhas.length * hLinha;
+        const kr = U.aparecer(p, 0.74, 0.28);
+        ctx.save();
+        ctx.globalAlpha = kr;
+        /* risco de somar, como em conta feita à mão */
+        ctx.strokeStyle = T.tinta;
+        ctx.lineWidth = 3 * u;
+        ctx.beginPath();
+        ctx.moveTo(x + w - 40 * u - (w * 0.45) * U.faixa(p, 0.70, 0.80), ry + 8 * u);
+        ctx.lineTo(x + w - 40 * u, ry + 8 * u);
+        ctx.stroke();
+
+        U.texto(ctx, d.rotuloresultado || 'Resultado', x + 40 * u, ry + 34 * u, {
+          tamanho: 27 * u, peso: 600, cor: T.tinta3
+        });
+        const av = U.ajustar(ctx, d.resultado, {
+          max: 66 * u, min: 36 * u, peso: 800, maxLargura: w - 80 * u, maxLinhas: 1
+        });
+        ctx.save();
+        ctx.font = U.pesoFonte(800, av.tamanho);
+        ctx.textAlign = 'right';
+        ctx.textBaseline = 'top';
+        ctx.fillStyle = A;
+        ctx.fillText(d.resultado, x + w - 40 * u, ry + 82 * u);
+        ctx.restore();
+        ctx.restore();
+      }
+    }
+  };
+
+  /* 25. RECAPITULAÇÃO — o que precisa sobrar depois que o vídeo acaba. */
+  V.recapitulacao = {
+    rotulo: 'Recapitulação',
+    dica: 'Até 3 pontos, numerados, entrando um a um. Fecha a aula.',
+    exemplo: 'itens: O rotativo cobra cerca de 15% ao mês | Pagar o mínimo é o que aciona o rotativo | Trocar por empréstimo pessoal corta o juro pela metade',
+    aula: true,
+    desenhar: function (ctx, c, p, cena, A, d) {
+      const u = c.w / 936;
+      const it = d.itens.slice(0, 3);
+      if (!it.length) return;
+      const h = Math.min(150 * u, c.h / it.length);
+      const w = Math.min(c.w, 880 * u);
+      const x = c.x + (c.w - w) / 2;
+      const y0 = c.y + (c.h - h * it.length) / 2;
+
+      it.forEach(function (item, i) {
+        const ini = 0.06 + i * (0.66 / it.length);
+        const k = U.aparecer(p, ini, 0.26);
+        if (k <= 0) return;
+        const y = y0 + i * h;
+        ctx.save();
+        ctx.globalAlpha = k;
+        ctx.translate((1 - k) * 24 * u, 0);
+        /* numeral grande: a memória se apoia em contagem */
+        U.texto(ctx, String(i + 1), x + 12 * u, y + h / 2 - 2 * u, {
+          tamanho: 84 * u, peso: 800, cor: A + '3D', baseline: 'middle'
+        });
+        const at = U.ajustar(ctx, item.rotulo, {
+          max: 40 * u, min: 27 * u, peso: 600, maxLargura: w - 130 * u,
+          maxLinhas: 3, entrelinha: 1.26
+        });
+        U.blocoTexto(ctx, at, x + 110 * u, y + h / 2 - at.altura / 2, { peso: 600, cor: T.tinta });
+        if (i < it.length - 1) U.linhaH(ctx, x + 110 * u, y + h - 6 * u, w - 150 * u);
+        ctx.restore();
+      });
+    }
+  };
+
+  /* 26. ERRO COMUM — o que quase todo mundo faz errado, e o certo ao lado. */
+  V.erroComum = {
+    rotulo: 'Erro comum · o certo',
+    dica: 'Ensinar o erro fixa mais que ensinar só o acerto.',
+    exemplo: 'errado: Pagar o mínimo para “não sujar o nome”\ncerto: Trocar a fatura por um empréstimo mais barato e pagar tudo',
+    aula: true,
+    desenhar: function (ctx, c, p, cena, A, d) {
+      const u = c.w / 936;
+      const vao = 26 * u;
+      const h = (c.h - vao) / 2;
+      /* o acerto é sempre verde: numa cena de acento vermelho, herdar a cor
+         faria o certo e o errado ficarem iguais. */
+      const blocos = [
+        { rot: 'O que quase todo mundo faz', txt: d.errado || '', cor: T.alerta, y: c.y, sinal: 'x' },
+        { rot: 'O que resolve', txt: d.certo || '', cor: T.acento, y: c.y + h + vao, sinal: 'v' }
+      ];
+      blocos.forEach(function (b, i) {
+        const k = U.aparecer(p, 0.04 + i * 0.22, 0.3);
+        if (k <= 0) return;
+        ctx.save();
+        ctx.globalAlpha = k;
+        ctx.translate((1 - k) * (i ? 26 : -26) * u, 0);
+        U.cartao(ctx, c.x, b.y, c.w, h, 28 * u, { borda: T.linha, blur: 36, dy: 12 });
+        U.caminhoArredondado(ctx, c.x, b.y, 10 * u, h, 5 * u);
+        ctx.fillStyle = b.cor;
+        ctx.fill();
+
+        const cxs = c.x + 62 * u, cys = b.y + h / 2;
+        if (b.sinal === 'v') {
+          U.check(ctx, cxs, cys, 30 * u, b.cor, U.faixa(p, 0.3 + i * 0.2, 0.55 + i * 0.2));
+        } else {
+          ctx.save();
+          ctx.beginPath();
+          ctx.arc(cxs, cys, 30 * u, 0, Math.PI * 2);
+          ctx.fillStyle = b.cor;
+          ctx.globalAlpha = 0.14 * ctx.globalAlpha;
+          ctx.fill();
+          ctx.restore();
+          ctx.save();
+          ctx.strokeStyle = b.cor;
+          ctx.lineWidth = 6.6 * u;
+          ctx.lineCap = 'round';
+          const r = 13 * u;
+          ctx.beginPath();
+          ctx.moveTo(cxs - r, cys - r); ctx.lineTo(cxs + r, cys + r);
+          ctx.moveTo(cxs + r, cys - r); ctx.lineTo(cxs - r, cys + r);
+          ctx.stroke();
+          ctx.restore();
+        }
+
+        U.texto(ctx, b.rot.toUpperCase(), c.x + 112 * u, b.y + 30 * u, {
+          tamanho: 21 * u, peso: 700, cor: b.cor, tracking: 2
+        });
+        const at = U.ajustar(ctx, b.txt, {
+          max: 36 * u, min: 25 * u, peso: 600, maxLargura: c.w - 150 * u,
+          maxLinhas: 3, entrelinha: 1.26
+        });
+        U.blocoTexto(ctx, at, c.x + 112 * u, b.y + 66 * u, { peso: 600, cor: T.tinta });
+        ctx.restore();
+      });
+    }
+  };
+
   U.LISTA_VISUAIS = Object.keys(V);
+  U.VISUAIS_AULA = Object.keys(V).filter(function (k) { return V[k].aula; });
 
 })(window.UMM);

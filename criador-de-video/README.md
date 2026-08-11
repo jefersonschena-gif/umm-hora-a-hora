@@ -19,6 +19,42 @@ Independente do clima, uma cena pode ter **tom escuro**: ela mergulha para o
 quase preto e volta. É a pontuação da dívida, do juro e do vencimento — o
 verificador reclama se passar de um terço do vídeo.
 
+---
+
+## Dois modos: prender ou ensinar
+
+O vídeo que prende e o vídeo que ensina não têm a mesma estrutura, nem o mesmo
+ritmo, nem os mesmos erros. O modo do projeto muda os três.
+
+| | **Retenção** | **Aula** |
+|---|---|---|
+| Estrutura | gancho → dado → chamada | pergunta → conceito → conta → erro comum → recapitulação |
+| Papéis de cena | gancho, contexto, dado, passo, comparativo, alerta, cta | pergunta, conceito, exemplo, dado, erro, passo, recapitulação |
+| Ritmo | 2,55 palavras por segundo | 2,30 e mais 0,6 s de respiro por cena |
+| Duração esperada | 15 a 95 s | 45 a 240 s |
+| O verificador cobra | gancho na abertura, chamada no fim | pergunta na abertura, conceito, exemplo com números, recapitulação no fim, e **nenhum jargão sem definição** |
+
+No modo aula entram cinco cenas que só existem para ensinar:
+
+- **Pergunta** — abre o assunto e segura com um anel de tempo, para a pessoa
+  arriscar uma resposta antes de ouvir a sua.
+- **Definição de termo** — o jargão traduzido, com um campo "não confunda com".
+- **Conta passo a passo** — o cálculo feito na frente de quem assiste, uma
+  linha por vez, com o resultado só no fim. É a cena que mais ensina em
+  conteúdo de dinheiro.
+- **Erro comum · o certo** — o que quase todo mundo faz, e o que resolve.
+  Ensinar o erro fixa mais do que ensinar só o acerto.
+- **Recapitulação** — até 3 pontos numerados. O que não é repetido no fim não
+  sobra.
+
+O verificador de didática conhece o jargão de finanças em português — CDI,
+Selic, rotativo, liquidez, IOF, CET, aporte, come-cotas, alavancagem e outros.
+Se algum aparece sem uma cena de definição antes, ele avisa: quem já sabe pula
+em 3 segundos, quem não sabe abandona o vídeo.
+
+Ele também cobra **uma ideia por cena** e não deixa um conceito passar em menos
+de 4,5 segundos.
+
 ![formato](https://img.shields.io/badge/9%3A16-1080x1920-0B7A4B) ![custo](https://img.shields.io/badge/custo-R%24%200-0B7A4B)
 
 ---
@@ -63,8 +99,9 @@ Firefox e Safari funcionam com o botão "Gravar".
 
 ## Fluxo de trabalho
 
-1. **Escolha um modelo** no alto da tela. Vêm quatro roteiros prontos em pt-BR,
-   todos com nota 100 — servem de régua para o que você escrever depois.
+1. **Escolha o modo** — retenção ou aula — e um modelo. Vêm cinco roteiros
+   prontos em pt-BR, todos com nota 100, sendo um deles uma aula completa.
+   Servem de régua para o que você escrever depois.
 2. **Escolha o clima** no alto da tela e o **tom** de cada cena: tom do projeto
    por padrão, escuro nas cenas de dívida, juros e vencimento.
 3. **Escreva cena a cena.** Cada cena tem duas colunas de conteúdo:
@@ -136,6 +173,8 @@ ffmpeg -i video.webm -c:v libx264 -crf 18 -preset slow -pix_fmt yuv420p -c:a aac
 `extrato` · `notificacao` · `checklist` · `juros` · `cofre` · `alerta` ·
 `fluxo` · `calendario` · `contrato` · `carteira` · `moedas` · `citacao` ·
 `chamada` · `midia`
+
+De aula: `pergunta` · `definicao` · `conta` · `erroComum` · `recapitulacao`
 
 Todas menos `midia` são desenhadas em código — nada de banco de imagens, nada
 de licença, nada de crédito a dar. Os dados vêm de um campo de texto simples:

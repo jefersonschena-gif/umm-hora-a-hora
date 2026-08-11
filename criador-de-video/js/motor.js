@@ -35,6 +35,7 @@
       titulo: 'Novo vídeo',
       formato: '9x16',
       fps: 30,
+      modo: 'retencao', /* 'retencao' | 'aula' */
       clima: 'claro',   /* 'claro' | 'grafite' | 'escuro' */
       escala: 1,        /* 1 = 1080x1920 · 1.333 = 1440x2560 (2K) */
       areaSegura: true,
@@ -106,8 +107,13 @@
   }
   U.Motor = Motor;
 
-  /* Palavras por segundo de uma locução calma em português. */
+  /* Palavras por segundo de uma locução calma em português. Aula fala mais
+     devagar e ganha um respiro no fim de cada cena: aprender precisa de tempo. */
   Motor.PPS = 2.55;
+
+  Motor.prototype.ritmo = function () {
+    return U.MODOS[this.projeto.modo] || U.MODOS.retencao;
+  };
 
   Motor.prototype.dados = function (cena) {
     const chave = cena.visual + '\n' + (cena.dados || '');
@@ -120,10 +126,11 @@
     if (!c) return 0;
     if (Number(c.dur) > 0) return Number(c.dur);
     const buf = this.audio[i];
-    if (buf) return Math.max(2.2, buf.duration + 0.55);
+    if (buf) return Math.max(2.2, buf.duration + 0.55 + this.ritmo().respiro);
+    const r = this.ritmo();
     const n = String(c.narracao || '').trim().split(/\s+/).filter(Boolean).length;
-    if (!n) return 3.0;
-    return Math.max(2.2, Math.min(12, n / Motor.PPS + 0.95));
+    if (!n) return 3.0 + r.respiro;
+    return Math.max(2.2, Math.min(16, n / r.pps + 0.95 + r.respiro));
   };
 
   Motor.prototype.recalcular = function () {

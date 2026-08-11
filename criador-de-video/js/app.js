@@ -46,6 +46,9 @@
     $('#formato').innerHTML = Object.keys(U.FORMATOS)
       .map(k => '<option value="' + k + '">' + esc(U.FORMATOS[k].rotulo) + '</option>').join('');
 
+    $('#modo').innerHTML = Object.keys(U.MODOS)
+      .map(k => '<option value="' + k + '">' + esc(U.MODOS[k].rotulo) + '</option>').join('');
+
     $('#clima').innerHTML = Object.keys(U.CLIMAS)
       .map(k => '<option value="' + k + '">' + esc(U.CLIMAS[k].rotulo) + '</option>').join('');
 
@@ -62,6 +65,7 @@
     $('#titulo-projeto').value = projeto.titulo || '';
     $('#formato').value = projeto.formato;
     $('#clima').value = projeto.clima || 'claro';
+    $('#modo').value = projeto.modo || 'retencao';
     $('#area-segura').checked = !!projeto.areaSegura;
     $('#fps').value = String(projeto.fps || 30);
     $('#escala').value = String(projeto.escala || 1);
@@ -147,6 +151,13 @@
     }).join('');
   }
 
+  /* Os papéis mudam com o modo, mas um papel já escolhido nunca some da lista. */
+  function papeisDisponiveis(atual) {
+    const base = (U.TIPOS[projeto.modo] || U.TIPOS.retencao).slice();
+    if (atual && base.indexOf(atual) < 0) base.push(atual);
+    return base;
+  }
+
   function editor(c, i) {
     const vis = U.VISUAIS[c.visual] || {};
     const palavrasT = (c.titulo || '').trim().split(/\s+/).filter(Boolean).length;
@@ -157,7 +168,7 @@
     return '<div class="corpo">' +
       '<div class="linha-campos">' +
         '<label class="campo"><span>Papel na história</span>' +
-          '<select data-campo="tipo">' + ['gancho', 'contexto', 'dado', 'passo', 'comparativo', 'alerta', 'cta']
+          '<select data-campo="tipo">' + papeisDisponiveis(c.tipo)
             .map(v => '<option' + (c.tipo === v ? ' selected' : '') + '>' + v + '</option>').join('') +
           '</select></label>' +
         '<label class="campo"><span>Cena concreta</span>' +
@@ -264,6 +275,7 @@
       'faceless': 'faceless',
       'portugues': 'português',
       'estetica': 'estética',
+      'didatica': 'didática',
       'ritmo': 'ritmo',
       'estrutura': 'estrutura'
     }[r] || r;
@@ -315,6 +327,7 @@
     $('#titulo-projeto').addEventListener('input', e => { projeto.titulo = e.target.value; salvarLocal(); });
     $('#formato').addEventListener('change', e => { projeto.formato = e.target.value; reconstruir(); });
     $('#clima').addEventListener('change', e => { projeto.clima = e.target.value; reconstruir(); });
+    $('#modo').addEventListener('change', e => { projeto.modo = e.target.value; reconstruir(); });
     $('#area-segura').addEventListener('change', e => { projeto.areaSegura = e.target.checked; reconstruir(); });
     $('#fps').addEventListener('change', e => { projeto.fps = Number(e.target.value); salvarLocal(); });
     $('#escala').addEventListener('change', e => { projeto.escala = Number(e.target.value); reconstruir(); });
