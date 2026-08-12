@@ -388,6 +388,85 @@
     }
   });
 
+  /* ============================================================
+     INFLAÇÃO — a aula que o vídeo de referência quase deu.
+     Mesma estrutura (problema → causas → IPCA → conclusão), com o que
+     faltava lá: pergunta na abertura, o termo definido, uma conta que a
+     pessoa acompanha, fonte na tela e o laço fechado no fim.
+     ============================================================ */
+  U.MODELOS.push({
+    chave: 'inflacao',
+    nome: 'Inflação em 1 minuto',
+    resumo: '8 cenas · ~60s · editorial, câmera a cada 2,5s, com a conta na tela',
+    projeto: {
+      versao: 1,
+      titulo: 'Inflacao em 1 minuto',
+      formato: '9x16',
+      fps: 30,
+      modo: 'intersecao',
+      clima: 'editorial',
+      camera: 'editorial',
+      escala: 1,
+      areaSegura: true,
+      marca: { nome: 'Dinheiro Claro', arroba: '@dinheiroclaro' },
+      voz: { provedor: 'nenhum', vozId: 'pt_BR-faber-medium', velocidade: 1 },
+      cenas: [
+        U.novaCena({
+          tipo: 'pergunta', visual: 'pergunta', selo: 'em 1 minuto',
+          titulo: 'Quanto seu dinheiro perde em um ano?',
+          dados: 'pergunta: Você guarda R$ 1.000 embaixo do colchão. Daqui a um ano, compra quanto?\ndica: chute um valor antes de continuar',
+          narracao: 'Você guarda mil reais embaixo do colchão. Daqui a um ano, esse dinheiro compra quanto? Chute um valor.'
+        }),
+        U.novaCena({
+          tipo: 'contexto', visual: 'moedas', selo: 'o problema',
+          titulo: 'Por que o carrinho volta menor?',
+          apoio: 'o número na carteira não muda; o que ele compra, sim',
+          dados: 'itens: 10 | 9 | 8 | 7\nrotulo: as mesmas moedas comprando menos a cada ano',
+          narracao: 'A nota continua valendo mil reais. O que muda é a quantidade de coisas que mil reais tiram da prateleira.'
+        }),
+        U.novaCena({
+          tipo: 'conceito', visual: 'definicao', selo: 'o termo',
+          titulo: 'Quem mede isso, e como?',
+          dados: 'termo: IPCA\nclasse: o índice oficial de inflação no Brasil\nsignifica: o preço de uma cesta de produtos e serviços que as famílias realmente compram, acompanhado todo mês pelo IBGE\nnaoConfunda: com o preço de um produto só, porque cada item tem um peso diferente na cesta',
+          fonte: 'IBGE — Sistema Nacional de Índices de Preços ao Consumidor',
+          narracao: 'IPCA é o índice oficial de inflação no Brasil. O IBGE acompanha todo mês o preço de uma cesta do que as famílias de fato compram.'
+        }),
+        U.novaCena({
+          tipo: 'exemplo', visual: 'conta', selo: 'a conta',
+          titulo: 'R$ 1.000 guardados, 4,5% de inflação',
+          dados: 'itens: Você guardou=R$ 1.000,00 | Preços sobem 4,5% no ano=× 1,045 | O mesmo carrinho passa a custar=R$ 1.045,00 | Com R$ 1.000 você leva=R$ 956,94\nresultado: − R$ 43,06\nrotuloResultado: foi o que o ano tirou de você',
+          narracao: 'Com quatro e meio por cento de inflação, o carrinho de mil reais passa a custar mil e quarenta e cinco. Seus mil reais agora levam novecentos e cinquenta e seis.'
+        }),
+        U.novaCena({
+          tipo: 'surpresa', visual: 'numero', tom: 'escuro', selo: 'a resposta',
+          titulo: 'Parado, você perdeu R$ 43',
+          apoio: 'sem gastar nada, sem errar nada',
+          dados: 'valor: R$ 43,06\nrotulo: evaporaram de mil reais em doze meses\nnota: e o número na nota continuou o mesmo',
+          narracao: 'Quarenta e três reais e seis centavos. Você não gastou, não errou, não fez nada. Mas perdeu.'
+        }),
+        U.novaCena({
+          tipo: 'dado', visual: 'fluxo', selo: 'as causas',
+          titulo: 'Três forças empurram o preço',
+          dados: 'origem: Preço sobe\nitens: Demanda aquecida=puxa | Custo de produção=empurra | Expectativa=antecipa',
+          narracao: 'São três as forças que empurram o preço para cima: procura maior que a oferta, custo de produção mais caro e expectativa de alta.'
+        }),
+        U.novaCena({
+          tipo: 'resgate', visual: 'comparativo', selo: 'lembra?',
+          titulo: 'Seu chute era maior ou menor?',
+          dados: 'aRotulo: Guardado parado\naValor: R$ 956,94\nbRotulo: Rendendo a inflação\nbValor: R$ 1.000,00\nvence: b',
+          narracao: 'Compare com o valor que você chutou no começo: parado, sobram novecentos e cinquenta e seis reais, e rendendo a inflação o poder de compra fica de pé.'
+        }),
+        U.novaCena({
+          tipo: 'recapitulacao', visual: 'recapitulacao', selo: 'a resposta',
+          titulo: 'Em um ano, R$ 1.000 viram R$ 957',
+          dados: 'itens: Inflação é o carrinho encolhendo, não o número mudando | O IPCA mede a cesta que as famílias compram, medida pelo IBGE | Render abaixo da inflação é perder devagar',
+          fonte: 'IBGE — IPCA',
+          narracao: 'Respondendo o começo: mil reais parados viram novecentos e cinquenta e sete em poder de compra. Render abaixo da inflação é perder devagar.'
+        })
+      ]
+    }
+  });
+
   U.modeloVazio = function () {
     const p = U.novoProjeto();
     p.cenas = [

@@ -14,6 +14,7 @@ mergulhar no escuro.
 | **Claro** | branco quente, luz alta, sombra nítida | conteúdo de organização, controle, investimento |
 | **Grafite** | campo de carvão quente, painel de vidro, cartão em aço escovado como objeto iluminado | quando você quer peso e produto — é o meio-termo entre claro e escuro |
 | **Escuro** | quase preto, clima de alerta | vídeo inteiro sobre dívida ou golpe |
+| **Editorial** | verde profundo, marfim, dourado e coral | conteúdo educativo com cara de gibi financeiro |
 
 Independente do clima, uma cena pode ter **tom escuro**: ela mergulha para o
 quase preto e volta. É a pontuação da dívida, do juro e do vencimento — o
@@ -94,6 +95,34 @@ Ele também cobra **uma ideia por cena** e não deixa um conceito passar em meno
 de 4,5 segundos.
 
 ![formato](https://img.shields.io/badge/9%3A16-1080x1920-0B7A4B) ![custo](https://img.shields.io/badge/custo-R%24%200-0B7A4B)
+
+---
+
+## Câmera: vários enquadramentos na mesma cena
+
+Ilustração parada por oito segundos parece slide. Com corte a cada 2–3 s, parece
+vídeo. A câmera troca o enquadramento sem trocar o desenho — é o que dá ritmo
+sem multiplicar o trabalho de arte.
+
+| Modo | O que faz |
+|---|---|
+| **Parada** | nada se move além das animações da própria cena |
+| **Suave** | reenquadra com metade da força |
+| **Editorial** | corta a cada ~2,5 s, com leve avanço dentro de cada plano |
+
+Um vídeo de 60 s em câmera editorial dá cerca de **24 enquadramentos**.
+
+**A câmera não corta texto.** Visuais que contam pelo objeto — cartão, cofre,
+boleto, celular, contrato — são reenquadrados de verdade. Visuais que contam
+por número — a conta, a definição, a tabela, o gráfico — recebem só uma
+respiração que parte de 98,5% e cresce até o tamanho certo, então nada sai do
+quadro. Zoom em número é número cortado.
+
+## Fonte do dado
+
+Cada cena tem um campo **fonte**. Preenchido, ele aparece embaixo do palco:
+*Fonte: IBGE — Sistema Nacional de Índices de Preços ao Consumidor*. Fica fora
+da câmera, para nunca sair do quadro.
 
 ---
 

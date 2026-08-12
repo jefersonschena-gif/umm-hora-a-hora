@@ -107,10 +107,95 @@ window.UMM = window.UMM || {};
     fonte: 'Inter, "Plus Jakarta Sans", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif'
   };
 
+  /* Editorial — a paleta do briefing: verde profundo, marfim, dourado e coral.
+     Fundo escuro esverdeado como papel de gibi financeiro, painéis em marfim,
+     coral reservado para o que sobe e o que dói. */
+  U.PALETA_EDITORIAL = {
+    tom:         'editorial',
+    fundo:       '#1B2A22',
+    fundoTopo:   '#2A3C31',
+    fundoBase:   '#121C17',
+    cartao:      '#173026',
+    cartaoSuave: '#1F3A2E',
+    tinta:       '#F2E9D4',
+    tinta2:      '#C3B893',
+    tinta3:      '#8C9484',
+    linha:       '#2F473A',
+    linhaForte:  '#456052',
+    acento:      '#3FA86B',
+    acentoSuave: '#1D3B2A',
+    dado:        '#E3B23C',
+    dadoSuave:   '#3A3120',
+    alerta:      '#E2603C',
+    alertaSuave: '#3B2119',
+    ouro:        '#E3B23C',
+    ouroClaro:   '#F2D98A',
+    metal:       '#B9AE8C',
+    metalEscuro: '#6E6A52',
+    marfim:      '#F2E9D4',
+    coral:       '#E2603C',
+    sombra:      'rgba(0,0,0,0.46)',
+    sombraForte: 'rgba(0,0,0,0.64)',
+    vidro:       'rgba(242,233,212,0.10)',
+    fonte: 'Inter, "Plus Jakarta Sans", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif'
+  };
+
   U.CLIMAS = {
     claro:   { rotulo: 'Claro — branco quente e luz alta', paleta: 'PALETA_CLARA' },
     grafite: { rotulo: 'Grafite — estúdio fechado, objeto iluminado', paleta: 'PALETA_GRAFITE' },
-    escuro:  { rotulo: 'Escuro — quase preto, clima de alerta', paleta: 'PALETA_ESCURA' }
+    escuro:  { rotulo: 'Escuro — quase preto, clima de alerta', paleta: 'PALETA_ESCURA' },
+    editorial: { rotulo: 'Editorial — verde profundo, marfim, dourado e coral', paleta: 'PALETA_EDITORIAL' }
+  };
+
+  /* ---------------------------------------------------------------
+     CÂMERA — vários enquadramentos sobre a mesma cena
+
+     Ilustração parada com corte a cada 2–3 s parece vídeo; ilustração parada
+     por 8 s parece slide. A câmera troca o enquadramento sem trocar o desenho:
+     é o que dá ritmo sem multiplicar o trabalho de arte.
+     --------------------------------------------------------------- */
+  U.ENQUADRAMENTOS = [
+    { e: 1.00, x:  0.00, y:  0.00 },   /* inteiro */
+    { e: 1.24, x: -0.11, y: -0.07 },   /* fecha em cima à esquerda */
+    { e: 1.32, x:  0.13, y:  0.06 },   /* fecha embaixo à direita */
+    { e: 1.14, x:  0.00, y: -0.13 },   /* topo */
+    { e: 1.40, x: -0.07, y:  0.11 },   /* detalhe */
+    { e: 1.18, x:  0.10, y: -0.04 }
+  ];
+
+  U.CAMERAS = {
+    nenhuma:   { rotulo: 'Câmera parada', forca: 0,    porCena: 1,   deriva: 0 },
+    suave:     { rotulo: 'Câmera suave',  forca: 0.45, porCena: 2.5, deriva: 0.02 },
+    editorial: { rotulo: 'Câmera editorial — corta a cada ~2,5 s', forca: 1, porCena: 2.5, deriva: 0.035 }
+  };
+
+  /* Visuais que aguentam ser reenquadrados: os que contam pelo OBJETO.
+     Quem conta por texto e número — definição, conta, tabela, gráfico — não
+     entra na câmera: zoom em número é número cortado. */
+  U.CAMERA_LIVRE = ['cartao', 'cofre', 'moedas', 'boleto', 'pix', 'notificacao',
+    'contrato', 'calendario', 'alerta', 'fluxo', 'citacao', 'midia', 'pergunta'];
+
+  /* Devolve o enquadramento no instante p (0..1) de uma cena de `dur` segundos.
+     `tolera` = o visual aceita corte. Quando não aceita, sobra só uma respiração
+     que parte de um pouco menor e cresce até o tamanho certo — nunca corta. */
+  U.camera = function (modo, p, dur, semente, tolera) {
+    const cfg = U.CAMERAS[modo] || U.CAMERAS.nenhuma;
+    if (!cfg.forca) return { escala: 1, dx: 0, dy: 0, indice: 0, total: 1 };
+    if (tolera === false) {
+      return { escala: 0.985 + 0.02 * clamp(p, 0, 1), dx: 0, dy: 0, indice: 0, total: 1 };
+    }
+    const total = clamp(Math.round(dur / cfg.porCena), 1, 5);
+    const k = Math.min(total - 1, Math.floor(p * total));
+    const u = clamp(p * total - k, 0, 1);
+    const q = U.ENQUADRAMENTOS[(semente + k) % U.ENQUADRAMENTOS.length];
+    const forca = cfg.forca;
+    return {
+      escala: 1 + (q.e - 1) * forca + cfg.deriva * u,   /* leve avanço dentro do plano */
+      dx: q.x * forca,
+      dy: q.y * forca,
+      indice: k,
+      total: total
+    };
   };
 
   U.TEMA = Object.assign({}, U.PALETA_CLARA);

@@ -24,6 +24,7 @@
       dados: '',
       narracao: '',
       tom: 'claro',     /* 'escuro' só para dívida, juros, vencimento */
+      fonte: '',        /* de onde veio o dado: IBGE, Banco Central, etc. */
       midiaCheia: false,/* mídia própria ocupando o quadro inteiro */
       dur: 0            /* 0 = automático (pela narração ou pelo áudio) */
     }, base || {});
@@ -35,7 +36,8 @@
       titulo: 'Novo vídeo',
       formato: '9x16',
       fps: 30,
-      modo: 'retencao', /* 'retencao' | 'aula' */
+      modo: 'retencao', /* 'retencao' | 'aula' | 'intersecao' */
+      camera: 'nenhuma', /* 'nenhuma' | 'suave' | 'editorial' */
       clima: 'claro',   /* 'claro' | 'grafite' | 'escuro' */
       escala: 1,        /* 1 = 1080x1920 · 1.333 = 1440x2560 (2K) */
       areaSegura: true,
@@ -212,7 +214,9 @@
     const fundoCheio = !!(midia && cena.midiaCheia);
     if (fundoCheio) {
       const sobra = Math.round(L.W * 0.06);   /* margem extra: o desfoque come as bordas */
+      const camF = U.camera(P.camera, p, this.duracoes[pos.i], pos.i);
       ctx.save();
+      aplicarCamera(ctx, { x: 0, y: 0, w: L.W, h: L.H }, camF);
       if ('filter' in ctx) ctx.filter = 'blur(' + Math.round(L.W * 0.016) + 'px)';
       desenharCobrindo(ctx, midia, -sobra, -sobra, L.W + sobra * 2, L.H + sobra * 2);
       ctx.restore();
@@ -273,14 +277,32 @@
     if (!(fundoCheio && cena.visual === 'midia')) {
       const visual = U.VISUAIS[cena.visual] || U.VISUAIS.citacao;
       const saida = 1 - U.faixa(p, 0.955, 1);
+      const cam = U.camera(P.camera, p, this.duracoes[pos.i], pos.i,
+        U.CAMERA_LIVRE.indexOf(cena.visual) >= 0);
       ctx.save();
       ctx.globalAlpha = saida;
+      if (cam.escala !== 1 || cam.dx || cam.dy) {
+        /* o recorte impede o zoom de invadir o título e a legenda */
+        const folga = Math.round(L.W * 0.02);
+        ctx.beginPath();
+        ctx.rect(palco.x - folga, palco.y - folga, palco.w + folga * 2, palco.h + folga * 2);
+        ctx.clip();
+        aplicarCamera(ctx, palco, cam);
+      }
       try {
         visual.desenhar(ctx, palco, p, cena, A, this.dados(cena), this.midias[pos.i]);
       } catch (e) {
         U.texto(ctx, 'erro no visual: ' + e.message, palco.x, palco.y, { tamanho: 26, cor: T.alerta });
       }
       ctx.restore();
+
+      /* fonte do dado, fora da câmera para nunca sair do quadro */
+      if (cena.fonte) {
+        U.texto(ctx, 'Fonte: ' + cena.fonte, L.titulo.x, palco.y + palco.h + Math.round(L.u * 0.012), {
+          tamanho: Math.round(L.u * 0.021), peso: 600, cor: T.tinta3,
+          opacidade: U.aparecer(p, 0.35, 0.3)
+        });
+      }
     }
 
     /* ---- LEGENDA (o áudio virando texto) ---- */
@@ -305,8 +327,8 @@
     ctx.fillRect(0, 0, L.W, L.H);
 
     /* luz de estúdio: uma fonte alta à direita, larga e macia */
-    const forcaLuz = { claro: [0.85, 0.20], grafite: [0.22, 0.06], escuro: [0.10, 0.03] }[T.tom] ||
-      [0.85, 0.20];
+    const forcaLuz = { claro: [0.85, 0.20], grafite: [0.22, 0.06], escuro: [0.10, 0.03],
+      editorial: [0.13, 0.04] }[T.tom] || [0.85, 0.20];
     const luz = ctx.createRadialGradient(
       L.W * 0.78, L.H * 0.06, 0, L.W * 0.78, L.H * 0.06, L.W * (T.tom === 'grafite' ? 0.85 : 1.05));
     luz.addColorStop(0, 'rgba(255,255,255,' + forcaLuz[0] + ')');
@@ -322,6 +344,14 @@
     halo.addColorStop(1, A + '00');
     ctx.fillStyle = halo;
     ctx.fillRect(0, 0, L.W, L.H);
+  }
+
+  /* Aplica o enquadramento em torno do centro da caixa. */
+  function aplicarCamera(ctx, caixa, cam) {
+    const cx = caixa.x + caixa.w / 2, cy = caixa.y + caixa.h / 2;
+    ctx.translate(cx + cam.dx * caixa.w, cy + cam.dy * caixa.h);
+    ctx.scale(cam.escala, cam.escala);
+    ctx.translate(-cx, -cy);
   }
 
   /* Desenha imagem ou vídeo cobrindo a área, sem distorcer (object-fit: cover). */
@@ -367,7 +397,8 @@
       ctx.fillStyle = T.tinta;
       ctx.fill();
       U.texto(ctx, nome.trim().charAt(0).toUpperCase(), L.marca.x + lado / 2, L.marca.y + lado / 2 + 1, {
-        tamanho: Math.round(lado * 0.5), peso: 800, cor: '#fff', align: 'center', baseline: 'middle'
+        tamanho: Math.round(lado * 0.5), peso: 800, align: 'center', baseline: 'middle',
+        cor: T.tom === 'claro' ? '#FFFFFF' : T.fundo   /* o chip é da cor da tinta */
       });
       const temArroba = !!P.marca.arroba;
       const tNome = Math.round(L.u * 0.026);

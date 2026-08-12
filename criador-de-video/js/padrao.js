@@ -19,14 +19,14 @@
     [/\bna imagem\b/, 'na imagem'],
     [/\bna figura\b/, 'na figura'],
     [/\bno video\b/, 'no vídeo'],
-    [/\bacima\b(?!\s+de\b)/, 'acima'],
-    [/\babaixo\b(?!\s+de\b)/, 'abaixo'],
+    [/\bacima\b(?!\s+(de|do|da|dos|das)\b)/, 'acima'],
+    [/\babaixo\b(?!\s+(de|do|da|dos|das)\b)/, 'abaixo'],
     [/\bao lado\b/, 'ao lado'],
     [/\bdo lado\b/, 'do lado'],
     [/\ba direita\b/, 'à direita'],
     [/\ba esquerda\b/, 'à esquerda'],
-    [/\bem cima\b(?!\s+de\b)/, 'em cima'],
-    [/\bembaixo\b(?!\s+de\b)/, 'embaixo'],
+    [/\bem cima\b(?!\s+(de|do|da|dos|das)\b)/, 'em cima'],
+    [/\bembaixo\b(?!\s+(de|do|da|dos|das)\b)/, 'embaixo'],
     [/\bisso aqui\b/, 'isso aqui'],
     [/\besse aqui\b/, 'esse aqui'],
     [/\bessa aqui\b/, 'essa aqui'],
@@ -316,7 +316,9 @@
       /\?/.test(c.titulo + ' ' + (d.pergunta || '')) || INTERROGATIVO.test(tn);
     if (abreLacuna) { atencao += 0.38; marcas.push('lacuna'); }
     if (c.tipo === 'gancho') atencao += 0.20;
-    if (c.tipo === 'previsao') { atencao += 0.22; marcas.push('previsao'); }
+    const convida = /\b(chute|arrisque|adivinhe|pense num|pense em um|responda antes|segure sua resposta|guarde um numero|guarde o numero)\b/
+      .test(nn + ' ' + U.normalizar(d.dica || '') + ' ' + U.normalizar(d.pergunta || ''));
+    if (c.tipo === 'previsao' || convida) { atencao += 0.22; marcas.push('previsao'); }
     if (c.tipo === 'surpresa' || CONTRASTE.test(nn)) { atencao += 0.30; marcas.push('surpresa'); }
     if (temNumero(c.titulo)) atencao += 0.24;
     if (c.tipo === 'alerta' || c.tipo === 'erro' || c.tom === 'escuro') atencao += 0.14;

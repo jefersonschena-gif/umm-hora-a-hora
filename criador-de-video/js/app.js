@@ -49,6 +49,9 @@
     $('#modo').innerHTML = Object.keys(U.MODOS)
       .map(k => '<option value="' + k + '">' + esc(U.MODOS[k].rotulo) + '</option>').join('');
 
+    $('#camera').innerHTML = Object.keys(U.CAMERAS)
+      .map(k => '<option value="' + k + '">' + esc(U.CAMERAS[k].rotulo) + '</option>').join('');
+
     $('#clima').innerHTML = Object.keys(U.CLIMAS)
       .map(k => '<option value="' + k + '">' + esc(U.CLIMAS[k].rotulo) + '</option>').join('');
 
@@ -66,6 +69,7 @@
     $('#formato').value = projeto.formato;
     $('#clima').value = projeto.clima || 'claro';
     $('#modo').value = projeto.modo || 'retencao';
+    $('#camera').value = projeto.camera || 'nenhuma';
     $('#area-segura').checked = !!projeto.areaSegura;
     $('#fps').value = String(projeto.fps || 30);
     $('#escala').value = String(projeto.escala || 1);
@@ -212,6 +216,9 @@
 
       '<label class="campo"><span>Linha de apoio</span>' +
         '<input type="text" data-campo="apoio" value="' + esc(c.apoio) + '" placeholder="opcional, menor, embaixo do título"/></label>' +
+
+      '<label class="campo"><span>Fonte do dado</span>' +
+        '<input type="text" data-campo="fonte" value="' + esc(c.fonte || '') + '" placeholder="IBGE, Banco Central… aparece na tela"/></label>' +
 
       '<label class="campo"><span>Dados do visual ' +
         '<button class="btn mini fantasma" data-acao="exemplo" type="button">usar exemplo</button></span>' +
@@ -433,6 +440,7 @@
     $('#formato').addEventListener('change', e => { projeto.formato = e.target.value; reconstruir(); });
     $('#clima').addEventListener('change', e => { projeto.clima = e.target.value; reconstruir(); });
     $('#modo').addEventListener('change', e => { projeto.modo = e.target.value; reconstruir(); });
+    $('#camera').addEventListener('change', e => { projeto.camera = e.target.value; reconstruir(); });
     $('#area-segura').addEventListener('change', e => { projeto.areaSegura = e.target.checked; reconstruir(); });
     $('#fps').addEventListener('change', e => { projeto.fps = Number(e.target.value); salvarLocal(); });
     $('#escala').addEventListener('change', e => { projeto.escala = Number(e.target.value); reconstruir(); });

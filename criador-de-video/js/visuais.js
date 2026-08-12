@@ -1470,9 +1470,15 @@
         const valor = String(item.valor == null ? '' : item.valor);
         const negativo = /^\s*[−-]/.test(valor);
         const positivo = /^\s*\+/.test(valor);
-        U.texto(ctx, item.rotulo, x + 40 * u, ly + hLinha / 2, {
-          tamanho: 32 * u, peso: 600, cor: T.tinta2, baseline: 'middle'
+        /* o valor tem prioridade: o rótulo encolhe até caber no que sobrou */
+        ctx.font = U.pesoFonte(700, 36 * u);
+        const largValor = ctx.measureText(valor).width;
+        const ar = U.ajustar(ctx, item.rotulo, {
+          max: 32 * u, min: 20 * u, peso: 600,
+          maxLargura: w - 80 * u - largValor - 28 * u, maxLinhas: 2, entrelinha: 1.15
         });
+        U.blocoTexto(ctx, ar, x + 40 * u, ly + hLinha / 2 - ar.altura / 2,
+          { peso: 600, cor: T.tinta2 });
         U.texto(ctx, valor, x + w - 40 * u, ly + hLinha / 2, {
           tamanho: 36 * u, peso: 700, align: 'right', baseline: 'middle',
           cor: negativo ? T.alerta : positivo ? A : T.tinta
