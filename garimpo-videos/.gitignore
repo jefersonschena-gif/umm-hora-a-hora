@@ -1,0 +1,5 @@
+.env
+saida/
+downloads/
+__pycache__/
+*.pyc
