@@ -85,6 +85,53 @@ python3 garimpar.py creditos --arquivo saida/2026-08-15-surf.json --editor "Seu 
 Cada arquivo baixado sai com um `.credito.txt` do lado — guarde, é a sua prova
 de origem se alguém contestar.
 
+### Montar o corte com B-roll
+
+Precisa de ffmpeg (`sudo apt install ffmpeg`, `brew install ffmpeg` ou
+`winget install Gyan.FFmpeg`).
+
+```bash
+# cena diferente a cada 8s, durando 2s
+python3 garimpar.py montar --base corte.mp4 --broll saida/2026-08-15-satisfatorio.json \
+        --modo insercao --intervalo 8 --duracao 2 --editor "Seu Canal"
+
+# tela dividida vertical: corte em cima, B-roll rodando embaixo
+python3 garimpar.py montar --base corte.mp4 --broll saida/2026-08-15-satisfatorio.json \
+        --modo split --vertical
+```
+
+Passando `--broll` com um `.json` do garimpo, ele **baixa o B-roll sozinho**:
+filtra o que tem licença para obra derivada e uso comercial, descarta risco
+ALTO, pega os melhores por score, guarda em cache e monta. Sem passo manual.
+Se você já tem clipes na máquina, use `--broll-dir pasta/`.
+
+| Opção | Padrão | O que faz |
+|---|---|---|
+| `--modo` | `insercao` | `insercao` (cutaway) ou `split` (tela dividida) |
+| `--intervalo` | 8 | segundos de vídeo base entre uma inserção e a próxima |
+| `--duracao` | 2 | duração de cada inserção |
+| `--primeiro` | = intervalo | segundo da primeira inserção |
+| `--max-clipes` | 8 | quantos clipes de B-roll baixar |
+| `--semente` | — | fixa o sorteio, para reproduzir a mesma montagem |
+| `--vertical` | — | força saída 1080x1920 |
+| `--proporcao-topo` | 0.5 | no split, fração da altura para o vídeo base |
+| `--crf` / `--preset` | 20 / medium | qualidade e velocidade de codificação |
+
+Três decisões embutidas que mudam o resultado:
+
+- **O áudio do corte base nunca é interrompido.** A inserção troca só a imagem
+  durante a janela — a fala continua por baixo, como em cutaway de verdade. Se
+  o áudio picotasse junto, a frase quebraria no meio.
+- **O áudio do B-roll é sempre descartado.** Ele entra como recheio visual, e
+  trilha de terceiros é a maior fonte de reivindicação de Content ID.
+- **A primeira inserção nunca cai no gancho.** Os primeiros segundos decidem a
+  retenção e não podem ser interrompidos por cena aleatória.
+
+Sai um `montagem.mp4.credito.txt` juntando o crédito do vídeo base **e** de
+cada clipe de B-roll, com os instantes em que cada um aparece. É onde esse
+formato costuma escorregar: gente que credita a fonte principal e esquece as
+dez inserções.
+
 ---
 
 ## Como o score é calculado
@@ -138,6 +185,22 @@ O filtro padrão já corta tudo que for `ALTO`.
    `baixar` recusa a fonte `youtube_cc` e manda usar o editor do próprio
    YouTube ou pedir o arquivo ao autor.
 
+### Sobre inserir cenas para "despistar" a detecção
+
+Muita gente usa cutaway e tela dividida acreditando que quebra a detecção de
+direitos autorais. **Não quebra.** O Content ID casa impressão digital de áudio
+e de vídeo por trecho, e é robusto a corte, redimensionamento, espelhamento,
+mudança de velocidade e sobreposição — ele bate nos trechos que sobraram.
+Tentativa de contornar a detecção é violação de política por si só, com peso
+maior que a reivindicação original.
+
+E tem a ironia: a cena inserida costuma ser de outra pessoa. Gameplay de Subway
+Surfers é da Sybo, Minecraft é da Mojang. O truque não remove um titular de
+direitos, **adiciona um segundo**.
+
+Como recurso de edição para segurar retenção, é legítimo e funciona — desde que
+o material inserido seja seu ou licenciado. É para isso que serve o `montar`.
+
 **Rotina antes de publicar cada corte:**
 
 - [ ] Confirmar a licença na página original (ela pode mudar depois da coleta)
@@ -157,8 +220,12 @@ plataformas e não caracteriza obra transformativa em lugar nenhum.
 python3 -m unittest discover -s testes -v
 ```
 
-28 testes cobrindo conversão de cada API, cálculo de score, classificação de
-licença e geração dos relatórios. Rodam offline, sem bater em rede.
+54 testes: conversão de cada API, cálculo de score, classificação de licença,
+geração dos relatórios e planejamento das inserções — todos offline, sem bater
+em rede. Os de montagem chamam ffmpeg de verdade (geram vídeos coloridos
+minúsculos e conferem a cor do quadro no instante da inserção, provando que a
+cena entra na hora certa); são pulados sozinhos se o ffmpeg não estiver
+instalado.
 
 ---
 
@@ -169,10 +236,11 @@ garimpo-videos/
 ├── garimpar.py            ponto de entrada
 ├── exemplo.env            modelo das chaves
 ├── garimpo/
-│   ├── cli.py             comandos: fontes, buscar, checar, baixar, creditos
+│   ├── cli.py             comandos: fontes, buscar, checar, baixar, creditos, montar
 │   ├── modelos.py         estrutura Video, comum a todas as fontes
 │   ├── scoring.py         cálculo do "quanto bombou"
 │   ├── licencas.py        licenças, nível de risco e texto de crédito
+│   ├── montagem.py        cutaway e tela dividida via ffmpeg
 │   ├── relatorio.py       saída em JSON, CSV e painel HTML
 │   ├── util_http.py       cliente HTTP com retentativa
 │   └── fontes/
