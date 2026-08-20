@@ -19,3 +19,13 @@ Formato:
  "coordenacao": "Enfª ..."
 }
 ```
+
+## `cirurgioes_real.json` (fora do git)
+
+De/para cirurgião → especialidade usado na importação da agenda:
+
+```json
+[{"nome": "COMO SAI NA AGENDA", "especialidade": "Urologia", "obs": ""}]
+```
+
+Nomes de cirurgião são dado pessoal e não entram no repositório, que é público.

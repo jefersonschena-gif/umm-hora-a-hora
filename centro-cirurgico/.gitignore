@@ -1,3 +1,6 @@
 dados/equipe_real.json
 *_REAL.xlsx
 *_VISUAL.xlsx
+dados/cirurgioes_real.json
+*_REAL_20*.xlsx
+__pycache__/

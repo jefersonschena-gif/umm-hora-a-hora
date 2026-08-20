@@ -80,12 +80,23 @@ for r in range(2, 202):
                      rel=rel, relfim=rel + dur if ocup else 0, status=st,
                      data=mapa.cell(row=r, column=1).value))
 
+# minutos que a sala fica ocupada dentro do plantão: cirurgia + limpeza, cortados no fim do
+# turno e na entrada da cirurgia seguinte da mesma sala (agendas emendadas não somam duas vezes)
+for c in CIRS:
+    c["plant"] = 0
+for chave in {(c["sala"], c["data"]) for c in CIRS}:
+    fila = sorted([c for c in CIRS if (c["sala"], c["data"]) == chave and c["ocup"] > 0],
+                  key=lambda c: c["rel"])
+    for k, c in enumerate(fila):
+        prox = fila[k + 1]["rel"] if k + 1 < len(fila) else T_MIN
+        c["plant"] = max(0, min(c["rel"] + c["dur"] + LIMPEZA, T_MIN, prox) - min(c["rel"], T_MIN))
+
 def mix(p):
     m = [0.0] * N_ESP
     if p["tipo"] == "Sala cirúrgica":
         for c in CIRS:
             if c["sala"] == p["cod"] and c["ocup"] > 0 and c["data"] == DATA:
-                m[EIDX[c["esp"]]] += c["ocup"]
+                m[EIDX[c["esp"]]] += c["plant"]
     if sum(m) == 0:
         m = [0.0] * N_ESP
         m[EIDX[p["esp"]]] = float(T_MIN)
@@ -115,7 +126,7 @@ for p in POSTOS:
     chk("mix total %s" % p["cod"], sum(m), cal.cell(row=mr, column=TOT_C).value)
     chk("necessários hoje %s" % p["cod"], nec_hoje(p), cal.cell(row=mr, column=NEC_C).value)
     if p["tipo"] == "Sala cirúrgica":
-        ag = sum(c["ocup"] for c in CIRS if c["sala"] == p["cod"] and c["data"] == DATA)
+        ag = sum(c["plant"] for c in CIRS if c["sala"] == p["cod"] and c["data"] == DATA)
         chk("ocupação %s" % p["cod"], ag / T_MIN, cal.cell(row=mr, column=OCUP_C).value)
     t1 = pai.cell(row=PAI_R1 + p["i"], column=7).value
     t2 = pai.cell(row=PAI_R1 + p["i"], column=8).value

@@ -29,12 +29,13 @@ from openpyxl.formatting.rule import CellIsRule, FormulaRule
 OUT = "/home/user/umm-hora-a-hora/centro-cirurgico/Centro_Cirurgico_Escala.xlsx"
 
 # ---------------------------------------------------------------- dimensões
-N_ESP, N_POS, N_EQ, N_MAPA, N_AUS = 20, 16, 30, 200, 150
+N_ESP, N_POS, N_EQ, N_MAPA, N_AUS, N_CIR = 20, 16, 30, 200, 150, 60
 JOGO_K, DIAS = 13, 31
 ESP_R1, ESP_R2 = 22, 21 + N_ESP          # Configuração: especialidades
 POS_R1, POS_R2 = ESP_R2 + 4, ESP_R2 + 3 + N_POS
 FER_R1, FER_R2 = POS_R2 + 4, POS_R2 + 3 + 20
 AUS_T1, AUS_T2 = FER_R2 + 4, FER_R2 + 3 + 7
+CIR_R1, CIR_R2 = AUS_T2 + 4, AUS_T2 + 3 + N_CIR   # Configuração: cirurgiões
 EQ_R1, EQ_R2 = 2, 1 + N_EQ               # Equipe
 XC1, XC2 = 8, 7 + N_ESP                  # Equipe: colunas H.. do X
 XL1, XL2 = get_column_letter(XC1), get_column_letter(XC2)
@@ -102,6 +103,7 @@ ESPECIALIDADES = [   # (código, especialidade, tipo, duração média em min)
     ("URO", "Urologia",              "Cirúrgica", 90),  ("OFT", "Oftalmologia",         "Cirúrgica", 45),
     ("OTO", "Otorrinolaringologia",  "Cirúrgica", 75),  ("BMF", "Buco-Maxilo-Facial",   "Cirúrgica", 120),
     ("PLA", "Cirurgia Plástica",     "Cirúrgica", 120), ("VAS", "Cirurgia Vascular",    "Cirúrgica", 150),
+    ("TOR", "Cirurgia Torácica",     "Cirúrgica", 120),
     ("ADM", "Admissão",              "Apoio",     0),   ("RN",  "Sala de recém-nascido","Apoio",     0),
 ]
 ESP_NOMES = [e[1] for e in ESPECIALIDADES]
@@ -176,7 +178,7 @@ AFASTADOS = set()
 # ---------------------------------------------------------------- cadastro real (opcional, fora do git)
 import json as _json, os as _os
 _REAL = _os.path.join(_os.path.dirname(_os.path.abspath(__file__)), "dados", "equipe_real.json")
-USANDO_REAL = _os.path.exists(_REAL)
+USANDO_REAL = _os.path.exists(_REAL) and _os.environ.get("DEMO") != "1"
 if USANDO_REAL:
     _d = _json.load(open(_REAL, encoding="utf-8"))
     _p = lambda x: date(*[int(v) for v in x.split("-")])
@@ -210,6 +212,15 @@ PROCS = {"Ortopedia": ["Artroplastia total de joelho", "Artroscopia de ombro"],
  "Cirurgia Plástica": ["Dermolipectomia abdominal"], "Cirurgia Vascular": ["Safenectomia"]}
 CIRURGIOES = ["Dr. Almeida","Dra. Bernardes","Dr. Coelho","Dra. Delgado","Dr. Esteves",
               "Dra. Fialho","Dr. Gouveia","Dra. Hirano"]
+CIR_TAB = [  # de/para cirurgião -> especialidade usado na importação da agenda
+    (n, e, "") for n, e in zip(CIRURGIOES,
+        ["Ortopedia", "Cirurgia Geral", "Neurocirurgia", "Cirurgia Plástica",
+         "Ginecologia", "Urologia", "Oftalmologia", "Cirurgia Vascular"])]
+_CIRJ = _os.path.join(_os.path.dirname(_os.path.abspath(__file__)), "dados",
+                     "cirurgioes_real.json")
+if USANDO_REAL and _os.path.exists(_CIRJ):
+    CIR_TAB = [(c["nome"], c.get("especialidade", ""), c.get("obs", ""))
+               for c in _json.load(open(_CIRJ, encoding="utf-8"))]
 BASE_MIN = TURNO_INI.hour * 60 + TURNO_INI.minute
 
 def build_mapa():
@@ -232,7 +243,7 @@ def build_mapa():
             k += 1
     cirs.sort(key=lambda c: (c["sala"], c["ini"]))
     return cirs
-MAPA = build_mapa()
+MAPA = [] if USANDO_REAL else build_mapa()   # no arquivo real a agenda vem da importação
 
 def esp_do_posto(cod):
     """Especialidades que passam pelo posto no dia (ou a de referência, se não há agenda)."""
@@ -389,6 +400,22 @@ for i, (tp, sg) in enumerate(TIPOS_AUS):
     ws_cfg.cell(row=r, column=2, value=sg)
     ws_cfg.cell(row=r, column=3).fill = PatternFill("solid", fgColor=CORES_AUS[i])
 
+sec(ws_cfg, CIR_R1 - 2, "8. CIRURGIÕES — de/para usado ao importar a agenda do dia", 3)
+head(ws_cfg, CIR_R1 - 1, ["Cirurgião (como sai na agenda)", "Especialidade", "Observação"], height=28)
+fmt(ws_cfg, CIR_R1, CIR_R2, 1, 3, align=CTR, fill=FILL_PREM)
+for i in range(N_CIR):
+    r = CIR_R1 + i
+    for c_ in (1, 2, 3):
+        ws_cfg.cell(row=r, column=c_).alignment = LFT
+    if i < len(CIR_TAB):
+        for j, v in enumerate(CIR_TAB[i]):
+            ws_cfg.cell(row=r, column=1 + j, value=v)
+ws_cfg.cell(row=CIR_R2 + 1, column=1,
+            value="A agenda do hospital não traz a especialidade da cirurgia, traz o cirurgião. "
+                  "Preencha a especialidade de cada cirurgião uma única vez: a importação da agenda "
+                  "passa a preencher a coluna Especialidade do Mapa sozinha e acrescenta aqui, em "
+                  "branco, todo cirurgião novo que aparecer.").font = F_NOTA
+
 ws_cfg.cell(row=4, column=7, value="LISTAS AUXILIARES").font = F_SEC
 head(ws_cfg, 5, ["Status cadastral", "Status da cirurgia", "Tipo de posto"], col0=7, height=28)
 for j, col in enumerate((["Ativo", "Afastado", "Desligado"],
@@ -411,6 +438,8 @@ for nm, col in (("Postos_Cod", "A"), ("Postos_Nome", "B"), ("Postos_Tipo", "C"),
 dn("Feriados", R(S_CFG, "$A$%d:$A$%d" % (FER_R1, FER_R2)))
 dn("Aus_Tipos", R(S_CFG, "$A$%d:$A$%d" % (AUS_T1, AUS_T2)))
 dn("Aus_Siglas", R(S_CFG, "$B$%d:$B$%d" % (AUS_T1, AUS_T2)))
+for nm, col in (("Cir_Nome", "A"), ("Cir_Esp", "B")):
+    dn(nm, R(S_CFG, "$%s$%d:$%s$%d" % (col, CIR_R1, col, CIR_R2)))
 dn("Lista_StatusCad", R(S_CFG, "$G$6:$G$8"))
 dn("Lista_StatusCir", R(S_CFG, "$H$6:$H$9"))
 dn("Lista_TipoPosto", R(S_CFG, "$I$6:$I$7"))
@@ -554,10 +583,10 @@ ws_aus.cell(row=CAL_R2 + 6, column=CAL_C1,
 head(ws_map, 1, ["Data", "Sala", "Hora início", "Hora fim", "Especialidade", "Procedimento",
                  "Cirurgião", "Status", "Duração (min)", "Min. ocupação", "Ordem na sala",
                  "Sala liberada às", "Livre até a próxima (min)", "Alerta",
-                 "aux", "aux", "aux", "aux", "aux"], height=42)
+                 "aux", "aux", "aux", "aux", "aux", "aux"], height=42)
 widths(ws_map, {"A": 12, "B": 9, "C": 11, "D": 11, "E": 26, "F": 34, "G": 15, "H": 12, "I": 12,
                 "J": 13, "K": 11, "L": 13, "M": 15, "N": 38})
-for c_ in ("O", "P", "Q", "R", "S"):
+for c_ in ("O", "P", "Q", "R", "S", "T"):
     ws_map.column_dimensions[c_].hidden = True
 fmt(ws_map, MP_R1, MP_R2, 1, 8, align=CTR)
 for i in range(N_MAPA):
@@ -580,11 +609,17 @@ for i in range(N_MAPA):
         16: '=IF(NOT(ISNUMBER($C{r})),0,ROUND(MOD($C{r}-Turno_Ini,1)*1440,0))',
         17: '=IF($J{r}<=0,0,$P{r}+$I{r})',
         19: '=ROW()',
+        # minutos em que a sala fica de fato ocupada dentro do plantão: a cirurgia mais a
+        # limpeza, cortada no fim do turno e na entrada da cirurgia seguinte (a agenda do
+        # hospital costuma emendar uma na outra, e sem isso a ocupação passaria de 100%)
+        20: ('=IF($J{r}<=0,0,MAX(0,MIN($P{r}+$I{r}+Limpeza_Min,Turno_Min,'
+             'IFERROR(INDEX(Mapa_RelIni,MATCH($B{r}&"#"&$A{r}&"#"&($K{r}+1),Mapa_Chave,0)),Turno_Min))'
+             '-MIN($P{r},Turno_Min)))'),
         11: ('=IF($J{r}<=0,"",SUMPRODUCT((Mapa_Sala=$B{r})*(Mapa_Data=$A{r})*(Mapa_MinOcup>0)*'
              '((Mapa_RelIni<$P{r})+((Mapa_RelIni=$P{r})*(Mapa_Row<=$S{r})))))'),
-        18: '=IF($K{r}="","",$B{r}&"#"&$K{r})',
+        18: '=IF($K{r}="","",$B{r}&"#"&$A{r}&"#"&$K{r})',
         12: '=IF($J{r}<=0,"",MOD(Turno_Ini+($Q{r}+Limpeza_Min)/1440,1))',
-        13: ('=IF($J{r}<=0,"",MAX(0,IFERROR(INDEX(Mapa_RelIni,MATCH($B{r}&"#"&($K{r}+1),Mapa_Chave,0)),'
+        13: ('=IF($J{r}<=0,"",MAX(0,IFERROR(INDEX(Mapa_RelIni,MATCH($B{r}&"#"&$A{r}&"#"&($K{r}+1),Mapa_Chave,0)),'
              'Turno_Min)-($Q{r}+Limpeza_Min)))'),
     }
     for col, f in calc.items():
@@ -602,6 +637,9 @@ for i in range(N_MAPA):
         'IF(OR(NOT(ISNUMBER($C{r})),NOT(ISNUMBER($D{r}))),"Horário inválido | ","")&'
         'IFERROR(IF(AND(ISNUMBER($C{r}),ISNUMBER($D{r}),MOD($D{r}-$C{r},1)*1440<=0),"Duração nula ou negativa | ",""),"")&'
         'IF(AND($J{r}>0,OR($P{r}>=Turno_Min,$Q{r}>Turno_Min)),"Fora da janela do plantão | ","")&'
+        'IFERROR(IF(AND($J{r}>0,$K{r}>0,COUNTIF(Mapa_Chave,$B{r}&"#"&$A{r}&"#"&($K{r}+1))>0,'
+        'INDEX(Mapa_RelIni,MATCH($B{r}&"#"&$A{r}&"#"&($K{r}+1),Mapa_Chave,0))-$Q{r}<Limpeza_Min),'
+        '"Sem intervalo para limpeza | ",""),"")&'
         'IF(AND($J{r}>0,SUMPRODUCT((Mapa_Sala=$B{r})*(Mapa_Data=$A{r})*(Mapa_MinOcup>0)*'
         '(Mapa_RelIni<$Q{r})*(Mapa_RelFim>$P{r}))>1),"Sobreposição de horário na sala | ","")&'
         'IFERROR(IF(AND(ISNUMBER($I{r}),$I{r}>0,COUNTIF(Esp_Nome,$E{r})>0,'
@@ -614,7 +652,8 @@ for i in range(N_MAPA):
 ws_map.freeze_panes = "C2"; ws_map.auto_filter.ref = "A1:N%d" % MP_R2
 for nm, col in (("Mapa_Data", "A"), ("Mapa_Sala", "B"), ("Mapa_Esp", "E"), ("Mapa_Status", "H"),
                 ("Mapa_Dur", "I"), ("Mapa_MinOcup", "J"), ("Mapa_Alerta", "N"),
-                ("Mapa_RelIni", "P"), ("Mapa_RelFim", "Q"), ("Mapa_Chave", "R"), ("Mapa_Row", "S")):
+                ("Mapa_RelIni", "P"), ("Mapa_RelFim", "Q"), ("Mapa_Chave", "R"), ("Mapa_Row", "S"),
+                ("Mapa_MinPlantao", "T")):
     dn(nm, R(S_MAP, "$%s$%d:$%s$%d" % (col, MP_R1, col, MP_R2)))
 
 # ---------------------------------------------------------------- CALC (oculta)
@@ -631,7 +670,7 @@ for i in range(N_POS):
         2: '=IF($A{r}="","",IFERROR(INDEX(Postos_Tipo,MATCH($A{r},Postos_Cod,0)),""))',
         3: '=IF($A{r}="","",IFERROR(INDEX(Postos_Esp,MATCH($A{r},Postos_Cod,0)),""))',
         4: ('=IF(OR($A{r}="",$B{r}<>"Sala cirúrgica"),0,'
-            'SUMIFS(Mapa_MinOcup,Mapa_Sala,$A{r},Mapa_Data,Data_Mapa))'),
+            'SUMIFS(Mapa_MinPlantao,Mapa_Sala,$A{r},Mapa_Data,Data_Mapa))'),
     }
     for col, f in vals.items():
         ws_cal.cell(row=r, column=col, value=f.format(r=r) if "{r}" in f else f)
@@ -640,7 +679,7 @@ for i in range(N_POS):
         ws_cal.cell(row=r, column=CC1 + j, value=(
             '=IF($A{r}="",0,IF(OR($B{r}<>"Sala cirúrgica",$D{r}=0),'
             'IF(AND({c}$1<>"",{c}$1=$C{r}),Turno_Min,0),'
-            'IF({c}$1="",0,SUMIFS(Mapa_MinOcup,Mapa_Sala,$A{r},Mapa_Data,Data_Mapa,Mapa_Esp,{c}$1))))'
+            'IF({c}$1="",0,SUMIFS(Mapa_MinPlantao,Mapa_Sala,$A{r},Mapa_Data,Data_Mapa,Mapa_Esp,{c}$1))))'
         ).format(r=r, c=col))
     ws_cal.cell(row=r, column=TOT_C, value='=IF($A{r}="",0,SUM({a}{r}:{b}{r}))'.format(r=r, a=CL1, b=CL2))
     ws_cal.cell(row=r, column=DISP_C, value='=IF($A{r}="",0,Turno_Min)'.format(r=r))
@@ -713,11 +752,11 @@ for i in range(N_POS):
         if k == 0:
             f = '=IF($A{r}="","",0)'.format(r=r)
         else:
-            f = ('=IF(OR($A{r}="",ISERROR(MATCH($A{r}&"#{k}",Mapa_Chave,0))),"",'
-                 'INDEX(Mapa_RelFim,MATCH($A{r}&"#{k}",Mapa_Chave,0))+Limpeza_Min)').format(r=r, k=k)
+            f = ('=IF(OR($A{r}="",ISERROR(MATCH($A{r}&"#"&Data_Mapa&"#{k}",Mapa_Chave,0))),"",'
+                 'INDEX(Mapa_RelFim,MATCH($A{r}&"#"&Data_Mapa&"#{k}",Mapa_Chave,0))+Limpeza_Min)').format(r=r, k=k)
         ws_sal.cell(row=r, column=3, value=f)
         ws_sal.cell(row=r, column=4, value=(
-            '=IF($C{r}="","",IFERROR(INDEX(Mapa_RelIni,MATCH($A{r}&"#{k1}",Mapa_Chave,0)),Turno_Min))'
+            '=IF($C{r}="","",IFERROR(INDEX(Mapa_RelIni,MATCH($A{r}&"#"&Data_Mapa&"#{k1}",Mapa_Chave,0)),Turno_Min))'
         ).format(r=r, k1=k + 1))
         ws_sal.cell(row=r, column=5, value='=IF($C{r}="","",MAX(0,$D{r}-$C{r}))'.format(r=r))
         ws_sal.cell(row=r, column=6, value='=IF($E{r}="","",MAX(0,$E{r}-Limpeza_Min))'.format(r=r))
@@ -943,7 +982,8 @@ GUIA_R = CHK_R2 + 3
 sec(ws_pai, GUIA_R - 1, "COMO USAR")
 GUIA = [
     ("1. Data", "Troque a DATA DA ESCALA acima. Os ausentes do dia, as vagas necessárias e o mapa se ajustam sozinhos."),
-    ("2. Agenda", "Lance as cirurgias do dia na aba Mapa_Cirurgico. A coluna Alerta aponta sobreposição de horário, sala errada e duração inválida."),
+    ("2. Agenda", "Lance as cirurgias do dia na aba Mapa_Cirurgico — ou importe o PDF da agenda do hospital com o importar_agenda.py. A coluna Alerta aponta sobreposição de horário, sala errada, duração inválida, cirurgia fora do plantão e emenda sem os minutos de limpeza."),
+    ("Cirurgião", "A agenda do hospital não traz a especialidade, traz o cirurgião: cadastre a especialidade de cada um na seção 8 da aba Configuração e a importação preenche o Mapa sozinha."),
     ("3. Escala", "Escolha TÉCNICO 1 e TÉCNICO 2 de cada posto nas células azuis. A coluna Situação diz se a dupla cobre as especialidades do dia; a última coluna sugere quem ainda está livre e cobre mais."),
     ("4. Encaixe", "O bloco Jogo de sala mostra o maior intervalo vago de cada sala, com horário e de quanto cabe uma cirurgia (já descontada a limpeza)."),
     ("5. Ausências", "Férias, folgas e atestados vão para a aba Ausencias, por período. O calendário ao lado dela mostra o período inteiro e quantos faltam em cada dia."),
@@ -979,6 +1019,7 @@ add_dv(ws_cfg, "=Lista_Especialidades", ["G%d:G%d" % (POS_R1, POS_R2)])
 add_dv(ws_cfg, '"Todos os dias,Seg a Sex,Seg a Sáb"', ["H%d:H%d" % (POS_R1, POS_R2)])
 add_dv(ws_cfg, '"Ativo,Inativo"', ["I%d:I%d" % (POS_R1, POS_R2)])
 add_dv(ws_cfg, "1", ["D%d:E%d" % (POS_R1, POS_R2)], kind="whole", operator="between", formula2="4")
+add_dv(ws_cfg, "=Lista_Especialidades", ["B%d:B%d" % (CIR_R1, CIR_R2)])
 add_dv(ws_aus, "=Lista_Tecnicos", ["A%d:A%d" % (AU_R1, AU_R2)])
 add_dv(ws_aus, "=Aus_Tipos", ["B%d:B%d" % (AU_R1, AU_R2)])
 dvd = add_dv(ws_aus, "DATE(2000,1,1)", ["C%d:D%d" % (AU_R1, AU_R2)], kind="date",
