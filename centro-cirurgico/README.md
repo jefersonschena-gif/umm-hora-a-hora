@@ -16,8 +16,11 @@ distribui os técnicos disponíveis pelos postos por prioridade, classifica cada
 | Sala de recém-nascido | 1 | bloco obstétrico |
 | **Total** | **20 vagas/dia** | contra um quadro de **22 técnicos** |
 
-Limpeza e preparação: **20 min** após cada cirurgia. 10 habilidades por técnico.
-Não se realizam cirurgias cardíacas.
+Plantão da **manhã, 07:00–13:00**. Limpeza e preparação: **20 min** após cada cirurgia.
+10 habilidades por técnico. Não se realizam cirurgias cardíacas.
+Cada posto declara em que dias funciona (Todos os dias / Seg a Sex / Seg a Sáb); nos fins de semana
+e nos feriados cadastrados os postos de dia útil não operam, e as vagas do dia caem junto — é por isso
+que um domingo pede 7 técnicos e não 20.
 
 **O déficit é a regra**, não a exceção: com férias, folgas e atestados quase nunca há 20
 técnicos disponíveis. Por isso cada posto tem **prioridade de cobertura** e **mínimo
@@ -26,10 +29,12 @@ cirurgias precisam de remanejamento.
 
 ## Premissas adotadas (documentadas na aba Instruções)
 
-1. A escala do dia cobre **um plantão** (07:00–19:00, alterável em Parâmetros) — única
-   leitura compatível com 22 técnicos para 20 vagas.
-2. Nas salas os dois técnicos têm papéis distintos (circulante e instrumentador), com pesos
-   diferentes na afinidade; nos postos de apoio não há distinção.
+1. A escala cobre **um plantão** — o da manhã, 07:00–13:00, como na escala em uso.
+2. O ciclo da escala vai do **dia 16 ao dia 15** do mês seguinte, como na escala em uso.
+3. Nas salas os dois técnicos têm papéis distintos (circulante e instrumentador), com pesos
+   diferentes na afinidade; nos postos de apoio não há distinção. Quando o cadastro traz todos
+   como Téc.Enf., a Função entra como "Ambos".
+4. Nos feriados os postos de dia útil seguem o regime de fim de semana.
 
 ## Arquitetura
 
@@ -65,10 +70,18 @@ marcando em verde as janelas ≥ `Janela_Min`. O `Mapa_Cirurgico` traz o mesmo e
 
 ### Gestão de ausências
 
-`Ausencias` guarda os períodos (férias, folga, atestado, licença, treinamento).
-A aba `Equipe` mostra a situação de cada técnico na data da escala e o
-`Calendario_Ausencias` dá a visão do mês inteiro por técnico, com totais e destaque de
-registros sobrepostos.
+`Ausencias` guarda os períodos (folga, férias, atestado, licença, treinamento e os códigos próprios
+do serviço). A aba `Equipe` mostra a situação de cada técnico na data da escala e o
+`Calendario_Ausencias` dá a visão do período inteiro por técnico, com totais, destaque de registros
+sobrepostos e, no rodapé, **funcionários na data · vagas necessárias · déficit** dia a dia — o mesmo
+indicador da escala em uso, agora calculado por fórmula.
+
+### Cadastro real
+
+O gerador usa `dados/equipe_real.json` quando esse arquivo existe, gravando
+`Centro_Cirurgico_Escala_Diaria_REAL.xlsx`. Esse arquivo e o `.xlsx` gerado a partir dele estão no
+`.gitignore`: **o repositório é público e não recebe nome, COREN ou matrícula de ninguém.** Sem ele,
+o gerador produz a versão de demonstração com cadastro fictício.
 
 ## Regerar a planilha
 
@@ -96,8 +109,8 @@ SAIDA=/tmp python3 testes/t5_sensibilidade.py
 | Teste | Resultado |
 |---|---|
 | Recálculo completo (LibreOffice) | 0 erros de fórmula |
-| Reconciliação independente em Python | 248 verificações, 0 divergências |
-| Expansão (+2 técnicos, +1 habilidade, +1 especialidade, +1 sala, +40 cirurgias, +5 ausências) | 0 erros · 308 verificações, 0 divergências |
+| Reconciliação independente em Python | 338 verificações, 0 divergências |
+| Expansão (+2 técnicos, +1 habilidade, +1 especialidade, +1 sala, +40 cirurgias, +5 ausências) | 0 erros · 399 verificações, 0 divergências |
 | Entradas degeneradas (9 casos no mapa + 3 em ausências + 4 na escala) | todas tratadas, 0 erros de fórmula |
 | Sensibilidade (pesos, meta, limpeza, janela mínima, data da escala) | aprovado, arquivo original inalterado |
 
@@ -106,7 +119,8 @@ SAIDA=/tmp python3 testes/t5_sensibilidade.py
 * Compatibilidade deliberada com Excel e LibreOffice: só SUMIFS, COUNTIFS, SUMPRODUCT,
   INDEX, MATCH, LARGE, IF e IFERROR. Sem macros, Power Query, Power Pivot ou matrizes dinâmicas.
 * Capacidades pré-dimensionadas: 16 postos, 14 habilidades, 24 especialidades, 30 técnicos,
-  200 cirurgias/dia, 150 registros de ausência, 13 janelas por sala, 2000 linhas de histórico.
+  200 cirurgias/dia, 150 registros de ausência, 20 feriados, 31 dias de calendário, 13 janelas por
+  sala, 2000 linhas de histórico.
 * `Base_Historico` é alimentada por cópia/colagem de valores no fechamento do dia
   (materialização intencional: o histórico não deve se recalcular quando o mapa do dia
   seguinte for lançado).

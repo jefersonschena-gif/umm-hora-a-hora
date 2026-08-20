@@ -16,13 +16,14 @@ esp["A16"], esp["B16"], esp["C16"], esp["D16"] = "Cirurgia Torácica", "Cirurgia
 # (c) nova sala na linha 13 de Postos
 pos["A13"], pos["B13"], pos["C13"] = "SO-09", "Sala 9 — Torácica", "Sala cirúrgica"
 pos["D13"], pos["E13"], pos["F13"] = 2, 2, 12
-pos["G13"], pos["H13"] = "Cirurgia Torácica", "Ativo"
+pos["G13"], pos["H13"], pos["I13"] = "Cirurgia Torácica", "Todos os dias", "Ativo"
 # (d) dois técnicos novos
 for i, (mt, nm, fn) in enumerate([("TEC-023", "Ariane Fontella", "Circulante"),
                                   ("TEC-024", "Márcio Dalpiaz", "Instrumentador")]):
     r = 24 + i
     eqp.cell(row=r, column=1, value=mt); eqp.cell(row=r, column=2, value=nm)
-    eqp.cell(row=r, column=3, value=fn); eqp.cell(row=r, column=4, value="Ativo")
+    eqp.cell(row=r, column=3, value="000000")        # COREN
+    eqp.cell(row=r, column=4, value=fn); eqp.cell(row=r, column=5, value="Ativo")
     mat.cell(row=r, column=4 + 11, value=3)     # nível 3 na nova habilidade
     mat.cell(row=r, column=4, value=1)
 # (e) +40 cirurgias (6 na sala nova, 34 espalhadas)

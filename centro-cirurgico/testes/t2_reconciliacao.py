@@ -17,8 +17,8 @@ AF_META, AF_MIN = par["B25"].value, par["B26"].value
 NIV_CRIT, PART_MIN = par["B27"].value, par["B28"].value
 LIMPEZA, JANELA_MIN = par["B31"].value, par["B32"].value
 BASE = T_INI.hour * 60 + T_INI.minute
-TIPOS = [par.cell(row=38 + i, column=1).value for i in range(5)]
-SIGLAS = [par.cell(row=38 + i, column=2).value for i in range(5)]
+TIPOS = [par.cell(row=38 + i, column=1).value for i in range(7)]
+SIGLAS = [par.cell(row=38 + i, column=2).value for i in range(7)]
 
 HABS = [hab.cell(row=2 + i, column=2).value for i in range(14)]
 HIDX = {h: i for i, h in enumerate(HABS) if h}
@@ -31,15 +31,30 @@ for i in range(16):
         POSTOS.append(dict(cod=cod, nome=pos.cell(row=2 + i, column=2).value,
                            tipo=pos.cell(row=2 + i, column=3).value,
                            nec=pos.cell(row=2 + i, column=4).value,
-                           hab=pos.cell(row=2 + i, column=7).value, linha=2 + i))
+                           hab=pos.cell(row=2 + i, column=7).value,
+                           func=pos.cell(row=2 + i, column=8).value,
+                           status=pos.cell(row=2 + i, column=9).value, linha=2 + i))
+WD = DATA.weekday() + 1          # 1 = segunda ... 7 = domingo
+def nec_hoje(p):
+    if p["status"] != "Ativo":
+        return 0
+    fer = DATA in FERIADOS
+    if p["func"] == "Seg a Sex" and (WD > 5 or fer):
+        return 0
+    if p["func"] == "Seg a Sáb" and (WD > 6 or fer):
+        return 0
+    return p["nec"]
 EQ = []
 for i in range(30):
     n = eqp.cell(row=2 + i, column=2).value
     if n:
-        EQ.append(dict(nome=n, funcao=eqp.cell(row=2 + i, column=3).value,
-                       status=eqp.cell(row=2 + i, column=4).value, linha=2 + i))
+        EQ.append(dict(nome=n, funcao=eqp.cell(row=2 + i, column=4).value,
+                       status=eqp.cell(row=2 + i, column=5).value, linha=2 + i))
 NIV = {mat.cell(row=r, column=2).value: [mat.cell(row=r, column=4 + j).value or 0 for j in range(14)]
        for r in range(2, 32) if mat.cell(row=r, column=2).value}
+PERIODO_INI = par["B13"].value
+FERIADOS = {par.cell(row=48 + i, column=1).value for i in range(20)
+            if par.cell(row=48 + i, column=1).value}
 AUS = [dict(tec=aus.cell(row=r, column=1).value, tipo=aus.cell(row=r, column=2).value,
             ini=aus.cell(row=r, column=3).value, fim=aus.cell(row=r, column=4).value)
        for r in range(2, 152) if aus.cell(row=r, column=1).value]
@@ -83,6 +98,11 @@ def afin(nome, p):
         return None
     return sum(a * b for a, b in zip(m, NIV[nome])) / tot
 
+B3_R1 = 14
+B4_R1 = B3_R1 + len(TIPOS) + 3
+B5_R1 = B4_R1 + 16 + 3
+B6_R1 = B5_R1 + 14 + 3
+
 res = []
 def chk(nome, esp_, obt, tol=1e-9):
     if esp_ is None and (obt is None or obt == ""):
@@ -97,7 +117,7 @@ def chk(nome, esp_, obt, tol=1e-9):
 
 # 1. situação de cada técnico na data
 for t in EQ:
-    chk("situação %s" % t["nome"], situacao(t), eqp.cell(row=t["linha"], column=5).value)
+    chk("situação %s" % t["nome"], situacao(t), eqp.cell(row=t["linha"], column=6).value)
 
 # 2. Calc_Mix e ocupação por posto
 for p in POSTOS:
@@ -127,10 +147,16 @@ for p in POSTOS:
         ap = (P_CIRC * a1 + P_INSTR * a2) if p["tipo"] == "Sala cirúrgica" else (a1 + a2) / 2
     chk("afinidade do posto %s" % p["cod"], ap, esc.cell(row=r, column=16).value)
     nal = (1 if t1 else 0) + (1 if t2 else 0)
-    cob = "DESCOBERTO" if nal == 0 else ("COMPLETO" if nal >= p["nec"] else
-                                         "INCOMPLETO (%d de %d)" % (nal, p["nec"]))
+    nh = nec_hoje(p)
+    chk("necessários hoje %s" % p["cod"], nh, esc.cell(row=r, column=6).value)
+    if nh == 0:
+        cob = "NÃO OPERA HOJE" if nal == 0 else "EXTRA — não opera hoje"
+    else:
+        cob = "DESCOBERTO" if nal == 0 else ("COMPLETO" if nal >= nh else
+                                             "INCOMPLETO (%d de %d)" % (nal, nh))
     chk("cobertura %s" % p["cod"], cob, esc.cell(row=r, column=17).value)
-    cls = ("SEM EQUIPE" if cob == "DESCOBERTO" else
+    cls = ("—" if cob == "NÃO OPERA HOJE" else "SEM EQUIPE" if cob == "DESCOBERTO" else
+           "—" if ap is None else
            "ADEQUADO" if ap >= AF_META else "ATENÇÃO" if ap >= AF_MIN else "CRÍTICO")
     chk("classificação %s" % p["cod"], cls, esc.cell(row=r, column=18).value)
     if p["tipo"] == "Sala cirúrgica":
@@ -158,8 +184,8 @@ chk("KPI vagas cobertas",
 chk("quadro", len([t for t in EQ if t["status"] == "Ativo"]), pai["A10"].value)
 chk("ausentes hoje", len([t for t in EQ if t["status"] == "Ativo" and situacao(t) != "Disponível"]), pai["B10"].value)
 chk("disponíveis", len(disp), pai["C10"].value)
-chk("vagas necessárias", sum(p["nec"] for p in POSTOS), pai["D10"].value)
-chk("déficit", max(0, sum(p["nec"] for p in POSTOS) - len(disp)), pai["E10"].value)
+chk("vagas necessárias", sum(nec_hoje(p) for p in POSTOS), pai["D10"].value)
+chk("déficit", max(0, sum(nec_hoje(p) for p in POSTOS) - len(disp)), pai["E10"].value)
 desc = [p for p in POSTOS if not esc.cell(row=p["linha"], column=10).value
         and not esc.cell(row=p["linha"], column=13).value]
 chk("postos descobertos", len(desc), pai["F10"].value)
@@ -173,7 +199,7 @@ chk("reserva", len(disp - escalados), pai["H10"].value)
 for i, h in enumerate(HABS):
     if not h:
         continue
-    r = 41 + i
+    r = B5_R1 + i
     n = sum(1 for c in CIRS if c["ocup"] > 0 and c["data"] == DATA and ESPH.get(c["esp"]) == h)
     hs = sum(c["dur"] for c in CIRS if c["ocup"] > 0 and c["data"] == DATA and ESPH.get(c["esp"]) == h) / 60
     chk("habilidade %s nº" % h, n, pai.cell(row=r, column=2).value)
@@ -199,7 +225,7 @@ for pi, p in enumerate(POSTOS):
     for k, dur in enumerate(janelas):
         r = 2 + pi * 13 + k
         chk("janela %s#%d" % (p["cod"], k), dur, jog.cell(row=r, column=5).value)
-    r0 = 58 + pi
+    r0 = B6_R1 + pi
     chk("painel livre total %s" % p["cod"], sum(janelas), pai.cell(row=r0, column=2).value)
     chk("painel maior janela %s" % p["cod"], max(janelas), pai.cell(row=r0, column=3).value)
     chk("painel janelas aproveitáveis %s" % p["cod"],
@@ -215,7 +241,25 @@ for i, (tipo, sig) in enumerate(zip(TIPOS, SIGLAS)):
             dia = cal.cell(row=2, column=3 + d).value
             if dia and a["ini"] <= dia <= a["fim"] and a["tec"] in NIV:
                 dias += 1
-    chk("calendário dias de %s" % tipo, dias, pai.cell(row=14 + i, column=3).value)
+    chk("calendário dias de %s" % tipo, dias, pai.cell(row=B3_R1 + i, column=3).value)
+
+# 8. rodapé do calendário — funcionários, vagas e déficit dia a dia
+CAL_FIM = 3 + 30
+for d in range(31):
+    dia = cal.cell(row=2, column=3 + d).value
+    if not dia:
+        continue
+    disp_d = sum(1 for t in EQ if t["status"] == "Ativo" and not any(
+        a["tec"] == t["nome"] and a["ini"] and a["fim"] and a["ini"] <= dia <= a["fim"] for a in AUS))
+    wd = dia.weekday() + 1
+    ferd = dia in FERIADOS
+    vagas_d = sum(p["nec"] for p in POSTOS if p["status"] == "Ativo" and not (
+        (p["func"] == "Seg a Sex" and (wd > 5 or ferd)) or
+        (p["func"] == "Seg a Sáb" and (wd > 6 or ferd))))
+    chk("calendário %s funcionários" % dia.strftime("%d/%m"), disp_d, cal.cell(row=CAL_FIM + 2, column=3 + d).value)
+    chk("calendário %s vagas" % dia.strftime("%d/%m"), vagas_d, cal.cell(row=CAL_FIM + 3, column=3 + d).value)
+    chk("calendário %s déficit" % dia.strftime("%d/%m"), max(0, vagas_d - disp_d),
+        cal.cell(row=CAL_FIM + 4, column=3 + d).value)
 
 ok = sum(1 for r in res if r[0])
 print("RECONCILIAÇÃO: %d verificações · %d OK · %d divergências" % (len(res), ok, len(res) - ok))
