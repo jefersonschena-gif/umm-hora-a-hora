@@ -6,13 +6,12 @@ SAIDA = os.environ.get("SAIDA", os.path.dirname(os.path.abspath(__file__)))
 SRC = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
                    "Centro_Cirurgico_Escala_Diaria_v2.xlsx")
 wb = openpyxl.load_workbook(SRC)
-hab, esp, pos, eqp, mat, aus, mapa, esc = (wb["Habilidades"], wb["Especialidades"], wb["Postos"],
-                                           wb["Equipe"], wb["Matriz_Habilidades"], wb["Ausencias"],
-                                           wb["Mapa_Cirurgico"], wb["Escala_Dia"])
-# (a) nova habilidade na linha 12 -> coluna O da Matriz (índice 11)
-hab["A12"], hab["B12"], hab["C12"] = "H11", "Cirurgia Torácica", "Cirúrgica"
-# (b) nova especialidade apontando para ela
-esp["A16"], esp["B16"], esp["C16"], esp["D16"] = "Cirurgia Torácica", "Cirurgia Torácica", 180, "Sim"
+esp, pos, eqp, mat, aus, mapa, esc = (wb["Especialidades"], wb["Postos"], wb["Equipe"],
+                                      wb["Matriz_Habilidades"], wb["Ausencias"],
+                                      wb["Mapa_Cirurgico"], wb["Escala_Dia"])
+# (a+b) nova especialidade na linha 18 da lista única -> vira coluna U da Matriz (índice 16)
+esp["A18"], esp["B18"], esp["C18"] = "TOR", "Cirurgia Torácica", "Cirúrgica"
+esp["D18"], esp["E18"] = 180, "Sim"
 # (c) nova sala na linha 13 de Postos
 pos["A13"], pos["B13"], pos["C13"] = "SO-09", "Sala 9 — Torácica", "Sala cirúrgica"
 pos["D13"], pos["E13"], pos["F13"] = 2, 2, 12
@@ -24,7 +23,7 @@ for i, (mt, nm, fn) in enumerate([("TEC-023", "Ariane Fontella", "Circulante"),
     eqp.cell(row=r, column=1, value=mt); eqp.cell(row=r, column=2, value=nm)
     eqp.cell(row=r, column=3, value="000000")        # COREN
     eqp.cell(row=r, column=4, value=fn); eqp.cell(row=r, column=5, value="Ativo")
-    mat.cell(row=r, column=4 + 11, value=3)     # nível 3 na nova habilidade
+    mat.cell(row=r, column=4 + 16, value=3)     # nível 3 na nova especialidade
     mat.cell(row=r, column=4, value=1)
 # (e) +40 cirurgias (6 na sala nova, 34 espalhadas)
 lin = [r for r in range(2, 202) if mapa.cell(row=r, column=2).value is None][0]
@@ -60,4 +59,4 @@ for i, (tec, tipo, d1, d2) in enumerate([
 # (g) escalar a dupla da sala nova (linha 13 da Escala_Dia)
 esc["J13"], esc["M13"] = "Ariane Fontella", "Márcio Dalpiaz"
 wb.save(os.path.join(SAIDA, "t3.xlsx"))
-print("expansão aplicada: +2 técnicos, +1 habilidade, +1 especialidade, +1 sala, +%d cirurgias, +5 ausências" % len(novas))
+print("expansão aplicada: +2 técnicos, +1 especialidade, +1 sala, +%d cirurgias, +5 ausências" % len(novas))

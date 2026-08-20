@@ -17,7 +17,7 @@ distribui os técnicos disponíveis pelos postos por prioridade, classifica cada
 | **Total** | **20 vagas/dia** | contra um quadro de **22 técnicos** |
 
 Plantão da **manhã, 07:00–13:00**. Limpeza e preparação: **20 min** após cada cirurgia.
-10 habilidades por técnico. Não se realizam cirurgias cardíacas.
+Não se realizam cirurgias cardíacas.
 Cada posto declara em que dias funciona (Todos os dias / Seg a Sex / Seg a Sáb); nos fins de semana
 e nos feriados cadastrados os postos de dia útil não operam, e as vagas do dia caem junto — é por isso
 que um domingo pede 7 técnicos e não 20.
@@ -40,23 +40,28 @@ cirurgias precisam de remanejamento.
 
 | Camada | Abas |
 |---|---|
-| Entrada | `Parâmetros`, `Habilidades`, `Especialidades`, `Postos`, `Equipe`, `Matriz_Habilidades`, `Ausencias`, `Mapa_Cirurgico`, colunas TÉCNICO 1/2 da `Escala_Dia` |
-| Processamento | `Calc_Mix` (minutos por habilidade em cada posto), `Calc_Afinidade` (técnicos disponíveis e ainda não escalados) |
+| Entrada | `Parâmetros`, `Especialidades`, `Postos`, `Equipe`, `Matriz_Habilidades`, `Ausencias`, `Mapa_Cirurgico`, colunas TÉCNICO 1/2 da `Escala_Dia` |
+| Processamento | `Calc_Mix` (minutos por especialidade em cada posto), `Calc_Afinidade` (técnicos disponíveis e ainda não escalados) |
 | Saída | `Escala_Dia`, `Sugestao_Tecnicos`, `Jogo_de_Sala`, `Calendario_Ausencias`, `Painel`, `Base_Historico` |
 
 ### Regra de afinidade
 
+**A habilidade do técnico é a própria especialidade da cirurgia** — existe uma lista só
+(`Especialidades`), que alimenta ao mesmo tempo a agenda do `Mapa_Cirurgico` e as colunas da
+`Matriz_Habilidades`. Duas linhas dessa lista são de tipo *Apoio* (Admissão e Sala de recém-nascido),
+porque esses postos exigem competência mas não são cirurgias.
+
 ```
-afinidade(técnico, posto) = Σ minutos(habilidade) × nível(técnico, habilidade)
-                            ─────────────────────────────────────────────────
-                                      Σ minutos(habilidade)
+afinidade(técnico, posto) = Σ minutos(especialidade) × nível(técnico, especialidade)
+                            ───────────────────────────────────────────────────────
+                                      Σ minutos(especialidade)
 
 afinidade(sala)  = Peso_Circulante × circulante + Peso_Instrumentador × instrumentador
 afinidade(apoio) = média simples dos técnicos do posto
 ```
 
 Níveis: 0 não apto · 1 em treinamento · 2 apto · 3 referência. Postos sem agenda (admissão,
-box, RN, sala de urgência sem cirurgia marcada) usam a **habilidade de referência** cadastrada
+box, RN, sala de urgência sem cirurgia marcada) usam a **especialidade de referência** cadastrada
 em `Postos`. Pesos, limites e demais premissas ficam em `Parâmetros` — nenhuma constante de
 negócio está embutida em fórmula.
 
@@ -109,8 +114,8 @@ SAIDA=/tmp python3 testes/t5_sensibilidade.py
 | Teste | Resultado |
 |---|---|
 | Recálculo completo (LibreOffice) | 0 erros de fórmula |
-| Reconciliação independente em Python | 338 verificações, 0 divergências |
-| Expansão (+2 técnicos, +1 habilidade, +1 especialidade, +1 sala, +40 cirurgias, +5 ausências) | 0 erros · 399 verificações, 0 divergências |
+| Reconciliação independente em Python | 363 verificações, 0 divergências |
+| Expansão (+2 técnicos, +1 especialidade, +1 sala, +40 cirurgias, +5 ausências) | 0 erros · 424 verificações, 0 divergências |
 | Entradas degeneradas (9 casos no mapa + 3 em ausências + 4 na escala) | todas tratadas, 0 erros de fórmula |
 | Sensibilidade (pesos, meta, limpeza, janela mínima, data da escala) | aprovado, arquivo original inalterado |
 
@@ -118,7 +123,7 @@ SAIDA=/tmp python3 testes/t5_sensibilidade.py
 
 * Compatibilidade deliberada com Excel e LibreOffice: só SUMIFS, COUNTIFS, SUMPRODUCT,
   INDEX, MATCH, LARGE, IF e IFERROR. Sem macros, Power Query, Power Pivot ou matrizes dinâmicas.
-* Capacidades pré-dimensionadas: 16 postos, 14 habilidades, 24 especialidades, 30 técnicos,
+* Capacidades pré-dimensionadas: 16 postos, 20 especialidades, 30 técnicos,
   200 cirurgias/dia, 150 registros de ausência, 20 feriados, 31 dias de calendário, 13 janelas por
   sala, 2000 linhas de histórico.
 * `Base_Historico` é alimentada por cópia/colagem de valores no fechamento do dia

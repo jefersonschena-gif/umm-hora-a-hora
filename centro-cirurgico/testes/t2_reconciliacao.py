@@ -5,7 +5,7 @@ import sys, openpyxl
 from collections import defaultdict
 
 wb = openpyxl.load_workbook(sys.argv[1], data_only=True)
-par, hab, esp, pos = wb["Parâmetros"], wb["Habilidades"], wb["Especialidades"], wb["Postos"]
+par, esp, pos = wb["Parâmetros"], wb["Especialidades"], wb["Postos"]
 eqp, mat, aus, cal = wb["Equipe"], wb["Matriz_Habilidades"], wb["Ausencias"], wb["Calendario_Ausencias"]
 mapa, mix, esc, sug = wb["Mapa_Cirurgico"], wb["Calc_Mix"], wb["Escala_Dia"], wb["Sugestao_Tecnicos"]
 jog, pai = wb["Jogo_de_Sala"], wb["Painel"]
@@ -20,10 +20,10 @@ BASE = T_INI.hour * 60 + T_INI.minute
 TIPOS = [par.cell(row=38 + i, column=1).value for i in range(7)]
 SIGLAS = [par.cell(row=38 + i, column=2).value for i in range(7)]
 
-HABS = [hab.cell(row=2 + i, column=2).value for i in range(14)]
+N_ESP = 20
+HABS = [esp.cell(row=2 + i, column=2).value for i in range(N_ESP)]
 HIDX = {h: i for i, h in enumerate(HABS) if h}
-ESPH = {esp.cell(row=2 + i, column=1).value: esp.cell(row=2 + i, column=2).value
-        for i in range(24) if esp.cell(row=2 + i, column=1).value}
+ESPH = {h: h for h in HABS if h}          # a habilidade É a especialidade
 POSTOS = []
 for i in range(16):
     cod = pos.cell(row=2 + i, column=1).value
@@ -50,7 +50,7 @@ for i in range(30):
     if n:
         EQ.append(dict(nome=n, funcao=eqp.cell(row=2 + i, column=4).value,
                        status=eqp.cell(row=2 + i, column=5).value, linha=2 + i))
-NIV = {mat.cell(row=r, column=2).value: [mat.cell(row=r, column=4 + j).value or 0 for j in range(14)]
+NIV = {mat.cell(row=r, column=2).value: [mat.cell(row=r, column=4 + j).value or 0 for j in range(N_ESP)]
        for r in range(2, 32) if mat.cell(row=r, column=2).value}
 PERIODO_INI = par["B13"].value
 FERIADOS = {par.cell(row=48 + i, column=1).value for i in range(20)
@@ -82,13 +82,13 @@ for r in range(2, 202):
                      data=mapa.cell(row=r, column=1).value))
 
 def mix_posto(p):
-    m = [0.0] * 14
+    m = [0.0] * N_ESP
     if p["tipo"] == "Sala cirúrgica":
         for c in CIRS:
             if c["sala"] == p["cod"] and c["ocup"] > 0 and c["data"] == DATA:
                 m[HIDX[ESPH[c["esp"]]]] += c["ocup"]
     if sum(m) == 0:
-        m = [0.0] * 14
+        m = [0.0] * N_ESP
         m[HIDX[p["hab"]]] = float(T_MIN)
     return m
 
@@ -101,7 +101,7 @@ def afin(nome, p):
 B3_R1 = 14
 B4_R1 = B3_R1 + len(TIPOS) + 3
 B5_R1 = B4_R1 + 16 + 3
-B6_R1 = B5_R1 + 14 + 3
+B6_R1 = B5_R1 + N_ESP + 3
 
 res = []
 def chk(nome, esp_, obt, tol=1e-9):
@@ -122,12 +122,13 @@ for t in EQ:
 # 2. Calc_Mix e ocupação por posto
 for p in POSTOS:
     m = mix_posto(p); r = p["linha"]
-    chk("mix total %s" % p["cod"], sum(m), mix.cell(row=r, column=20).value)
+    MIX_TOT, MIX_OCU = 5 + N_ESP + 1, 5 + N_ESP + 3
+    chk("mix total %s" % p["cod"], sum(m), mix.cell(row=r, column=MIX_TOT).value)
     agendado = sum(c["ocup"] for c in CIRS if c["sala"] == p["cod"] and c["data"] == DATA)
     chk("min. agendados %s" % p["cod"], agendado if p["tipo"] == "Sala cirúrgica" else 0,
         mix.cell(row=r, column=5).value)
     if p["tipo"] == "Sala cirúrgica":
-        chk("ocupação %s" % p["cod"], agendado / T_MIN, mix.cell(row=r, column=22).value)
+        chk("ocupação %s" % p["cod"], agendado / T_MIN, mix.cell(row=r, column=MIX_OCU).value)
 
 # 3. Escala do dia
 disp = {t["nome"] for t in EQ if situacao(t) == "Disponível"}
@@ -167,9 +168,9 @@ for p in POSTOS:
     inapt = False
     for nome in (t1, t2):
         if nome in NIV:
-            inapt = inapt or any(m[i] / tot >= PART_MIN and NIV[nome][i] <= NIV_CRIT for i in range(14))
+            inapt = inapt or any(m[i] / tot >= PART_MIN and NIV[nome][i] <= NIV_CRIT for i in range(N_ESP))
     chk("chk inaptidão %s" % p["cod"],
-        "Inaptidão em habilidade relevante" if inapt else "OK", esc.cell(row=r, column=22).value)
+        "Inaptidão em especialidade relevante" if inapt else "OK", esc.cell(row=r, column=22).value)
 
 # 4. Painel — indicadores e cobertura de pessoal
 chk("KPI cirurgias", sum(1 for c in CIRS if c["ocup"] > 0 and c["data"] == DATA), pai["B6"].value)
@@ -202,11 +203,11 @@ for i, h in enumerate(HABS):
     r = B5_R1 + i
     n = sum(1 for c in CIRS if c["ocup"] > 0 and c["data"] == DATA and ESPH.get(c["esp"]) == h)
     hs = sum(c["dur"] for c in CIRS if c["ocup"] > 0 and c["data"] == DATA and ESPH.get(c["esp"]) == h) / 60
-    chk("habilidade %s nº" % h, n, pai.cell(row=r, column=2).value)
-    chk("habilidade %s horas" % h, hs, pai.cell(row=r, column=3).value)
-    chk("habilidade %s aptos no quadro" % h,
+    chk("especialidade %s nº" % h, n, pai.cell(row=r, column=2).value)
+    chk("especialidade %s horas" % h, hs, pai.cell(row=r, column=3).value)
+    chk("especialidade %s aptos no quadro" % h,
         sum(1 for t in EQ if t["status"] == "Ativo" and NIV[t["nome"]][i] >= 2), pai.cell(row=r, column=5).value)
-    chk("habilidade %s aptos disponíveis" % h,
+    chk("especialidade %s aptos disponíveis" % h,
         sum(1 for t in EQ if situacao(t) == "Disponível" and NIV[t["nome"]][i] >= 2),
         pai.cell(row=r, column=6).value)
 
