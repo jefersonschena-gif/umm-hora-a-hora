@@ -1,177 +1,225 @@
 # -*- coding: utf-8 -*-
-"""Reconciliação independente: recalcula tudo em Python a partir das ENTRADAS
-lidas do arquivo recalculado e compara com os valores produzidos pelas fórmulas."""
+"""Teste 2 — reconciliação independente: recalcula tudo em Python a partir das ENTRADAS
+lidas do arquivo recalculado e compara com o que as fórmulas produziram."""
 import sys, openpyxl
 from collections import defaultdict
 
-f = sys.argv[1]
-wb = openpyxl.load_workbook(f, data_only=True)
-par, esp, sal, eqp, mat = wb["Parâmetros"], wb["Especialidades"], wb["Salas"], wb["Equipe"], wb["Matriz_Habilidades"]
-mapa, mix, esc, pai, sug = wb["Mapa_Cirurgico"], wb["Calc_Mix"], wb["Escala_Duplas"], wb["Painel"], wb["Sugestao_Duplas"]
+wb = openpyxl.load_workbook(sys.argv[1], data_only=True)
+par, hab, esp, pos = wb["Parâmetros"], wb["Habilidades"], wb["Especialidades"], wb["Postos"]
+eqp, mat, aus, cal = wb["Equipe"], wb["Matriz_Habilidades"], wb["Ausencias"], wb["Calendario_Ausencias"]
+mapa, mix, esc, sug = wb["Mapa_Cirurgico"], wb["Calc_Mix"], wb["Escala_Dia"], wb["Sugestao_Tecnicos"]
+jog, pai = wb["Jogo_de_Sala"], wb["Painel"]
 
-# ---- premissas
-P_INSTR = par["B17"].value; P_CIRC = par["B18"].value
-AF_META = par["B20"].value; AF_MIN = par["B21"].value
-NIV_CRIT = par["B22"].value; PART_MIN = par["B23"].value
-SETUP = par["B26"].value; OC_MAX = par["B28"].value
-turnos = {}
-for r in range(32, 35):
-    t = par.cell(row=r, column=1).value
-    ini, fim = par.cell(row=r, column=2).value, par.cell(row=r, column=3).value
-    mi = ini.hour*60+ini.minute; mf = fim.hour*60+fim.minute
-    turnos[t] = (mi, (mf-mi) % 1440 or 1440)
-ESPS = [esp.cell(row=r, column=2).value for r in range(2, 22)]
-ESPI = {e: i for i, e in enumerate(ESPS) if e}
-SALAS = [sal.cell(row=r, column=1).value for r in range(2, 14)]
-SALAS = [s for s in SALAS if s]
-eq_status = {}; eq_turno = {}; eq_func = {}
-for r in range(2, 152):
-    n = eqp.cell(row=r, column=2).value
-    if n:
-        eq_func[n] = eqp.cell(row=r, column=3).value
-        eq_turno[n] = eqp.cell(row=r, column=4).value
-        eq_status[n] = eqp.cell(row=r, column=5).value
-niveis = {}
-for r in range(2, 152):
-    n = mat.cell(row=r, column=2).value
-    if n:
-        niveis[n] = [mat.cell(row=r, column=4+j).value or 0 for j in range(20)]
+DATA = par["B6"].value
+T_INI, T_FIM, T_MIN = par["B10"].value, par["B11"].value, par["B12"].value
+P_INSTR, P_CIRC = par["B22"].value, par["B23"].value
+AF_META, AF_MIN = par["B25"].value, par["B26"].value
+NIV_CRIT, PART_MIN = par["B27"].value, par["B28"].value
+LIMPEZA, JANELA_MIN = par["B31"].value, par["B32"].value
+BASE = T_INI.hour * 60 + T_INI.minute
+TIPOS = [par.cell(row=38 + i, column=1).value for i in range(5)]
+SIGLAS = [par.cell(row=38 + i, column=2).value for i in range(5)]
 
-# ---- ETL independente do mapa
-cirs = []
-for r in range(2, 302):
+HABS = [hab.cell(row=2 + i, column=2).value for i in range(14)]
+HIDX = {h: i for i, h in enumerate(HABS) if h}
+ESPH = {esp.cell(row=2 + i, column=1).value: esp.cell(row=2 + i, column=2).value
+        for i in range(24) if esp.cell(row=2 + i, column=1).value}
+POSTOS = []
+for i in range(16):
+    cod = pos.cell(row=2 + i, column=1).value
+    if cod:
+        POSTOS.append(dict(cod=cod, nome=pos.cell(row=2 + i, column=2).value,
+                           tipo=pos.cell(row=2 + i, column=3).value,
+                           nec=pos.cell(row=2 + i, column=4).value,
+                           hab=pos.cell(row=2 + i, column=7).value, linha=2 + i))
+EQ = []
+for i in range(30):
+    n = eqp.cell(row=2 + i, column=2).value
+    if n:
+        EQ.append(dict(nome=n, funcao=eqp.cell(row=2 + i, column=3).value,
+                       status=eqp.cell(row=2 + i, column=4).value, linha=2 + i))
+NIV = {mat.cell(row=r, column=2).value: [mat.cell(row=r, column=4 + j).value or 0 for j in range(14)]
+       for r in range(2, 32) if mat.cell(row=r, column=2).value}
+AUS = [dict(tec=aus.cell(row=r, column=1).value, tipo=aus.cell(row=r, column=2).value,
+            ini=aus.cell(row=r, column=3).value, fim=aus.cell(row=r, column=4).value)
+       for r in range(2, 152) if aus.cell(row=r, column=1).value]
+
+def situacao(t):
+    if t["status"] != "Ativo":
+        return t["status"]
+    for a in AUS:
+        if a["tec"] == t["nome"] and a["ini"] and a["fim"] and a["ini"] <= DATA <= a["fim"]:
+            return a["tipo"]
+    return "Disponível"
+
+CIRS = []
+for r in range(2, 202):
     s = mapa.cell(row=r, column=2).value
-    if not s: continue
-    t = mapa.cell(row=r, column=3).value
-    ini, fim = mapa.cell(row=r, column=4).value, mapa.cell(row=r, column=5).value
-    e = mapa.cell(row=r, column=6).value; st = mapa.cell(row=r, column=10).value
-    if ini is None or fim is None: continue
-    dur = ((fim.hour*60+fim.minute) - (ini.hour*60+ini.minute)) % 1440
-    ocup = 0 if st in ("Cancelada", "Suspensa") else dur + SETUP
-    cirs.append(dict(sala=s, turno=t, esp=e, dur=dur, ocup=ocup, status=st, row=r))
+    ini, fim = mapa.cell(row=r, column=3).value, mapa.cell(row=r, column=4).value
+    if not s or ini is None or fim is None:
+        continue
+    dur = ((fim.hour * 60 + fim.minute) - (ini.hour * 60 + ini.minute)) % 1440
+    st = mapa.cell(row=r, column=10).value
+    ocup = 0 if (st in ("Cancelada", "Suspensa") or dur <= 0) else dur + LIMPEZA
+    rel = ((ini.hour * 60 + ini.minute) - BASE) % 1440
+    CIRS.append(dict(sala=s, esp=mapa.cell(row=r, column=5).value, dur=dur, ocup=ocup,
+                     status=st, rel=rel, relfim=rel + dur if ocup else 0,
+                     data=mapa.cell(row=r, column=1).value))
 
-mixp = defaultdict(lambda: [0.0]*20)
-for c in cirs:
-    if c["esp"] in ESPI:
-        mixp[(c["sala"], c["turno"])][ESPI[c["esp"]]] += c["ocup"]
+def mix_posto(p):
+    m = [0.0] * 14
+    if p["tipo"] == "Sala cirúrgica":
+        for c in CIRS:
+            if c["sala"] == p["cod"] and c["ocup"] > 0 and c["data"] == DATA:
+                m[HIDX[ESPH[c["esp"]]]] += c["ocup"]
+    if sum(m) == 0:
+        m = [0.0] * 14
+        m[HIDX[p["hab"]]] = float(T_MIN)
+    return m
 
-def afin(nome, sala, turno):
-    m = mixp[(sala, turno)]; tot = sum(m)
-    if tot == 0 or nome not in niveis: return None
-    return sum(a*b for a, b in zip(m, niveis[nome]))/tot
+def afin(nome, p):
+    m = mix_posto(p); tot = sum(m)
+    if not tot or nome not in NIV:
+        return None
+    return sum(a * b for a, b in zip(m, NIV[nome])) / tot
 
 res = []
-def chk(nome, esperado, obtido, tol=1e-9):
-    if esperado is None and (obtido is None or obtido == ""):
+def chk(nome, esp_, obt, tol=1e-9):
+    if esp_ is None and (obt is None or obt == ""):
         ok = True
-    elif esperado is None or obtido is None or obtido == "":
+    elif esp_ is None or obt is None or obt == "":
         ok = False
-    elif isinstance(esperado, str):
-        ok = str(obtido) == esperado
+    elif isinstance(esp_, str):
+        ok = str(obt) == esp_
     else:
-        ok = abs(float(obtido) - float(esperado)) <= tol
-    res.append((ok, nome, esperado, obtido))
+        ok = abs(float(obt) - float(esp_)) <= tol
+    res.append((ok, nome, esp_, obt))
 
-# ---- 1. Calc_Mix: total de minutos e ocupação por sala x turno
-for r in range(2, 38):
-    s = mix.cell(row=r, column=2).value
-    if not s: continue
-    t = mix.cell(row=r, column=3).value
-    tot = sum(mixp[(s, t)])
-    chk("Calc_Mix total %s %s" % (s, t), tot, mix.cell(row=r, column=24).value)
-    chk("Calc_Mix ocup %s %s" % (s, t), tot/turnos[t][1], mix.cell(row=r, column=26).value)
+# 1. situação de cada técnico na data
+for t in EQ:
+    chk("situação %s" % t["nome"], situacao(t), eqp.cell(row=t["linha"], column=5).value)
 
-# ---- 2. Escala: afinidades, classificação, ocupação, nº cirurgias
-for r in range(2, 38):
-    s = esc.cell(row=r, column=2).value
-    if not s: continue
-    t = esc.cell(row=r, column=3).value
-    circ, instr = esc.cell(row=r, column=8).value, esc.cell(row=r, column=10).value
-    ac, ai = afin(circ, s, t), afin(instr, s, t)
-    chk("afin circ %s %s" % (s, t), ac, esc.cell(row=r, column=12).value)
-    chk("afin instr %s %s" % (s, t), ai, esc.cell(row=r, column=13).value)
-    dupla = None if (ac is None or ai is None) else P_CIRC*ac + P_INSTR*ai
-    chk("afin dupla %s %s" % (s, t), dupla, esc.cell(row=r, column=14).value)
-    ncir = sum(1 for c in cirs if c["sala"] == s and c["turno"] == t and c["ocup"] > 0)
-    chk("n cirurgias %s %s" % (s, t), ncir, esc.cell(row=r, column=4).value)
-    tot = sum(mixp[(s, t)])
-    chk("ocupação %s %s" % (s, t), tot/turnos[t][1] if turnos[t][1] else None, esc.cell(row=r, column=7).value)
-    if ncir == 0: cls = "SEM CIRURGIA"
-    elif dupla is None: cls = "SEM DUPLA"
-    elif dupla >= AF_META: cls = "ADEQUADA"
-    elif dupla >= AF_MIN: cls = "ATENÇÃO"
-    else: cls = "CRÍTICA"
-    chk("classificação %s %s" % (s, t), cls, esc.cell(row=r, column=15).value)
+# 2. Calc_Mix e ocupação por posto
+for p in POSTOS:
+    m = mix_posto(p); r = p["linha"]
+    chk("mix total %s" % p["cod"], sum(m), mix.cell(row=r, column=20).value)
+    agendado = sum(c["ocup"] for c in CIRS if c["sala"] == p["cod"] and c["data"] == DATA)
+    chk("min. agendados %s" % p["cod"], agendado if p["tipo"] == "Sala cirúrgica" else 0,
+        mix.cell(row=r, column=5).value)
+    if p["tipo"] == "Sala cirúrgica":
+        chk("ocupação %s" % p["cod"], agendado / T_MIN, mix.cell(row=r, column=22).value)
+
+# 3. Escala do dia
+disp = {t["nome"] for t in EQ if situacao(t) == "Disponível"}
+for p in POSTOS:
+    r = p["linha"]
+    t1, t2 = esc.cell(row=r, column=10).value, esc.cell(row=r, column=13).value
+    a1, a2 = (afin(t1, p) if t1 else None), (afin(t2, p) if t2 else None)
+    chk("afinidade 1 %s" % p["cod"], a1, esc.cell(row=r, column=12).value)
+    chk("afinidade 2 %s" % p["cod"], a2, esc.cell(row=r, column=15).value)
+    if a1 is None and a2 is None:
+        ap = None
+    elif a2 is None:
+        ap = a1
+    elif a1 is None:
+        ap = a2
+    else:
+        ap = (P_CIRC * a1 + P_INSTR * a2) if p["tipo"] == "Sala cirúrgica" else (a1 + a2) / 2
+    chk("afinidade do posto %s" % p["cod"], ap, esc.cell(row=r, column=16).value)
+    nal = (1 if t1 else 0) + (1 if t2 else 0)
+    cob = "DESCOBERTO" if nal == 0 else ("COMPLETO" if nal >= p["nec"] else
+                                         "INCOMPLETO (%d de %d)" % (nal, p["nec"]))
+    chk("cobertura %s" % p["cod"], cob, esc.cell(row=r, column=17).value)
+    cls = ("SEM EQUIPE" if cob == "DESCOBERTO" else
+           "ADEQUADO" if ap >= AF_META else "ATENÇÃO" if ap >= AF_MIN else "CRÍTICO")
+    chk("classificação %s" % p["cod"], cls, esc.cell(row=r, column=18).value)
+    if p["tipo"] == "Sala cirúrgica":
+        n = sum(1 for c in CIRS if c["sala"] == p["cod"] and c["ocup"] > 0 and c["data"] == DATA)
+        chk("nº cirurgias %s" % p["cod"], n, esc.cell(row=r, column=7).value)
     # alerta de inaptidão
-    m = mixp[(s, t)]; tt = sum(m)
+    m = mix_posto(p); tot = sum(m)
     inapt = False
-    if tt > 0:
-        for nome in (circ, instr):
-            if nome in niveis:
-                inapt = inapt or any(m[i]/tt >= PART_MIN and niveis[nome][i] <= NIV_CRIT for i in range(20))
-    chk("chk inaptidão %s %s" % (s, t), "Inaptidão em especialidade relevante" if inapt else "OK",
-        esc.cell(row=r, column=19).value)
+    for nome in (t1, t2):
+        if nome in NIV:
+            inapt = inapt or any(m[i] / tot >= PART_MIN and NIV[nome][i] <= NIV_CRIT for i in range(14))
+    chk("chk inaptidão %s" % p["cod"],
+        "Inaptidão em habilidade relevante" if inapt else "OK", esc.cell(row=r, column=22).value)
 
-# ---- 3. Painel: KPIs
-chk("KPI cirurgias", sum(1 for c in cirs if c["ocup"] > 0), pai["B6"].value)
-chk("KPI canceladas/suspensas", sum(1 for c in cirs if c["status"] in ("Cancelada", "Suspensa")), pai["C6"].value)
-chk("KPI horas cirúrgicas", sum(c["dur"] for c in cirs if c["ocup"] > 0)/60, pai["D6"].value)
-tot_oc = sum(sum(mixp[(s, t)]) for s in SALAS for t in turnos)
-tot_disp = sum(turnos[t][1] for s in SALAS for t in turnos)
-chk("KPI ocupação média", tot_oc/tot_disp, pai["E6"].value)
-num = den = 0.0
-for r in range(2, 38):
-    s = esc.cell(row=r, column=2).value
-    if not s: continue
-    t = esc.cell(row=r, column=3).value
-    a = esc.cell(row=r, column=14).value
-    if isinstance(a, (int, float)):
-        w = sum(mixp[(s, t)]); num += a*w; den += w
-chk("KPI afinidade média", num/den, pai["F6"].value)
-alocados = set()
-for r in range(2, 38):
-    for c in (8, 10):
-        v = esc.cell(row=r, column=c).value
-        if v: alocados.add(v)
-chk("KPI técnicos escalados", len(alocados), pai["H6"].value)
+# 4. Painel — indicadores e cobertura de pessoal
+chk("KPI cirurgias", sum(1 for c in CIRS if c["ocup"] > 0 and c["data"] == DATA), pai["B6"].value)
+chk("KPI canceladas", sum(1 for c in CIRS if c["status"] in ("Cancelada", "Suspensa") and c["data"] == DATA),
+    pai["C6"].value)
+chk("KPI horas", sum(c["dur"] for c in CIRS if c["ocup"] > 0 and c["data"] == DATA) / 60, pai["D6"].value)
+salas = [p for p in POSTOS if p["tipo"] == "Sala cirúrgica"]
+chk("KPI ocupação média",
+    sum(c["ocup"] for c in CIRS if c["data"] == DATA) / (len(salas) * T_MIN), pai["E6"].value)
+chk("KPI vagas cobertas",
+    sum(1 for p in POSTOS for col in (10, 13) if esc.cell(row=p["linha"], column=col).value), pai["H6"].value)
+chk("quadro", len([t for t in EQ if t["status"] == "Ativo"]), pai["A10"].value)
+chk("ausentes hoje", len([t for t in EQ if t["status"] == "Ativo" and situacao(t) != "Disponível"]), pai["B10"].value)
+chk("disponíveis", len(disp), pai["C10"].value)
+chk("vagas necessárias", sum(p["nec"] for p in POSTOS), pai["D10"].value)
+chk("déficit", max(0, sum(p["nec"] for p in POSTOS) - len(disp)), pai["E10"].value)
+desc = [p for p in POSTOS if not esc.cell(row=p["linha"], column=10).value
+        and not esc.cell(row=p["linha"], column=13).value]
+chk("postos descobertos", len(desc), pai["F10"].value)
+chk("cirurgias a remanejar",
+    sum(1 for c in CIRS if c["ocup"] > 0 and c["data"] == DATA and c["sala"] in {p["cod"] for p in desc}),
+    pai["G10"].value)
+escalados = {esc.cell(row=p["linha"], column=col).value for p in POSTOS for col in (10, 13)} - {None}
+chk("reserva", len(disp - escalados), pai["H10"].value)
 
-# ---- 4. Painel por sala e por especialidade
-for i, s in enumerate(SALAS):
-    r = 10+i
-    oc = sum(sum(mixp[(s, t)]) for t in turnos); dp = sum(turnos[t][1] for t in turnos)
-    chk("painel sala %s horas" % s, oc/60, pai.cell(row=r, column=4).value)
-    chk("painel sala %s ocupação" % s, oc/dp, pai.cell(row=r, column=5).value)
-tot_h = sum(c["dur"] for c in cirs if c["ocup"] > 0)/60
-for i, e in enumerate(ESPS):
-    if not e: continue
-    r = 31+i
-    h = sum(c["dur"] for c in cirs if c["ocup"] > 0 and c["esp"] == e)/60
-    n = sum(1 for c in cirs if c["ocup"] > 0 and c["esp"] == e)
-    chk("painel esp %s horas" % e, h, pai.cell(row=r, column=3).value)
-    chk("painel esp %s nº" % e, n, pai.cell(row=r, column=2).value)
-    chk("painel esp %s %% horas" % e, h/tot_h, pai.cell(row=r, column=4).value)
-    aptos = sum(1 for nm in niveis if eq_status.get(nm) == "Ativo" and niveis[nm][i] >= 2)
-    chk("painel esp %s aptos" % e, aptos, pai.cell(row=r, column=5).value)
+# 5. Painel por habilidade
+for i, h in enumerate(HABS):
+    if not h:
+        continue
+    r = 41 + i
+    n = sum(1 for c in CIRS if c["ocup"] > 0 and c["data"] == DATA and ESPH.get(c["esp"]) == h)
+    hs = sum(c["dur"] for c in CIRS if c["ocup"] > 0 and c["data"] == DATA and ESPH.get(c["esp"]) == h) / 60
+    chk("habilidade %s nº" % h, n, pai.cell(row=r, column=2).value)
+    chk("habilidade %s horas" % h, hs, pai.cell(row=r, column=3).value)
+    chk("habilidade %s aptos no quadro" % h,
+        sum(1 for t in EQ if t["status"] == "Ativo" and NIV[t["nome"]][i] >= 2), pai.cell(row=r, column=5).value)
+    chk("habilidade %s aptos disponíveis" % h,
+        sum(1 for t in EQ if situacao(t) == "Disponível" and NIV[t["nome"]][i] >= 2),
+        pai.cell(row=r, column=6).value)
 
-# ---- 5. Sugestão: melhor técnico livre por sala x turno
-for r in range(2, 38):
-    s = sug.cell(row=r, column=1).value
-    if not s: continue
-    t = sug.cell(row=r, column=2).value
-    cands = []
-    for nm in niveis:
-        if eq_status.get(nm) != "Ativo" or eq_turno.get(nm) != t: continue
-        if nm in alocados and any(esc.cell(row=rr, column=3).value == t and
-           (esc.cell(row=rr, column=8).value == nm or esc.cell(row=rr, column=10).value == nm)
-           for rr in range(2, 38)): continue
-        a = afin(nm, s, t)
-        if a: cands.append((a, nm))   # afinidade zero não é sugerida
-    if cands:
-        best = max(cands)
-        chk("sugestão 1ª %s %s (afinidade)" % (s, t), round(best[0], 2), sug.cell(row=r, column=7).value, tol=0.011)
+# 6. Jogo de sala — janelas livres recalculadas do zero
+for pi, p in enumerate(POSTOS):
+    if p["tipo"] != "Sala cirúrgica":
+        continue
+    ag = sorted([c for c in CIRS if c["sala"] == p["cod"] and c["ocup"] > 0 and c["data"] == DATA],
+                key=lambda c: c["rel"])
+    janelas = []
+    janelas.append(max(0, (ag[0]["rel"] if ag else T_MIN) - 0))
+    for k, c in enumerate(ag):
+        ini = c["relfim"] + LIMPEZA
+        fim = ag[k + 1]["rel"] if k + 1 < len(ag) else T_MIN
+        janelas.append(max(0, fim - ini))
+    for k, dur in enumerate(janelas):
+        r = 2 + pi * 13 + k
+        chk("janela %s#%d" % (p["cod"], k), dur, jog.cell(row=r, column=5).value)
+    r0 = 58 + pi
+    chk("painel livre total %s" % p["cod"], sum(janelas), pai.cell(row=r0, column=2).value)
+    chk("painel maior janela %s" % p["cod"], max(janelas), pai.cell(row=r0, column=3).value)
+    chk("painel janelas aproveitáveis %s" % p["cod"],
+        sum(1 for d in janelas if d >= JANELA_MIN), pai.cell(row=r0, column=5).value)
+
+# 7. Calendário de ausências — dias por tipo no mês
+for i, (tipo, sig) in enumerate(zip(TIPOS, SIGLAS)):
+    dias = 0
+    for a in AUS:
+        if a["tipo"] != tipo or not a["ini"] or not a["fim"]:
+            continue
+        for d in range(31):
+            dia = cal.cell(row=2, column=3 + d).value
+            if dia and a["ini"] <= dia <= a["fim"] and a["tec"] in NIV:
+                dias += 1
+    chk("calendário dias de %s" % tipo, dias, pai.cell(row=14 + i, column=3).value)
 
 ok = sum(1 for r in res if r[0])
-print("RECONCILIAÇÃO: %d verificações · %d OK · %d divergências" % (len(res), ok, len(res)-ok))
+print("RECONCILIAÇÃO: %d verificações · %d OK · %d divergências" % (len(res), ok, len(res) - ok))
 for r in res:
     if not r[0]:
-        print("   DIVERGÊNCIA:", r[1], "esperado=", r[2], "planilha=", r[3])
+        print("   DIVERGÊNCIA:", r[1], "| esperado =", r[2], "| planilha =", r[3])
+sys.exit(1 if ok != len(res) else 0)
