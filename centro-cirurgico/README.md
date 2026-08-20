@@ -1,133 +1,98 @@
-# Centro Cirúrgico — Escala Diária de Técnicos por Posto
+# Centro Cirúrgico — Escala Diária
 
-Planilha operacional da coordenação de enfermagem: recebe a agenda cirúrgica do dia,
-distribui os técnicos disponíveis pelos postos por prioridade, classifica cada posto pela
-**afinidade de habilidade** da equipe alocada e mostra onde há espaço para encaixe.
+Planilha operacional da coordenação de enfermagem. **Tudo do dia acontece no Painel**: a data,
+os indicadores, a escala dos técnicos por posto, o jogo de sala e quem está disponível. As outras
+abas são cadastro.
 
-**Arquivo:** `Centro_Cirurgico_Escala_Diaria_v2.xlsx`
+**Arquivo:** `Centro_Cirurgico_Escala.xlsx` (demonstração) · `..._REAL.xlsx` quando há cadastro real.
 
-## O serviço modelado
+## O serviço
 
 | Posto | Técnicos | Observação |
 |---|---|---|
-| Salas 1 a 8 | 2 cada (circulante + instrumentador) | Sala 6 exclusiva do centro obstétrico · Sala 7 reservada a urgências · Sala 8 oftalmológica |
+| Salas 1 a 8 | 2 cada | Sala 6 exclusiva do centro obstétrico · Sala 7 reservada a urgências · Sala 8 oftalmológica |
 | Admissão | 2 | opera com 1 no limite |
 | Box de preparo oftalmológico | 1 | apoio da Sala 8 |
 | Sala de recém-nascido | 1 | bloco obstétrico |
-| **Total** | **20 vagas/dia** | contra um quadro de **22 técnicos** |
+| **Total** | **20 vagas/dia** | para um quadro de **22 técnicos** |
 
-Plantão da **manhã, 07:00–13:00**. Limpeza e preparação: **20 min** após cada cirurgia.
-Não se realizam cirurgias cardíacas.
-Cada posto declara em que dias funciona (Todos os dias / Seg a Sex / Seg a Sáb); nos fins de semana
-e nos feriados cadastrados os postos de dia útil não operam, e as vagas do dia caem junto — é por isso
-que um domingo pede 7 técnicos e não 20.
+Plantão da manhã, 07:00–13:00. **20 min** de limpeza e preparação após cada cirurgia.
+Não se realizam cirurgias cardíacas. Cada posto declara em que dias funciona; nos fins de semana e
+feriados os postos de dia útil não operam e as vagas do dia caem junto.
 
-**O déficit é a regra**, não a exceção: com férias, folgas e atestados quase nunca há 20
-técnicos disponíveis. Por isso cada posto tem **prioridade de cobertura** e **mínimo
-aceitável**, e o Painel mostra o déficit do dia, os postos que ficam descobertos e quantas
-cirurgias precisam de remanejamento.
+## Habilidade: um X por especialidade
 
-## Premissas adotadas (documentadas na aba Instruções)
+Na aba **Equipe**, uma coluna por especialidade. Marque **X** onde o técnico faz aquela cirurgia;
+deixe em branco onde não faz. As colunas vêm da lista de especialidades da aba Configuração.
 
-1. A escala cobre **um plantão** — o da manhã, 07:00–13:00, como na escala em uso.
-2. O ciclo da escala vai do **dia 16 ao dia 15** do mês seguinte, como na escala em uso.
-3. Nas salas os dois técnicos têm papéis distintos (circulante e instrumentador), com pesos
-   diferentes na afinidade; nos postos de apoio não há distinção. Quando o cadastro traz todos
-   como Téc.Enf., a Função entra como "Ambos".
-4. Nos feriados os postos de dia útil seguem o regime de fim de semana.
+A planilha cruza as especialidades que passam em cada sala no dia com o X dos dois técnicos
+escalados e devolve a **Situação** do posto:
 
-## Arquitetura
-
-| Camada | Abas |
+| Situação | Significa |
 |---|---|
-| Entrada | `Parâmetros`, `Especialidades`, `Postos`, `Equipe`, `Matriz_Habilidades`, `Ausencias`, `Mapa_Cirurgico`, colunas TÉCNICO 1/2 da `Escala_Dia` |
-| Processamento | `Calc_Mix` (minutos por especialidade em cada posto), `Calc_Afinidade` (técnicos disponíveis e ainda não escalados) |
-| Saída | `Escala_Dia`, `Sugestao_Tecnicos`, `Jogo_de_Sala`, `Calendario_Ausencias`, `Painel`, `Base_Historico` |
+| **OK** | os dois técnicos cobrem todas as especialidades do dia |
+| **ATENÇÃO** | alguma especialidade é coberta por um só dos dois |
+| **FALTA HABILIDADE** | alguma especialidade do dia não é coberta por ninguém da dupla (o alerta diz qual) |
+| **INCOMPLETO** | falta técnico no posto |
+| **SEM EQUIPE** | ninguém escalado — o alerta diz quantas cirurgias precisam ser remanejadas |
+| **NÃO OPERA** | posto fechado nesse dia da semana |
+| **SEM AVALIAÇÃO** | algum técnico escalado ainda não tem X marcado |
 
-### Regra de afinidade
+## Jogo de sala
 
-**A habilidade do técnico é a própria especialidade da cirurgia** — existe uma lista só
-(`Especialidades`), que alimenta ao mesmo tempo a agenda do `Mapa_Cirurgico` e as colunas da
-`Matriz_Habilidades`. Duas linhas dessa lista são de tipo *Apoio* (Admissão e Sala de recém-nascido),
-porque esses postos exigem competência mas não são cirurgias.
+O bloco 3 do Painel mostra, para cada sala: ocupação, total de minutos livres, a **maior janela
+livre com horário** ("11:05 → 13:00 (115 min)"), de quanto cabe um encaixe já descontada a limpeza,
+a segunda maior janela e quantas janelas passam do mínimo. O `Mapa_Cirurgico` traz o mesmo em linha,
+cirurgia a cirurgia.
 
-```
-afinidade(técnico, posto) = Σ minutos(especialidade) × nível(técnico, especialidade)
-                            ───────────────────────────────────────────────────────
-                                      Σ minutos(especialidade)
+## Ausências
 
-afinidade(sala)  = Peso_Circulante × circulante + Peso_Instrumentador × instrumentador
-afinidade(apoio) = média simples dos técnicos do posto
-```
+A aba **Ausencias** guarda os períodos (folga, férias, atestado, licença, treinamento e os códigos
+próprios do serviço). Ao lado dos registros fica o calendário do período (16 a 15), com o rodapé
+**funcionários na data · vagas necessárias · déficit** dia a dia.
 
-Níveis: 0 não apto · 1 em treinamento · 2 apto · 3 referência. Postos sem agenda (admissão,
-box, RN, sala de urgência sem cirurgia marcada) usam a **especialidade de referência** cadastrada
-em `Postos`. Pesos, limites e demais premissas ficam em `Parâmetros` — nenhuma constante de
-negócio está embutida em fórmula.
+## Abas
 
-### Jogo de sala
+| Aba | Para quê |
+|---|---|
+| `Painel` | o dia inteiro: indicadores, escala, jogo de sala, equipe de hoje, verificações |
+| `Mapa_Cirurgico` | a agenda que chega todo dia |
+| `Equipe` | cadastro + o X de habilidade por especialidade |
+| `Ausencias` | períodos de ausência + calendário do período |
+| `Configuração` | plantão, especialidades, postos, feriados |
+| `Calc`, `Calc_Salas` | ocultas — só cálculo |
 
-Para cada sala, a aba `Jogo_de_Sala` lista os intervalos livres: antes da primeira cirurgia,
-entre a liberação de uma (fim + limpeza) e o início da seguinte, e da última até o fim do
-plantão. Mostra início, fim, duração e **de quanto cabe um encaixe** (duração menos a limpeza),
-marcando em verde as janelas ≥ `Janela_Min`. O `Mapa_Cirurgico` traz o mesmo em linha
-("Sala liberada às" e "Livre até a próxima").
-
-### Gestão de ausências
-
-`Ausencias` guarda os períodos (folga, férias, atestado, licença, treinamento e os códigos próprios
-do serviço). A aba `Equipe` mostra a situação de cada técnico na data da escala e o
-`Calendario_Ausencias` dá a visão do período inteiro por técnico, com totais, destaque de registros
-sobrepostos e, no rodapé, **funcionários na data · vagas necessárias · déficit** dia a dia — o mesmo
-indicador da escala em uso, agora calculado por fórmula.
-
-### Cadastro real
-
-O gerador usa `dados/equipe_real.json` quando esse arquivo existe, gravando
-`Centro_Cirurgico_Escala_Diaria_REAL.xlsx`. Esse arquivo e o `.xlsx` gerado a partir dele estão no
-`.gitignore`: **o repositório é público e não recebe nome, COREN ou matrícula de ninguém.** Sem ele,
-o gerador produz a versão de demonstração com cadastro fictício.
-
-## Regerar a planilha
+## Regerar e validar
 
 ```bash
 pip install openpyxl
 python3 build_centro_cirurgico.py            # gera o .xlsx
-VISUAL=1 python3 build_centro_cirurgico.py   # gera também a variante com áreas de impressão reduzidas
-```
-
-## Rodar a validação
-
-Requer LibreOffice Calc (`soffice`) para recalcular o arquivo.
-
-```bash
-soffice --headless --convert-to xlsx --outdir /tmp/rc Centro_Cirurgico_Escala_Diaria_v2.xlsx
-python3 testes/t1_recalculo.py      /tmp/rc/Centro_Cirurgico_Escala_Diaria_v2.xlsx
-python3 testes/t2_reconciliacao.py  /tmp/rc/Centro_Cirurgico_Escala_Diaria_v2.xlsx
+soffice --headless --convert-to xlsx --outdir /tmp/rc Centro_Cirurgico_Escala.xlsx
+python3 testes/t1_recalculo.py     /tmp/rc/Centro_Cirurgico_Escala.xlsx
+python3 testes/t2_reconciliacao.py /tmp/rc/Centro_Cirurgico_Escala.xlsx
 SAIDA=/tmp python3 testes/t3_expansao.py
 SAIDA=/tmp python3 testes/t4_degenerado.py
 SAIDA=/tmp python3 testes/t5_sensibilidade.py
 ```
 
-## Resultado da validação (última execução)
-
 | Teste | Resultado |
 |---|---|
-| Recálculo completo (LibreOffice) | 0 erros de fórmula |
-| Reconciliação independente em Python | 363 verificações, 0 divergências |
-| Expansão (+2 técnicos, +1 especialidade, +1 sala, +40 cirurgias, +5 ausências) | 0 erros · 424 verificações, 0 divergências |
-| Entradas degeneradas (9 casos no mapa + 3 em ausências + 4 na escala) | todas tratadas, 0 erros de fórmula |
-| Sensibilidade (pesos, meta, limpeza, janela mínima, data da escala) | aprovado, arquivo original inalterado |
+| Recálculo (LibreOffice) | 0 erros de fórmula |
+| Reconciliação independente | 246 verificações, 0 divergências |
+| Expansão (+1 especialidade, +1 sala, +2 técnicos, +30 cirurgias, +5 ausências) | 0 erros · 289 verificações, 0 divergências |
+| Entradas degeneradas (9 no mapa, 3 em ausências, 4 na escala) | todas tratadas, 0 erros |
+| Sensibilidade (domingo, feriado, limpeza, janela mínima) | aprovado, original inalterado |
+
+## Cadastro real
+
+O gerador usa `dados/equipe_real.json` quando existe, gravando `..._REAL.xlsx`. Esse arquivo e o
+`.xlsx` gerado a partir dele estão no `.gitignore`: **o repositório é público e não recebe nome,
+COREN ou matrícula de ninguém.**
 
 ## Limitações
 
-* Compatibilidade deliberada com Excel e LibreOffice: só SUMIFS, COUNTIFS, SUMPRODUCT,
-  INDEX, MATCH, LARGE, IF e IFERROR. Sem macros, Power Query, Power Pivot ou matrizes dinâmicas.
-* Capacidades pré-dimensionadas: 16 postos, 20 especialidades, 30 técnicos,
-  200 cirurgias/dia, 150 registros de ausência, 20 feriados, 31 dias de calendário, 13 janelas por
-  sala, 2000 linhas de histórico.
-* `Base_Historico` é alimentada por cópia/colagem de valores no fechamento do dia
-  (materialização intencional: o histórico não deve se recalcular quando o mapa do dia
-  seguinte for lançado).
-* Equipe, habilidades, ausências e agenda são **dados de exemplo** — um dia com 18 técnicos
-  disponíveis para 20 vagas — e precisam ser substituídos pelos dados reais do serviço.
+* Só SUMIFS, COUNTIFS, SUMPRODUCT, INDEX, MATCH, LARGE, IF e IFERROR — compatível com Excel e
+  LibreOffice. Sem macros, Power Query ou matrizes dinâmicas.
+* Capacidades: 16 postos, 20 especialidades, 30 técnicos, 200 cirurgias/dia, 150 registros de
+  ausência, 20 feriados, 13 janelas por sala.
+* Uma escala por vez: para guardar o dia fechado, salve uma cópia do arquivo.
