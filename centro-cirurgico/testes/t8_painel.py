@@ -15,7 +15,8 @@ wb = openpyxl.load_workbook(ARQ, data_only=True)
 pai, mapa, cfg, eqp = wb[ABA_PAINEL], wb[ABA_MAPA], wb[ABA_CFG], wb[ABA_EQUIPE]
 
 PAI_R1, N_POS, POS_R1 = 10, 16, 45
-ACO_P1, ENC_P1, ATR_P1 = 12, 22, 27
+QUA_R1 = 12                     # quadro das salas
+ACO_P1, ENC_P1, ATR_P1 = 32, 42, 47
 JANELA = cfg["B17"].value or 0
 
 N = lambda v: v if isinstance(v, (int, float)) else 0   # célula vazia ou texto conta como 0
@@ -54,9 +55,24 @@ chk("disponíveis", sum(1 for r in range(2, 32)
                        if eqp.cell(row=r, column=5).value == "Disponível"), num(6))
 chk("maior atraso", max([N(l["atraso"]) for l in LIN] + [0]), num(8))
 
+# --- 1b. quadro das salas: um bloco por ambiente, na ordem do cadastro
+for i, l in enumerate(LIN[:12]):
+    base, c1 = QUA_R1 + (i // 4) * 6, 1 + (i % 4) * 2
+    chk("quadro %s nome" % l["nome"], l["nome"], pai.cell(row=base, column=c1).value)
+    chk("quadro %s cor" % l["nome"], l["sit"], pai.cell(row=base + 4, column=c1).value)
+    chk("quadro %s cor (2ª coluna)" % l["nome"], l["sit"], pai.cell(row=base + 4, column=c1 + 1).value)
+    chk("quadro %s técnico 1" % l["nome"],
+        mapa.cell(row=PAI_R1 + i, column=4).value or "(falta escalar)",
+        pai.cell(row=base + 2, column=c1).value)
+    chk("quadro %s técnico 2" % l["nome"],
+        "—" if N(l["pede"]) < 2 else (mapa.cell(row=PAI_R1 + i, column=5).value or "(falta escalar)"),
+        pai.cell(row=base + 3, column=c1).value)
+
 # --- 2. fila de ações
 GRAV = {"SEM EQUIPE": 900, "FALTA HABILIDADE": 800, "GENTE DEMAIS": 700, "INCOMPLETO": 650,
         "EXTRA": 600, "ATENÇÃO": 400, "SEM AVALIAÇÃO": 300}
+chk("nenhum ambiente com pendência mostra alerta OK", [],
+    [l["nome"] for l in LIN if l["sit"] in GRAV and l["alerta"] == "OK"])
 matriz_vazia = sum(1 for r in range(2, 32) for c in range(8, 28)
                    if str(eqp.cell(row=r, column=c).value or "").strip().upper() == "X") == 0
 esperadas = []

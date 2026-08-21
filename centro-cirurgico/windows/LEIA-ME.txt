@@ -25,7 +25,9 @@ TODO DIA
   3. A planilha do dia abre sozinha, com um nome novo:
      Centro_Cirurgico_Escala_2026-08-21.xlsx
      O arquivo anterior nunca é apagado nem sobrescrito.
-  4. A planilha abre na aba "Painel": ali está o que fazer hoje, em ordem.
+  4. A planilha abre na aba "Painel": o quadro das salas mostra cada ambiente
+     com a sua cor (verde = pronto, amarelo = olhar, vermelho = resolver), e
+     logo abaixo está o que fazer hoje, em ordem.
      Resolva o que estiver na lista indo para a aba "Mapa do Dia" — é lá que
      se troca alguém de lugar, nas células azuis (TÉCNICO 1 / TÉCNICO 2).
 
@@ -47,6 +49,10 @@ DE ONDE VEM A DUPLA DE CADA AMBIENTE
   pessoa só, e ali a coluna TÉCNICO 2 fica cinza. Enquanto o X não estiver marcado, a coluna Situação fica
   em SEM AVALIAÇÃO — a distribuição acontece do mesmo jeito, só não dá para
   dizer se a dupla cobre as especialidades do dia.
+
+  ATENÇÃO: o X das habilidades veio preenchido de brincadeira — 3 especialidades
+  por técnica, em rodízio, só para a planilha funcionar. Corrija na aba
+  "Equipe", linha por linha: é esse X que decide quem vai para cada sala.
 
   Trocar a data na planilha não redistribui. Para redistribuir (por exemplo
   depois de lançar um atestado novo), rode o "Importar agenda.bat" de novo.

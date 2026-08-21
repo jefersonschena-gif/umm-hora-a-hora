@@ -195,7 +195,11 @@ if USANDO_REAL:
     EQUIPE = [(pp.get("matricula", ""), pp["nome"], pp.get("coren", ""),
                "Afastado" if pp["nome"] in AFASTADOS else "Ativo") for pp in _d["pessoas"]]
     NOMES = [e[1] for e in EQUIPE]
-    SKILLS = {n: set() for n in NOMES}          # em branco: a coordenação marca o X
+    # X PROVISÓRIO: 3 especialidades por técnica, distribuídas em rodízio para que toda
+    # especialidade tenha gente. É um ponto de partida para a coordenação corrigir — não
+    # reflete a habilidade real de ninguém.
+    _esp = [e[1] for e in ESPECIALIDADES]
+    SKILLS = {n: {_esp[(i + d) % len(_esp)] for d in (0, 5, 11)} for i, n in enumerate(NOMES)}
     AUSENCIAS = [(a["tec"], a["tipo"], _p(a["ini"]), _p(a["fim"]), "") for a in _d["ausencias"]]
     if _d.get("periodo_ini"): PERIODO_INI = _p(_d["periodo_ini"])
     if _d.get("coordenacao"): COORDENACAO = _d["coordenacao"]
@@ -463,6 +467,12 @@ for i in range(N_ESP):
     ws_eqp.column_dimensions[get_column_letter(XC1 + i)].width = 4.6
 ws_eqp.column_dimensions[get_column_letter(XC2 + 1)].width = 10
 fmt(ws_eqp, EQ_R1, EQ_R2, 1, 7, align=CTR)
+ws_eqp.cell(row=EQ_R2 + 1, column=1, value=(
+    "X PROVISÓRIO: cada técnica veio com 3 especialidades marcadas em rodízio, só para a "
+    "planilha sair do lugar. Corrija linha por linha — é este X que decide quem vai para "
+    "cada sala." if USANDO_REAL else
+    "Marque X na especialidade que a técnica faz; deixe em branco onde não faz.")).font = F_NOTA
+
 for i in range(N_EQ):
     r = EQ_R1 + i
     ws_eqp.cell(row=r, column=2).alignment = LFT; ws_eqp.cell(row=r, column=7).alignment = LFT
@@ -752,8 +762,9 @@ GLOBAIS = [
      '"Cadastre a especialidade de "&SUMPRODUCT((Cir_Nome<>"")*(Cir_Esp=""))&'
      '" cirurgião(ões) na aba Configuração, seção 8"'),
     ('=IF(%s>0,970,0)' % R(S_DASH, "$G$9"),
-     '"Faltam "&%s&" técnico(s) para cobrir todas as vagas de hoje — veja o Mapa do Dia"'
-     % R(S_DASH, "$G$9")),
+     '"Falta"&IF(%s=1,"","m")&" "&%s&" técnico"&IF(%s=1,"","s")&'
+     '" para cobrir todas as vagas de hoje — veja o Mapa do Dia"'
+     % (R(S_DASH, "$G$9"), R(S_DASH, "$G$9"), R(S_DASH, "$G$9"))),
 ]
 for i, (nota, texto) in enumerate(GLOBAIS):
     r = ACO_R1 + i
@@ -919,6 +930,7 @@ for i in range(N_POS):
               'IF($F{r}="EXTRA","Técnico escalado em ambiente que não opera hoje | ","")&'
               'IF(AND($F{r}="NÃO OPERA",N($H{r})>0),"Ambiente não opera hoje e tem cirurgia | ","")&'
               'IF($F{r}="SEM AVALIAÇÃO","Técnico sem habilidade marcada na aba Equipe | ","")&'
+              'IF($F{r}="ATENÇÃO","Especialidade coberta por uma técnica só — se ela sair, a sala para | ","")&'
               'IF(AND($F{r}<>"SEM AVALIAÇÃO",{dtxt}<>""),"Ninguém cobre: "&LEFT({dtxt},LEN({dtxt})-3)&" | ","")&'
               'IF(AND($D{r}<>"",IFERROR(INDEX(Equipe_Situacao,MATCH($D{r},Equipe_Nome,0)),"?")<>"Disponível"),'
               '"Técnico 1 indisponível | ","")&'
@@ -1101,9 +1113,53 @@ for i, (_, f, nf) in enumerate(NUM):
     c.fill = FILL_IN
 ws_dash.row_dimensions[9].height = 30
 
+# --- quadro das salas: gestão visual, um bloco por ambiente
+QUA_R1 = 12
+sec(ws_dash, QUA_R1 - 1, "AS SALAS AGORA — a cor é a situação de cada ambiente", 8)
+for b in range(3):
+    base = QUA_R1 + b * 6            # 4 linhas de conteúdo + 1 auxiliar oculta + 1 de respiro
+    for k in range(4):
+        i = b * 4 + k
+        if i >= N_POS:
+            break
+        pr, c1 = PAI_R1 + i, 1 + k * 2
+        nome, sit = R(S_PAI, "$A%d" % pr), R(S_PAI, "$F%d" % pr)
+        esp, ocup = R(S_PAI, "$C%d" % pr), R(S_PAI, "$I%d" % pr)
+        t1, t2 = R(S_PAI, "$D%d" % pr), R(S_PAI, "$E%d" % pr)
+        pede = R(S_PAI, "$B%d" % pr)
+        linhas = [
+            '=IF({n}="","",{n})'.format(n=nome),
+            ('=IF({n}="","",IF({e}="","sem cirurgia hoje",{e})'
+             '&IF(ISNUMBER({o})," · "&TEXT({o},"0%")&" ocupada",""))').format(n=nome, e=esp, o=ocup),
+            '=IF({n}="","",IF({t}="","(falta escalar)",{t}))'.format(n=nome, t=t1),
+            '=IF({n}="","",IF({p}<2,"—",IF({t}="","(falta escalar)",{t})))'.format(n=nome, p=pede, t=t2),
+        ]
+        for j, f in enumerate(linhas):
+            r = base + j
+            ws_dash.merge_cells(start_row=r, start_column=c1, end_row=r, end_column=c1 + 1)
+            c = ws_dash.cell(row=r, column=c1, value=f)
+            c.border = BORD
+            c.alignment = Alignment(horizontal="center", vertical="center")
+            if j == 0:
+                c.font = Font(name="Calibri", size=13, bold=True, color=AZ)
+            elif j == 1:
+                c.font = Font(name="Calibri", size=9, italic=True, color="595959")
+            else:
+                c.font = F_OUT
+        # a situação vai para a linha auxiliar, nas DUAS colunas do bloco: a formatação
+        # condicional lê a célula da mesma coluna, e assim cada bloco tem a sua cor
+        for c in (c1, c1 + 1):
+            ws_dash.cell(row=base + 4, column=c, value='=IF({n}="","",{s})'.format(n=nome, s=sit))
+    ws_dash.row_dimensions[base].height = 24
+    for j in (1, 2, 3):
+        ws_dash.row_dimensions[base + j].height = 18
+    ws_dash.row_dimensions[base + 4].hidden = True
+    ws_dash.row_dimensions[base + 5].height = 8
+QUA_R2 = QUA_R1 + 17
+
 # --- o que fazer agora
-ACO_P1 = 12
-sec(ws_dash, ACO_P1 - 1, "O QUE FAZER AGORA — em ordem de urgência", 8)
+ACO_P1 = QUA_R2 + 3
+sec(ws_dash, ACO_P1 - 2, "O QUE FAZER AGORA — em ordem de urgência", 8)
 for i in range(N_ACOES_VISIVEIS):
     r, n = ACO_P1 + i, i + 1
     cn = ws_dash.cell(row=r, column=1, value='=IF($B%d="","",%d)' % (r, n))
@@ -1180,6 +1236,19 @@ ws_dash.conditional_formatting.add("A6", CellIsRule(operator="equal", formula=['
                                                     fill=_fa, font=_fat))
 ws_dash.conditional_formatting.add("A6", FormulaRule(formula=['LEFT($A$6,11)="DIA FECHADO"'],
                                                      fill=_fv, font=_fvt))
+for _b in range(3):
+    _base, _aux = QUA_R1 + _b * 6, QUA_R1 + _b * 6 + 4
+    for _cond, _cor, _txt in (
+            ('A${a}="OK"'.format(a=_aux), VERDE, VERDE_T),
+            ('OR(A${a}="ATENÇÃO",A${a}="SEM AVALIAÇÃO",A${a}="INCOMPLETO")'.format(a=_aux), AMAR, AMAR_T),
+            ('OR(A${a}="SEM EQUIPE",A${a}="FALTA HABILIDADE",A${a}="GENTE DEMAIS",A${a}="EXTRA")'.format(a=_aux),
+             VERM, VERM_T),
+            ('A${a}="NÃO OPERA"'.format(a=_aux), CINZA, "808080")):
+        ws_dash.conditional_formatting.add(
+            "A%d:H%d" % (_base, _base),
+            FormulaRule(formula=[_cond], fill=PatternFill("solid", fgColor=_cor),
+                        font=Font(name="Calibri", size=13, bold=True, color=_txt)))
+
 _lr = Font(color=VERM_T, bold=True)
 _la = Font(color=AMAR_T, bold=True)
 ws_dash.conditional_formatting.add("B%d:B%d" % (ACO_P1, ACO_P2),
@@ -1245,6 +1314,16 @@ for txt, fill, font in (("OK", fv, fvt), ("ATENÇÃO", fa, fat), ("FALTA HABILID
                                                       fill=fill, font=font))
 ws_pai.conditional_formatting.add(sit, CellIsRule(operator="equal", formula=['"NÃO OPERA"'],
                                                   fill=fc, font=Font(color="808080", italic=True)))
+# a sala em evidência: a coluna Ambiente recebe a mesma cor da Situação
+_amb = "A%d:B%d" % (PAI_R1, PAI_R2)
+for _cond, _fill, _cor in (
+        ('$F{r}="OK"'.format(r=PAI_R1), fv, VERDE_T),
+        ('OR($F{r}="ATENÇÃO",$F{r}="SEM AVALIAÇÃO",$F{r}="INCOMPLETO")'.format(r=PAI_R1), fa, AMAR_T),
+        ('OR($F{r}="SEM EQUIPE",$F{r}="FALTA HABILIDADE",$F{r}="GENTE DEMAIS",$F{r}="EXTRA")'.format(r=PAI_R1),
+         fr, VERM_T),
+        ('$F{r}="NÃO OPERA"'.format(r=PAI_R1), fc, "808080")):
+    ws_pai.conditional_formatting.add(_amb, FormulaRule(
+        formula=[_cond], fill=_fill, font=Font(name="Calibri", size=12, bold=True, color=_cor)))
 ws_pai.conditional_formatting.add("G%d:G%d" % (PAI_R1, PAI_R2),
     FormulaRule(formula=['AND($G%d<>"",$G%d<>"OK")' % (PAI_R1, PAI_R1)], fill=fr, font=frt))
 ws_pai.conditional_formatting.add("I%d:I%d" % (PAI_R1, PAI_R2),
