@@ -98,6 +98,12 @@ for cod, v in sorted(salas.items()):
         jan.append(max(0, min(a, TM) - ini))
     jan.append(max(0, TM - min(v[-1][1] + LIMP, TM)))
     maior = max(jan)
+    atraso = pico = 0
+    for k, (a, b) in enumerate(v):
+        prox = v[k + 1][0] if k + 1 < len(v) else TM
+        if prox < TM:
+            atraso = max(0, atraso + (b + LIMP) - prox)
+        pico = max(pico, atraso)
     obt_o = next(cal.cell(row=r, column=4).value for r in range(2, 18)
                  if cal.cell(row=r, column=1).value == cod)
     nome = next(cfg.cell(row=r, column=2).value for r in range(45, 61)
@@ -105,11 +111,14 @@ for cod, v in sorted(salas.items()):
     obt_l = next(pai.cell(row=r, column=11).value for r in range(10, 26)
                  if pai.cell(row=r, column=1).value == nome)
     chk("ocupação %s (min)" % cod, ocup, obt_o)
-    chk("minutos livres %s (min)" % cod, maior or None, obt_l)
+    chk("cabe até %s (min)" % cod, max(0, maior - LIMP) or None, obt_l)
+    obt_a = next(pai.cell(row=r, column=12).value for r in range(10, 26)
+                 if pai.cell(row=r, column=1).value == nome)
+    chk("atraso previsto %s (min)" % cod, pico, obt_a)
 
 alertas = [mapa.cell(row=r, column=14).value for r in linhas_dia]
-chk("emendas sem limpeza sinalizadas", 2 if LIMP else 0,
-    sum(1 for a in alertas if a and "Sem intervalo para limpeza" in a))
+chk("emenda sem folga não vira alerta de erro", 0,
+    sum(1 for a in alertas if a and "limpeza" in a.lower()))
 chk("cirurgia fora do plantão sinalizada", 1,
     sum(1 for a in alertas if a and "Fora da janela do plantão" in a))
 

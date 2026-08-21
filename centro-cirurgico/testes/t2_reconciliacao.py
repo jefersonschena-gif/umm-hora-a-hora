@@ -178,11 +178,18 @@ for p in POSTOS:
     maior, texto = (max(jan) if jan else 0), str(pai.cell(row=r, column=10).value)
     hhmm = lambda m: "%02d:%02d" % (((BASE + m) // 60) % 24, (BASE + m) % 60)
     a, b = faixas[jan.index(maior)] if maior else (0, 0)     # a fórmula pega a primeira igual
-    chk("painel maior janela %s" % p["cod"], "%s → %s" % (hhmm(a), hhmm(b)) if maior else "—", texto)
-    chk("painel minutos livres %s" % p["cod"], maior if maior else None,
+    chk("painel maior janela %s" % p["cod"],
+        "%s → %s (%d min)" % (hhmm(a), hhmm(b), maior) if maior else "—", texto)
+    chk("painel cabe até %s" % p["cod"], max(0, maior - LIMPEZA) if maior else None,
         pai.cell(row=r, column=11).value)
-    chk("painel outras janelas %s" % p["cod"], max(0, sum(1 for d in jan if d >= JANELA) - 1),
-        pai.cell(row=r, column=12).value)
+    # atraso represado: a limpeza que não coube na folga empurra a cirurgia seguinte
+    atraso, pico = 0, 0
+    for k, (ini, fim) in enumerate(faixas):
+        if k and fim < T_MIN:
+            atraso = max(0, atraso + ini - fim)
+        pico = max(pico, atraso)
+    chk("painel atraso previsto %s" % p["cod"], pico, pai.cell(row=r, column=12).value)
+
 
 # 5. calendário do período — funcionários, vagas e déficit dia a dia
 CAL_C1, CAL_R1 = 9, 3

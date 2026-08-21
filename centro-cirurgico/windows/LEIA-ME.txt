@@ -34,7 +34,6 @@ O QUE LER NA TELA PRETA ANTES DE FECHAR
       ali uma única vez e salve; nas próximas agendas já vem preenchido.
   "passam do plantão" -> cirurgias que terminam depois das 13:00. Elas entram
       no mapa, marcadas, e só os minutos até as 13:00 contam na ocupação.
-      (O horário de término da agenda já inclui a limpeza da sala.)
   "sala sem cadastro" -> a agenda trouxe uma sala que não existe na aba
       Configuração, seção 5 (POSTOS).
 
@@ -50,6 +49,13 @@ DE ONDE VEM A DUPLA DE CADA AMBIENTE
 
   Trocar a data na planilha não redistribui. Para redistribuir (por exemplo
   depois de lançar um atestado novo), rode o "Importar agenda.bat" de novo.
+
+A COLUNA "ATRASO PREVISTO"
+  A limpeza leva 20 minutos e sempre acontece. Quando a agenda emenda uma
+  cirurgia na outra sem deixar esse tempo, ou a cirurgia termina mais cedo e a
+  limpeza cabe, ou ela vai até o fim do horário e a limpeza empurra a próxima.
+  Esse empurrão vai somando ao longo do dia: é o número dessa coluna. Ele diz
+  quanto aquela sala pode terminar atrasada se tudo levar o tempo previsto.
 
 O QUE NÃO ENTRA NA PLANILHA
   Nome do paciente, prontuário, data de nascimento, convênio e leito NÃO são

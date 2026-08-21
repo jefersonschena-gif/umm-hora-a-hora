@@ -16,10 +16,10 @@ ocupação e o tempo em que a sala fica vaga. As outras abas são cadastro.
 | Sala de recém-nascido | 1 | bloco obstétrico |
 | **Total** | **20 vagas/dia** | para um quadro de **22 técnicos** |
 
-Plantão da manhã, 07:00–13:00. A agenda do hospital **já reserva a limpeza dentro do horário de
-cada cirurgia** — o término é a sala liberada, e por isso a premissa *Limpeza a acrescentar* fica em
-**0** na aba Configuração. Se um dia a agenda passar a trazer só o tempo cirúrgico, basta pôr 20 ali
-que todas as contas voltam a somar.
+Plantão da manhã, 07:00–13:00. **20 min** de limpeza e preparação após cada cirurgia — sempre
+acontecem. A agenda do hospital emenda uma cirurgia na outra sem reservar esse tempo: quando a
+cirurgia termina antes do previsto a limpeza cabe na folga, e quando vai até o fim do horário a
+limpeza empurra a seguinte. É esse empurrão que a coluna **Atraso previsto** mede.
 Não se realizam cirurgias cardíacas. Cada posto declara em que dias funciona; nos fins de semana e
 feriados os postos de dia útil não operam e as vagas do dia caem junto.
 
@@ -69,10 +69,25 @@ Trocar a data na planilha **não** redistribui — para redistribuir, importe a 
 
 ## Jogo de sala
 
-Na mesma linha de cada ambiente: ocupação, a **maior janela livre com horário** ("11:00 → 13:00"),
-quantos minutos ela tem e quantas outras janelas passam do mínimo. Como a limpeza já vem dentro do
-horário de cada cirurgia, a janela inteira é aproveitável para um encaixe. A aba `Agenda do Dia`
-traz o mesmo cirurgia a cirurgia.
+Na mesma linha de cada ambiente: ocupação, a **maior janela livre com horário**
+("11:20 → 13:00 (100 min)" — já depois da limpeza da cirurgia anterior), de quanto cabe um encaixe
+descontada a limpeza dele próprio, e o **atraso previsto** da sala. A aba `Agenda do Dia` traz o
+mesmo cirurgia a cirurgia.
+
+### Atraso previsto
+
+Quando a agenda emenda duas cirurgias com menos de 20 min entre elas, a limpeza não cabe e a
+seguinte começa atrasada. O atraso **se acumula** ao longo do dia e só some quando aparece uma
+folga grande o bastante para absorvê-lo:
+
+```
+atraso(k) = MAX(0; atraso(k-1) + fim(k) + limpeza - início(k+1))
+```
+
+A coluna mostra o **pico** do dia naquela sala, e o cabeçalho mostra o maior de todas. Transições
+para cirurgias que começam depois das 13:00 não entram na conta — esse atraso é do outro turno.
+Na agenda real de 21/08: Sala 8 acumula 120 min (sete cirurgias emendadas), Sala 1, 3 e 4 acumulam
+60, Sala 2 acumula 40.
 
 ## Importar a agenda do hospital
 
@@ -109,12 +124,12 @@ classificar.
 A importação substitui apenas as linhas da data importada — outras datas no mapa ficam intactas —
 e aponta a DATA do Mapa do Dia para o dia importado.
 
-Duas coisas que a agenda do hospital costuma trazer e a planilha sinaliza na aba `Agenda do Dia`:
+O que a planilha sinaliza na aba `Agenda do Dia`:
 
 * **Fora da janela do plantão** — cirurgia que começa ou termina depois das 13:00. Ela entra no
   mapa, mas só os minutos dentro do plantão contam na ocupação.
-* **Sem intervalo para limpeza** — só aparece se a premissa *Limpeza a acrescentar* for maior que
-  zero e a agenda emendar a cirurgia seguinte antes desse tempo.
+A emenda sem folga **não** é sinalizada como erro na coluna Alerta: ela é a regra nessa agenda, e
+vira número na coluna Atraso previsto do Mapa do Dia.
 
 ## Ausências
 
@@ -154,8 +169,8 @@ python3 testes/t7_distribuicao.py
 | Reconciliação independente | 255 verificações, 0 divergências |
 | Expansão (+1 especialidade, +1 sala, +2 técnicos, +30 cirurgias, +5 ausências) | 0 erros · 299 verificações, 0 divergências |
 | Entradas degeneradas (9 na agenda, 3 em ausências, 5 na escala) | todas tratadas, 0 erros |
-| Sensibilidade (domingo, feriado, limpeza, janela mínima) | aprovado, original inalterado |
-| Importação da agenda (leitura, gravação, ocupação, janelas, alertas) | 16 verificações, 0 divergências |
+| Sensibilidade (domingo, feriado, limpeza, atraso, janela mínima) | aprovado, original inalterado |
+| Importação da agenda (leitura, gravação, ocupação, janelas, atraso, alertas) | 19 verificações, 0 divergências |
 | Distribuição (regras da alocação + conferência no arquivo) | 15 verificações, 0 divergências |
 
 ## Cadastro real

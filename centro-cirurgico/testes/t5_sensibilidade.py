@@ -32,6 +32,7 @@ def snap(wb):
                 sit=[p.cell(row=PAI_R1 + i, column=6).value for i in range(N_POS)],
                 ocup=[p.cell(row=PAI_R1 + i, column=9).value for i in range(N_POS)],
                 cabe=[p.cell(row=PAI_R1 + i, column=11).value for i in range(N_POS)],
+                atraso=[p.cell(row=PAI_R1 + i, column=12).value for i in range(N_POS)],
                 janelas=janelas_uteis(wb))
 
 
@@ -66,6 +67,12 @@ pior = [i for i in range(N_POS)
 print("3) limpeza %s->40 min: ocupação sobe em toda sala com cirurgia:" % LIMP_BASE,
       "OK" if not pior else "FALHOU %s" % pior)
 falhas += pior
+
+soma = lambda d: sum(x for x in d["atraso"] if isinstance(x, (int, float)))
+print("3b) limpeza %s->40 min: atraso previsto sobe de %s para %s min"
+      % (LIMP_BASE, soma(base), soma(s)),
+      "OK" if soma(s) > soma(base) else "FALHOU")
+if soma(s) <= soma(base): falhas.append("atraso")
 
 s = snap(cenario("janela", {"B17": 120}))
 print("4) janela mínima 30->120 min: janelas aproveitáveis %s (base %s)"
