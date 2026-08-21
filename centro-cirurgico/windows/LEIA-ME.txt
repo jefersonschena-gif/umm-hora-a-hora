@@ -25,9 +25,10 @@ TODO DIA
   3. A planilha do dia abre sozinha, com um nome novo:
      Centro_Cirurgico_Escala_2026-08-21.xlsx
      O arquivo anterior nunca é apagado nem sobrescrito.
-  4. A planilha abre na aba "Painel": o quadro das salas mostra cada ambiente
-     com a sua cor (verde = pronto, amarelo = olhar, vermelho = resolver), e
-     logo abaixo está o que fazer hoje, em ordem.
+  4. A planilha abre na aba "Painel": cada sala aparece numa linha, com a sua
+     cor (verde = pronto, amarelo = olhar, vermelho = resolver) e a barra do
+     dia inteiro — barra cheia é sala ocupada, barra clara é a limpeza, vazio
+     é sala livre. Logo abaixo está o que fazer hoje, em ordem.
      Resolva o que estiver na lista indo para a aba "Mapa do Dia" — é lá que
      se troca alguém de lugar, nas células azuis (TÉCNICO 1 / TÉCNICO 2).
 

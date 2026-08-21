@@ -13,11 +13,15 @@ Uma tela, quatro blocos, tudo por fórmula — nada para preencher ali:
   grave que existir.
 * **Os números** — cirurgias, ambientes abertos, prontos, com pendência, disponíveis, déficit e o
   maior atraso previsto.
-* **As salas agora** — um bloco por ambiente, em grade de quatro, com o nome grande pintado pela
-  Situação (verde, amarelo, vermelho, cinza), a especialidade e a ocupação do dia e a dupla
-  escalada. É a gestão visual: dá para ver o bloco inteiro sem ler uma linha de tabela. A cor de
-  cada bloco vem de uma linha auxiliar oculta com a Situação repetida nas duas colunas do bloco —
-  a formatação condicional lê a célula da mesma coluna, e é isso que dá cor independente a cada um.
+* **O dia inteiro** — uma linha por ambiente: o nome pintado pela Situação (verde, amarelo,
+  vermelho, cinza), a dupla em nome curto e a **linha do tempo do plantão** — 24 colunas de 15 min
+  cobrindo 07:00–13:00. Barra cheia é sala ocupada, barra clara são os 20 min de limpeza, vazio é
+  sala livre. É a gestão visual: dá para ver o buraco de cada sala sem ler um número.
+
+  Cada célula da barra vale 2 (cirurgia), 1 (limpeza) ou 0, escondida por formato `;;;` e pintada
+  pela formatação condicional. O valor sai de dois SUMPRODUCT que testam sobreposição entre o
+  intervalo da cirurgia e o quarto de hora. Por causa disso a aba inteira usa uma grade de 40
+  colunas estreitas e iguais, e todo bloco maior é montado mesclando essas colunas.
 * **O que fazer agora** — as 8 pendências mais urgentes, em ordem, já com o ambiente e o motivo.
   Cada pendência recebe uma gravidade (sem equipe com cirurgia marcada = 900, falta habilidade =
   800, gente demais = 700, incompleto = 650, atenção = 400…), e as quatro que não são de um
@@ -170,7 +174,7 @@ próprios do serviço). Ao lado dos registros fica o calendário do período (16
 
 | Aba | Para quê |
 |---|---|
-| `Painel` | a primeira tela: faixa do dia, números, quadro das salas, o que fazer agora, onde encaixar, risco de atraso |
+| `Painel` | a primeira tela: faixa do dia, números, o dia inteiro na linha do tempo, o que fazer agora, onde encaixar, risco de atraso |
 | `Mapa do Dia` | o dia inteiro numa tabela: ambiente, dupla, situação, ocupação, sala vaga |
 | `Agenda do Dia` | as cirurgias, vindas do PDF do hospital |
 | `Equipe` | cadastro + o X de habilidade por especialidade |
@@ -203,7 +207,7 @@ python3 testes/t8_painel.py /tmp/rc/Centro_Cirurgico_Escala.xlsx
 | Sensibilidade (domingo, feriado, limpeza, atraso, janela mínima) | aprovado, original inalterado |
 | Importação da agenda (leitura, gravação, ocupação, janelas, atraso, alertas) | 19 verificações, 0 divergências |
 | Distribuição (regras da alocação + conferência no arquivo) | 15 verificações, 0 divergências |
-| Painel (números, quadro das salas, fila de ações, rankings) | 79 verificações, 0 divergências |
+| Painel (números, linha do tempo, fila de ações, rankings) | 56 verificações, 0 divergências |
 
 ## Cadastro real
 
