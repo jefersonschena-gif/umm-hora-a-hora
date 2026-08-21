@@ -46,12 +46,21 @@ DE ONDE VEM A DUPLA DE CADA AMBIENTE
   A distribuição usa quem está disponível no dia (aba "Folgas e Férias"),
   o X de habilidade de cada técnica (aba "Equipe") e a prioridade de cada
   ambiente. Ninguém fica em dois lugares, a dupla passa o turno inteiro no
-  mesmo ambiente, e quem não pode trabalhar junto (aba "Configuração", seção 9)
-  nunca cai na mesma sala. Nem todo lugar é dupla: a coluna "Técnicos" diz quantos
+  mesmo ambiente, e quem não pode trabalhar junto nunca cai na mesma sala. Nem todo lugar é dupla: a coluna "Técnicos" diz quantos
   aquele ambiente pede: o box de preparo e a sala de recém-nascido são de uma
   pessoa só, e ali a coluna TÉCNICO 2 fica cinza. Enquanto o X não estiver marcado, a coluna Situação fica
   em SEM AVALIAÇÃO — a distribuição acontece do mesmo jeito, só não dá para
   dizer se a dupla cobre as especialidades do dia.
+
+  AFINIDADE — QUEM PODE TRABALHAR COM QUEM
+  Na aba "Equipe", à direita do X de habilidade, há um quadro com os mesmos
+  nomes na vertical e na horizontal. O X quer dizer "estas duas podem
+  trabalhar juntas". Ele já vem todo marcado: apague o X da dupla que não
+  pode. Basta apagar de um lado — as duas células ficam vermelhas e a
+  planilha entende. A distribuição nunca junta essas duas, e se você formar
+  a dupla à mão a coluna Situação fica em DUPLA VETADA com os dois nomes.
+  Se alguém ficar sem nenhum X, ela não forma dupla com ninguém e o Painel
+  avisa.
 
   ATENÇÃO: o X das habilidades veio preenchido de brincadeira — 3 especialidades
   por técnica, em rodízio, só para a planilha funcionar. Corrija na aba

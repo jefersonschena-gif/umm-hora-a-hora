@@ -32,24 +32,26 @@ from openpyxl.formatting.rule import CellIsRule, FormulaRule
 OUT = "/home/user/umm-hora-a-hora/centro-cirurgico/Centro_Cirurgico_Escala.xlsx"
 
 # ---------------------------------------------------------------- dimensões
-N_ESP, N_POS, N_EQ, N_MAPA, N_AUS, N_CIR, N_VETO = 20, 16, 30, 200, 150, 60, 30
+N_ESP, N_POS, N_EQ, N_MAPA, N_AUS, N_CIR = 20, 16, 30, 200, 150, 60
 JOGO_K, DIAS = 13, 31
 ESP_R1, ESP_R2 = 22, 21 + N_ESP          # Configuração: especialidades
 POS_R1, POS_R2 = ESP_R2 + 4, ESP_R2 + 3 + N_POS
 FER_R1, FER_R2 = POS_R2 + 4, POS_R2 + 3 + 20
 AUS_T1, AUS_T2 = FER_R2 + 4, FER_R2 + 3 + 7
 CIR_R1, CIR_R2 = AUS_T2 + 4, AUS_T2 + 3 + N_CIR   # Configuração: cirurgiões
-VET_R1, VET_R2 = CIR_R2 + 4, CIR_R2 + 3 + N_VETO  # Configuração: duplas vetadas
 EQ_R1, EQ_R2 = 2, 1 + N_EQ               # Equipe
-XC1, XC2 = 8, 7 + N_ESP                  # Equipe: colunas H.. do X
+XC1, XC2 = 8, 7 + N_ESP                  # Equipe: colunas H.. do X de habilidade
 XL1, XL2 = get_column_letter(XC1), get_column_letter(XC2)
+AFN_C = XC2 + 3                          # Equipe: auxiliar, quantos X de afinidade tem a linha
+AFC1, AFC2 = XC2 + 4, XC2 + 3 + N_EQ     # Equipe: matriz de afinidade, N_EQ x N_EQ
+AFL1, AFL2 = get_column_letter(AFC1), get_column_letter(AFC2)
 MP_R1, MP_R2 = 2, 1 + N_MAPA             # Mapa
 AU_R1, AU_R2 = 2, 1 + N_AUS              # Ausencias
 CAL_C1 = 9                               # Ausencias: calendário a partir da coluna I
 MIX_R1, MIX_R2 = 2, 1 + N_POS            # Calc: mix por posto
 COB_R1, COB_R2 = MIX_R2 + 3, MIX_R2 + 2 + N_POS
 SUG_R1, SUG_R2 = COB_R2 + 3, COB_R2 + 2 + N_EQ
-N_GLOB = 4                               # ações que não são de um ambiente
+N_GLOB = 5                               # ações que não são de um ambiente
 ACO_R1, ACO_R2 = SUG_R2 + 3, SUG_R2 + 2 + N_GLOB + N_POS   # Calc: fila de ações
 RNK_R1, RNK_R2 = ACO_R2 + 3, ACO_R2 + 2 + N_POS            # Calc: rankings do painel
 N_ACOES_VISIVEIS = 8
@@ -81,6 +83,7 @@ def R(sheet, addr):
 
 # ---------------------------------------------------------------- estilo
 AZ, AZ_CLR, AM, CINZA = "1F3864", "DDEBF7", "FFF2CC", "F2F2F2"
+AZ_MED = "2E75B6"                        # cabeçalho da matriz de afinidade
 VERDE, VERDE_T, AMAR, AMAR_T, VERM, VERM_T = "C6EFCE", "006100", "FFEB9C", "9C6500", "FFC7CE", "9C0006"
 F_IN   = Font(name="Calibri", size=10, color="0070C0")
 F_OUT  = Font(name="Calibri", size=10)
@@ -93,6 +96,7 @@ FILL_HEAD = PatternFill("solid", fgColor=AZ)
 FILL_IN   = PatternFill("solid", fgColor=AZ_CLR)
 FILL_PREM = PatternFill("solid", fgColor=AM)
 FILL_CZ   = PatternFill("solid", fgColor=CINZA)
+FILL_AFN  = PatternFill("solid", fgColor=AZ_MED)
 
 
 def cf_fill(cor):
@@ -250,10 +254,14 @@ PROCS = {"Ortopedia": ["Artroplastia total de joelho", "Artroscopia de ombro"],
  "Cirurgia Plástica": ["Dermolipectomia abdominal"], "Cirurgia Vascular": ["Safenectomia"]}
 CIRURGIOES = ["Dr. Almeida","Dra. Bernardes","Dr. Coelho","Dra. Delgado","Dr. Esteves",
               "Dra. Fialho","Dr. Gouveia","Dra. Hirano"]
-VETOS = [  # (técnico, técnico, motivo) — duplas que não podem trabalhar juntas
-    ("Camila Bertoldi", "Simone Dalpra", "Não se entendem em sala"),
-    ("Marcia Tonet", "Odair Bianchi", "Pedido da coordenação"),
-] if not USANDO_REAL else []
+SEM_AFINIDADE = {  # duplas sem X na matriz de afinidade da aba Equipe
+    frozenset(("Camila Bertoldi", "Simone Dalpra")),
+    frozenset(("Marcia Tonet", "Odair Bianchi")),
+} if not USANDO_REAL else set()
+
+def pode_junto(a, b):
+    """X na matriz de afinidade: a e b podem dividir o mesmo posto."""
+    return a != b and frozenset((a, b)) not in SEM_AFINIDADE
 
 CIR_TAB = [  # de/para cirurgião -> especialidade usado na importação da agenda
     (n, e, "") for n, e in zip(CIRURGIOES,
@@ -315,7 +323,7 @@ def build_escala():
     disp = [e[1] for e in EQUIPE if e[3] == "Ativo" and e[1] not in AUSENTES]
     postos = [(p[0], p[3], p[4], p[5]) for p in POSTOS if opera_hoje(p[0])]
     esp = {cod: list(esp_do_posto(cod)) for cod, _, _, _ in postos}
-    return alocar(postos, esp, disp, SKILLS, [(v[0], v[1]) for v in VETOS])
+    return alocar(postos, esp, disp, SKILLS, [tuple(p) for p in SEM_AFINIDADE])
 
 ALOC = build_escala()   # {cod: [técnico 1, técnico 2]}
 
@@ -453,20 +461,6 @@ ws_cfg.cell(row=CIR_R2 + 1, column=1,
                   "passa a preencher a coluna Especialidade do Mapa sozinha e acrescenta aqui, em "
                   "branco, todo cirurgião novo que aparecer.").font = F_NOTA
 
-sec(ws_cfg, VET_R1 - 2, "9. DUPLAS QUE NÃO PODEM TRABALHAR JUNTAS", 3)
-head(ws_cfg, VET_R1 - 1, ["Técnico", "Não pode com", "Motivo"], height=28)
-fmt(ws_cfg, VET_R1, VET_R2, 1, 3, align=CTR, fill=FILL_PREM)
-for i in range(N_VETO):
-    r = VET_R1 + i
-    for c_ in (1, 2, 3):
-        ws_cfg.cell(row=r, column=c_).alignment = LFT
-    if i < len(VETOS):
-        for j, v in enumerate(VETOS[i]):
-            ws_cfg.cell(row=r, column=1 + j, value=v)
-ws_cfg.cell(row=VET_R2 + 1, column=1,
-            value="A ordem não importa: A com B é o mesmo que B com A. A distribuição nunca junta "
-                  "quem está aqui, e se a dupla for formada à mão o ambiente fica em DUPLA VETADA "
-                  "no Mapa do Dia.").font = F_NOTA
 
 ws_cfg.cell(row=4, column=7, value="LISTAS AUXILIARES").font = F_SEC
 head(ws_cfg, 5, ["Status cadastral", "Status da cirurgia", "Tipo de posto"], col0=7, height=28)
@@ -492,8 +486,6 @@ dn("Aus_Tipos", R(S_CFG, "$A$%d:$A$%d" % (AUS_T1, AUS_T2)))
 dn("Aus_Siglas", R(S_CFG, "$B$%d:$B$%d" % (AUS_T1, AUS_T2)))
 for nm, col in (("Cir_Nome", "A"), ("Cir_Esp", "B")):
     dn(nm, R(S_CFG, "$%s$%d:$%s$%d" % (col, CIR_R1, col, CIR_R2)))
-for nm, col in (("Veto_A", "A"), ("Veto_B", "B")):
-    dn(nm, R(S_CFG, "$%s$%d:$%s$%d" % (col, VET_R1, col, VET_R2)))
 dn("Lista_StatusCad", R(S_CFG, "$G$6:$G$8"))
 dn("Lista_StatusCir", R(S_CFG, "$H$6:$H$9"))
 dn("Lista_TipoPosto", R(S_CFG, "$I$6:$I$7"))
@@ -554,6 +546,47 @@ ws_eqp.freeze_panes = "H2"; ws_eqp.auto_filter.ref = "A1:G%d" % EQ_R2
 ws_eqp.cell(row=EQ_R2 + 2, column=1,
             value="Marque X na especialidade que o técnico faz. Célula em branco = não faz (ou ainda não "
                   "avaliado). As colunas vêm da lista de especialidades da aba Configuração.").font = F_NOTA
+
+# --- matriz de afinidade: quem pode trabalhar com quem
+# Mesma ideia do X de habilidade — os nomes na vertical e na horizontal, X onde a dupla pode
+# dividir o mesmo posto. Nasce toda marcada: a coordenação apaga o X das duplas que não podem.
+# Basta apagar de um lado; sem X em qualquer das duas células a dupla está proibida.
+_CL = get_column_letter(XC2 + 2)                     # coluna auxiliar do nome curto
+_ca = ws_eqp.cell(row=1, column=AFN_C, value="aux_afin")
+_ca.font = F_HEAD; _ca.fill = FILL_HEAD
+ws_eqp.column_dimensions[get_column_letter(AFN_C)].hidden = True
+for j in range(N_EQ):
+    c = ws_eqp.cell(row=1, column=AFC1 + j,
+                    value='=IF($B${r}="","",${cl}${r})'.format(r=EQ_R1 + j, cl=_CL))
+    c.font = F_HEAD; c.fill = FILL_AFN; c.alignment = ROT; c.border = BORD
+    ws_eqp.column_dimensions[get_column_letter(AFC1 + j)].width = 3.6
+for i in range(N_EQ):
+    r = EQ_R1 + i
+    nome_i = EQUIPE[i][1] if i < len(EQUIPE) else None
+    for j in range(N_EQ):
+        cel = ws_eqp.cell(row=r, column=AFC1 + j)
+        cel.border = BORD; cel.alignment = CTR
+        if i == j:                                   # a pessoa com ela mesma
+            cel.value = "—"; cel.fill = FILL_CZ
+            cel.font = Font(name="Calibri", size=10, color="BFBFBF")
+            continue
+        cel.font = Font(name="Calibri", size=10, color="0070C0", bold=True)
+        nome_j = EQUIPE[j][1] if j < len(EQUIPE) else None
+        if nome_i and nome_j and not pode_junto(nome_i, nome_j):
+            continue                                 # sem X = não podem trabalhar juntas
+        cel.value = "X"
+    a = ws_eqp.cell(row=r, column=AFN_C,
+                    value='=IF($B{r}="","",COUNTIF(${a}{r}:${b}{r},"X"))'.format(r=r, a=AFL1, b=AFL2))
+    a.font = F_OUT
+ws_eqp.cell(row=EQ_R2 + 3, column=1, value=(
+    "AFINIDADE — a matriz à direita cruza os nomes: X quer dizer que as duas podem trabalhar "
+    "juntas. Ela já vem toda marcada; apague o X onde a dupla não pode. Basta apagar de um lado, "
+    "a planilha lê os dois. A distribuição nunca forma essas duplas, e se você formar uma à mão "
+    "o ambiente fica em DUPLA VETADA no Mapa do Dia.")).font = F_NOTA
+dn("Equipe_Afin", R(S_EQP, "$%s$%d:$%s$%d" % (AFL1, EQ_R1, AFL2, EQ_R2)))
+dn("Equipe_AfinN", R(S_EQP, "$%s$%d:$%s$%d" % (get_column_letter(AFN_C), EQ_R1,
+                                               get_column_letter(AFN_C), EQ_R2)))
+
 for nm, col in (("Equipe_Mat", "A"), ("Equipe_Nome", "B"), ("Equipe_Status", "D"), ("Equipe_Situacao", "E")):
     dn(nm, R(S_EQP, "$%s$%d:$%s$%d" % (col, EQ_R1, col, EQ_R2)))
 dn("Equipe_X", R(S_EQP, "$%s$%d:$%s$%d" % (XL1, EQ_R1, XL2, EQ_R2)))
@@ -817,6 +850,8 @@ GLOBAIS = [
     ('=IF(SUMPRODUCT((Cir_Nome<>"")*(Cir_Esp=""))>0,980,0)',
      '"Cadastre a especialidade de "&SUMPRODUCT((Cir_Nome<>"")*(Cir_Esp=""))&'
      '" cirurgião(ões) na aba Configuração, seção 8"'),
+    ('=IF(SUMPRODUCT((Equipe_Nome<>"")*(Equipe_AfinN=0))>0,960,0)',
+     '"Há "&SUMPRODUCT((Equipe_Nome<>"")*(Equipe_AfinN=0))&" técnico(s) sem nenhum X de afinidade na aba Equipe — não podem formar dupla com ninguém"'),
     ('=IF(%s>0,970,0)' % R(S_DASH, CEL_DEFICIT),
      '"Falta"&IF(%s=1,"","m")&" "&%s&" técnico"&IF(%s=1,"","s")&'
      '" para cobrir todas as vagas de hoje — veja o Mapa do Dia"'
@@ -974,7 +1009,9 @@ for i in range(N_POS):
               'IF(AND($D{r}="",$E{r}=""),"SEM EQUIPE",'
               'IF((--($D{r}<>"")+--($E{r}<>""))<$B{r},"INCOMPLETO",'
               'IF((--($D{r}<>"")+--($E{r}<>""))>$B{r},"GENTE DEMAIS",'
-              'IF(SUMPRODUCT((Veto_A<>"")*(Veto_B<>"")*(((Veto_A=$D{r})*(Veto_B=$E{r}))+((Veto_A=$E{r})*(Veto_B=$D{r}))))>0,"DUPLA VETADA",'
+              'IF(AND($D{r}<>"",$E{r}<>"",'
+              'OR(IFERROR(INDEX(Equipe_Afin,MATCH($D{r},Equipe_Nome,0),MATCH($E{r},Equipe_Nome,0)),"X")<>"X",'
+              'IFERROR(INDEX(Equipe_Afin,MATCH($E{r},Equipe_Nome,0),MATCH($D{r},Equipe_Nome,0)),"X")<>"X")),"DUPLA VETADA",'
               'IF(OR(AND($D{r}<>"",{n1}=0),AND($E{r}<>"",{n2}=0)),"SEM AVALIAÇÃO",'
               'IF({desc}>0,"FALTA HABILIDADE",IF(AND($B{r}>=2,{um}>0),"ATENÇÃO","OK")))))))))'
               ).replace("{n1}", nesp % "$D{r}").replace("{n2}", nesp % "$E{r}")
@@ -1070,6 +1107,8 @@ CHECKS = [
     ("Ambientes com técnico a mais", '=COUNTIF($F$%d:$F$%d,"GENTE DEMAIS")' % (PAI_R1, PAI_R2)),
     ("Duplas que não podiam trabalhar juntas",
      '=COUNTIF($F$%d:$F$%d,"DUPLA VETADA")' % (PAI_R1, PAI_R2)),
+    ("Técnicos sem afinidade com ninguém",
+     '=SUMPRODUCT((Equipe_Nome<>"")*(Equipe_AfinN=0))'),
     ("Técnicos escalados em mais de um posto",
      '=SUMPRODUCT((Pai_Tec1<>"")*(COUNTIF(Pai_Tec1,Pai_Tec1)+COUNTIF(Pai_Tec2,Pai_Tec1)>1))'),
     ("Cirurgias com alerta no mapa", '=SUMPRODUCT((Mapa_Alerta<>"OK")*(Mapa_Alerta<>""))'),
@@ -1114,9 +1153,10 @@ GUIA = [
      "a Situação fica SEM AVALIAÇÃO."),
     ("Folgas e férias", "Vão para a aba Ausencias, por período. O calendário ao lado mostra o "
      "período inteiro e quantos faltam em cada dia."),
-    ("Quem não pode com quem", "A seção 9 da aba Configuração lista as duplas que não podem "
-     "trabalhar juntas. A distribuição já evita, e se você formar uma delas à mão o ambiente fica "
-     "em DUPLA VETADA."),
+    ("Quem pode com quem", "Na aba Equipe, à direita do X de habilidade, há uma matriz com os "
+     "nomes na vertical e na horizontal: X quer dizer que as duas podem trabalhar juntas. Já vem "
+     "toda marcada — apague o X da dupla que não pode (de um lado só basta). A distribuição nunca "
+     "junta essas duas, e se você formar a dupla à mão o ambiente fica em DUPLA VETADA."),
     ("Situação", "OK = os dois cobrem tudo · ATENÇÃO = alguma especialidade coberta por um só · "
      "FALTA HABILIDADE = alguma especialidade sem ninguém · INCOMPLETO = falta técnico · "
      "DUPLA VETADA = os dois não podem trabalhar juntos · SEM EQUIPE = ninguém escalado · NÃO OPERA = ambiente fechado nesse dia."),
@@ -1366,6 +1406,9 @@ def add_dv(ws, formula, ranges, kind="list", **kw):
     return dv
 
 dvx = add_dv(ws_eqp, '"X"', ["%s%d:%s%d" % (XL1, EQ_R1, XL2, EQ_R2)])
+dva = add_dv(ws_eqp, '"X"', ["%s%d:%s%d" % (AFL1, EQ_R1, AFL2, EQ_R2)])
+dva.errorTitle = "Marque apenas X"
+dva.error = ("X = as duas podem trabalhar juntas. Apague a célula para dizer que não podem.")
 dvx.errorTitle = "Marque apenas X"
 dvx.error = "Use X para indicar que o técnico faz essa especialidade; deixe em branco se não faz."
 add_dv(ws_eqp, "=Lista_StatusCad", ["D%d:D%d" % (EQ_R1, EQ_R2)])
@@ -1378,8 +1421,6 @@ add_dv(ws_cfg, '"Ativo,Inativo"', ["I%d:I%d" % (POS_R1, POS_R2)])
 add_dv(ws_cfg, '"Sim,Não"', ["K%d:K%d" % (POS_R1, POS_R2)])
 add_dv(ws_cfg, "1", ["D%d:E%d" % (POS_R1, POS_R2)], kind="whole", operator="between", formula2="4")
 add_dv(ws_cfg, "=Lista_Especialidades", ["B%d:B%d" % (CIR_R1, CIR_R2)])
-add_dv(ws_cfg, "=Lista_Tecnicos", ["A%d:A%d" % (VET_R1, VET_R2),
-                                   "B%d:B%d" % (VET_R1, VET_R2)])
 add_dv(ws_aus, "=Lista_Tecnicos", ["A%d:A%d" % (AU_R1, AU_R2)])
 add_dv(ws_aus, "=Aus_Tipos", ["B%d:B%d" % (AU_R1, AU_R2)])
 dvd = add_dv(ws_aus, "DATE(2000,1,1)", ["C%d:D%d" % (AU_R1, AU_R2)], kind="date",
@@ -1449,6 +1490,18 @@ ws_pai.conditional_formatting.add("B%d:B%d" % (CHK_R1, CHK_R2),
     CellIsRule(operator="equal", formula=['"OK"'], fill=fv, font=fvt))
 ws_eqp.conditional_formatting.add("%s%d:%s%d" % (XL1, EQ_R1, XL2, EQ_R2),
     CellIsRule(operator="equal", formula=['"X"'], fill=fv, font=Font(color=VERDE_T, bold=True)))
+# sem X de um dos dois lados: pinta as duas células, para a dupla proibida aparecer espelhada
+_afd = AFC1 - EQ_R1                       # COLUMN()-ROW() na diagonal (a pessoa com ela mesma)
+ws_eqp.conditional_formatting.add("%s%d:%s%d" % (AFL1, EQ_R1, AFL2, EQ_R2),
+    FormulaRule(formula=[
+        'AND($B%d<>"",INDEX(Equipe_Nome,COLUMN()-%d)<>"",COLUMN()-ROW()<>%d,'
+        'OR(%s%d<>"X",INDEX(Equipe_Afin,COLUMN()-%d,ROW()-%d)<>"X"))'
+        % (EQ_R1, AFC1 - 1, _afd, AFL1, EQ_R1, AFC1 - 1, EQ_R1 - 1)],
+        fill=fr, font=frt, stopIfTrue=True))
+ws_eqp.conditional_formatting.add("%s%d:%s%d" % (AFL1, EQ_R1, AFL2, EQ_R2),
+    FormulaRule(formula=['AND($B%d<>"",INDEX(Equipe_Nome,COLUMN()-%d)<>"",%s%d="X")'
+                         % (EQ_R1, AFC1 - 1, AFL1, EQ_R1)],
+                fill=fv, font=Font(color=VERDE_T, bold=True)))
 ws_eqp.conditional_formatting.add("E%d:E%d" % (EQ_R1, EQ_R2),
     CellIsRule(operator="equal", formula=['"Disponível"'], fill=fv, font=fvt))
 ws_eqp.conditional_formatting.add("E%d:E%d" % (EQ_R1, EQ_R2),
@@ -1497,9 +1550,9 @@ print("salvo:", OUT)
 import os as _o
 if _o.environ.get("VISUAL") == "1":
     for nome, area in {S_PAI: "A1:M%d" % (CHK_R2 + 1),
-                       S_MAP: "A1:N24", S_EQP: "A1:%s28" % get_column_letter(XC2 + 1),
+                       S_MAP: "A1:N24", S_EQP: "A1:%s28" % AFL2,
                        S_AUS: "A1:%s%d" % (get_column_letter(D2C + 4), CAL_R2 + 4),
-                       S_CFG: "A1:K%d" % (VET_R1 + 6)}.items():
+                       S_CFG: "A1:K%d" % (CIR_R1 + 12)}.items():
         w = wb[nome]
         w.page_setup.orientation = "landscape"
         w.page_setup.fitToWidth = 1; w.page_setup.fitToHeight = 1

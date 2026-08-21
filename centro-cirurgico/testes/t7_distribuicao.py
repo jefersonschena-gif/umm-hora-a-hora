@@ -98,11 +98,14 @@ dupla = [(pai.cell(row=r, column=4).value, pai.cell(row=r, column=5).value)
 nomes = [n for d in dupla for n in d if n]
 chk("arquivo: ninguém em dois ambientes", len(nomes), len(set(nomes)))
 
-_v1 = next(r for r in range(1, 400)
-           if str(cfg.cell(row=r, column=1).value or "").startswith("9. DUPLAS")) + 2
-VETOS = {frozenset((cfg.cell(row=r, column=1).value, cfg.cell(row=r, column=2).value))
-         for r in range(_v1, _v1 + 30)
-         if cfg.cell(row=r, column=1).value and cfg.cell(row=r, column=2).value}
+# afinidade: matriz N x N na aba Equipe (X = podem trabalhar juntas)
+_AFC1 = 8 + 20 + 3
+_NOMES = [eqp.cell(row=2 + i, column=2).value for i in range(30)]
+def _afx(i, j):
+    return str(eqp.cell(row=2 + i, column=_AFC1 + j).value or "").strip().upper() == "X"
+VETOS = {frozenset((_NOMES[i], _NOMES[j]))
+         for i in range(30) for j in range(i + 1, 30)
+         if _NOMES[i] and _NOMES[j] and not (_afx(i, j) and _afx(j, i))}
 chk("arquivo: nenhuma dupla vetada escalada junta", [],
     [sorted(par) for par in VETOS for d in dupla if par == frozenset(d)])
 

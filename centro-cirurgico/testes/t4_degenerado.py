@@ -10,6 +10,7 @@ SRC = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
                    "Centro_Cirurgico_Escala.xlsx")
 wb = openpyxl.load_workbook(SRC)
 cfg, aus, mapa, pai = wb[ABA_CFG], wb[ABA_FOLGAS], wb[ABA_AGENDA], wb[ABA_MAPA]
+eqp = wb[ABA_EQUIPE]
 L = [r for r in range(2, 202) if mapa.cell(row=r, column=2).value is None][0]
 d = mapa["A2"].value
 casos = [
@@ -43,10 +44,15 @@ pai.cell(row=12, column=5, value="Fulano Inexistente")               # não cada
 pai.cell(row=13, column=4, value="Zuleide Marcon")                   # técnico de férias
 pai.cell(row=14, column=5).value = None                              # posto com um técnico só
 pai.cell(row=20, column=5, value="Bruna Cordeiro")   # 2º técnico em ambiente de 1 só
-# dupla vetada formada à mão: acha a seção 9 pelo título, sem depender da geometria
-VET_R1 = next(r for r in range(1, 400)
-              if str(cfg.cell(row=r, column=1).value or "").startswith("9. DUPLAS")) + 2
-pai.cell(row=15, column=4, value=cfg.cell(row=VET_R1, column=1).value)
-pai.cell(row=15, column=5, value=cfg.cell(row=VET_R1, column=2).value)
+# dupla vetada formada à mão: acha na matriz de afinidade da aba Equipe o primeiro par
+# sem X, para não depender de nomes fixos
+_AFC1 = 8 + 20 + 3
+_NOMES = [eqp.cell(row=2 + i, column=2).value for i in range(30)]
+_afx = lambda i, j: str(eqp.cell(row=2 + i, column=_AFC1 + j).value or "").strip().upper() == "X"
+_par = next(((_NOMES[i], _NOMES[j]) for i in range(30) for j in range(i + 1, 30)
+             if _NOMES[i] and _NOMES[j] and not (_afx(i, j) and _afx(j, i))), None)
+assert _par, "o arquivo de demonstração precisa de ao menos uma dupla sem afinidade"
+pai.cell(row=15, column=4, value=_par[0])
+pai.cell(row=15, column=5, value=_par[1])
 wb.save(os.path.join(SAIDA, "t4.xlsx"))
 print("casos degenerados aplicados a partir da linha", L)

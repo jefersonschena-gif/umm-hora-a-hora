@@ -153,6 +153,14 @@ def _coluna(wb, nome):
     return [ws["%s%d" % (col, r)].value for r in range(r1, r2 + 1)]
 
 
+def _canto(wb, aba, nome):
+    """(linha, coluna) da primeira célula de um nome definido de bloco."""
+    dest = list(wb.defined_names[nome].destinations)[0][1].replace("$", "")
+    col = re.sub(r"\d", "", dest.split(":")[0])
+    lin = int(re.sub(r"\D", "", dest.split(":")[0]))
+    return lin, wb[aba][col + str(lin)].column
+
+
 def _opera(func, dia, feriados):
     """O posto funciona nessa data? (dia da semana e feriado)"""
     fer = dia in feriados
@@ -198,10 +206,7 @@ def distribuir(wb, dia, cirurgias):
     # X de habilidade
     esp_nomes = [e for e in _coluna(wb, "Esp_Nome")]
     eq = wb[ABA_EQUIPE]
-    dest = list(wb.defined_names["Equipe_X"].destinations)[0][1].replace("$", "")
-    (ca, ra), (cb, rb) = [(re.sub(r"\d", "", x), int(re.sub(r"\D", "", x)))
-                          for x in dest.split(":")]
-    c0 = eq[ca + str(ra)].column
+    ra, c0 = _canto(wb, ABA_EQUIPE, "Equipe_X")
     skills = {}
     for k, nome in enumerate(nomes):
         if not nome:
@@ -212,9 +217,18 @@ def distribuir(wb, dia, cirurgias):
                 marcados.add(e)
         skills[nome] = marcados
 
-    # duplas que não podem trabalhar juntas
-    veto_b = _coluna(wb, "Veto_B")
-    vetos = [(a, veto_b[k]) for k, a in enumerate(_coluna(wb, "Veto_A")) if a and veto_b[k]]
+    # afinidade: X na matriz = as duas podem trabalhar juntas. Sem X de qualquer um dos
+    # dois lados, a dupla está proibida — assim basta apagar o X de um lado só.
+    ar, a0 = _canto(wb, ABA_EQUIPE, "Equipe_Afin")
+    def _x(i, j):
+        return str(eq.cell(row=ar + i, column=a0 + j).value or "").strip().upper() == "X"
+    vetos = []
+    for i, a in enumerate(nomes):
+        if not a:
+            continue
+        for j in range(i + 1, len(nomes)):
+            if nomes[j] and not (_x(i, j) and _x(j, i)):
+                vetos.append((a, nomes[j]))
 
     aloc = alocar(postos, esp_posto, disp, skills, vetos)
 

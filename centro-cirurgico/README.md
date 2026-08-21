@@ -79,7 +79,7 @@ escalados e devolve a **Situação**:
 | **FALTA HABILIDADE** | alguma especialidade do dia não é coberta por ninguém da dupla (o alerta diz qual) |
 | **INCOMPLETO** | falta técnico no ambiente |
 | **GENTE DEMAIS** | há mais gente do que o ambiente pede (o box de preparo e a sala de recém-nascido são de uma pessoa só) |
-| **DUPLA VETADA** | os dois escalados estão na lista de quem não pode trabalhar junto |
+| **DUPLA VETADA** | os dois escalados estão sem X na matriz de afinidade da aba Equipe |
 | **SEM EQUIPE** | ninguém escalado — o alerta diz quantas cirurgias precisam ser remanejadas |
 | **NÃO OPERA** | posto fechado nesse dia da semana |
 | **SEM AVALIAÇÃO** | algum técnico escalado ainda não tem X marcado |
@@ -171,19 +171,27 @@ O que a planilha sinaliza na aba `Agenda do Dia`:
 A emenda sem folga **não** é sinalizada como erro na coluna Alerta: ela é a regra nessa agenda, e
 vira número na coluna Atraso previsto do Mapa do Dia.
 
-## Quem não pode com quem
+## Afinidade — quem pode trabalhar com quem
 
-A seção **9. DUPLAS QUE NÃO PODEM TRABALHAR JUNTAS** da aba Configuração é uma tabela de pares
-(técnico, técnico, motivo), com lista suspensa nas duas colunas. A ordem não importa — A com B é o
-mesmo que B com A.
+Na aba **Equipe**, à direita do X de habilidade, há uma matriz que cruza os nomes: os mesmos
+técnicos na vertical e na horizontal, **X onde a dupla pode dividir o mesmo posto**. Mesma mecânica
+do X de especialidade, aplicada a pessoas em vez de procedimentos.
 
-A distribuição respeita: ao escolher a segunda pessoa de um ambiente, quem tem veto com a primeira
+A matriz **nasce toda marcada** — inclusive as linhas e colunas ainda sem nome, para que quem for
+cadastrado depois já entre podendo trabalhar com todo mundo. A coordenação **apaga** o X das duplas
+que não podem. Basta apagar de um lado: a planilha lê as duas células e proíbe a dupla se faltar X
+em qualquer uma delas, e a formatação condicional pinta as duas de vermelho, para o veto aparecer
+espelhado. A diagonal (a pessoa com ela mesma) vem em cinza, com um travessão.
+
+A distribuição respeita: ao escolher a segunda pessoa de um ambiente, quem está sem X com a primeira
 sai da lista de candidatos, e o passe de trocas desfaz qualquer troca que formaria um par proibido.
 Se a coordenação montar a dupla à mão mesmo assim, a Situação do ambiente vira **DUPLA VETADA** e o
 alerta nomeia as duas pessoas.
 
-Quando alguém está vetado com todo mundo que sobrou, o ambiente fica com uma pessoa só (INCOMPLETO)
-em vez de formar a dupla proibida — a planilha prefere mostrar o problema a escondê-lo.
+Quando alguém está sem X com todo mundo que sobrou, o ambiente fica com uma pessoa só (INCOMPLETO)
+em vez de formar a dupla proibida — a planilha prefere mostrar o problema a escondê-lo. E se uma
+linha inteira ficar sem X, a verificação **Técnicos sem afinidade com ninguém** e a fila de ações do
+Painel avisam: quem está assim não forma dupla com pessoa alguma.
 
 ## Ausências
 
@@ -218,6 +226,7 @@ SAIDA=/tmp python3 testes/t6_agenda.py
 python3 testes/t7_distribuicao.py
 python3 testes/t8_painel.py /tmp/rc/Centro_Cirurgico_Escala.xlsx
 python3 testes/t9_estilo.py
+python3 testes/t10_afinidade.py
 ```
 
 | Teste | Resultado |
@@ -231,6 +240,7 @@ python3 testes/t9_estilo.py
 | Distribuição (regras da alocação, vetos + conferência no arquivo) | 25 verificações, 0 divergências |
 | Painel (números, linha do tempo, fila de ações, rankings) | 56 verificações, 0 divergências |
 | Estilo (o XML que o Excel lê) | 6 verificações, 0 divergências |
+| Afinidade (matriz da aba Equipe, leitura, distribuição e fórmula) | 19 verificações, 0 divergências |
 
 ## Cadastro real
 

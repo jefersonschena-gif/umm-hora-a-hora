@@ -28,12 +28,15 @@ PERIODO = cfg["B8"].value
 T_INI, T_MIN = cfg["B11"].value, cfg["B13"].value
 LIMPEZA, JANELA = cfg["B16"].value, cfg["B17"].value
 
-# duplas que não podem trabalhar juntas (seção 9 da Configuração, achada pelo título)
-_v1 = next(r for r in range(1, 400)
-           if str(cfg.cell(row=r, column=1).value or "").startswith("9. DUPLAS")) + 2
-VETOS = {frozenset((cfg.cell(row=r, column=1).value, cfg.cell(row=r, column=2).value))
-         for r in range(_v1, _v1 + 30)
-         if cfg.cell(row=r, column=1).value and cfg.cell(row=r, column=2).value}
+# afinidade: matriz N x N na aba Equipe, X = podem trabalhar juntas.
+# Sem X de qualquer um dos dois lados, a dupla está proibida.
+AFC1 = XC1 + N_ESP + 3
+_NOMES = [eqp.cell(row=2 + i, column=2).value for i in range(N_EQ)]
+def _afx(i, j):
+    return str(eqp.cell(row=2 + i, column=AFC1 + j).value or "").strip().upper() == "X"
+VETOS = {frozenset((_NOMES[i], _NOMES[j]))
+         for i in range(N_EQ) for j in range(i + 1, N_EQ)
+         if _NOMES[i] and _NOMES[j] and not (_afx(i, j) and _afx(j, i))}
 BASE = T_INI.hour * 60 + T_INI.minute
 FERIADOS = {cfg.cell(row=FER_R1 + i, column=1).value for i in range(20)
             if cfg.cell(row=FER_R1 + i, column=1).value}
