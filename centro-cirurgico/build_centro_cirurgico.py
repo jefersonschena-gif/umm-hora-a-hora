@@ -867,10 +867,10 @@ for i in range(N_POS):
     cir = M % ("H", pr)
     ws_cal.cell(row=r, column=1, value=(
         '=IF({n}="",0,IF({s}="SEM EQUIPE",IF(N({c})>0,900,850),'
-        'IF({s}="FALTA HABILIDADE",800,IF({s}="DUPLA VETADA",750,'
+        'IF({s}="INDISPONÍVEL",870,IF({s}="FALTA HABILIDADE",800,IF({s}="DUPLA VETADA",750,'
         'IF({s}="GENTE DEMAIS",700,IF({s}="INCOMPLETO",650,'
         'IF({s}="EXTRA",600,IF({s}="ATENÇÃO",400,'
-        'IF(AND({s}="SEM AVALIAÇÃO",COUNTIF(Equipe_X,"X")>0),300,0)))))))))'
+        'IF(AND({s}="SEM AVALIAÇÃO",COUNTIF(Equipe_X,"X")>0),300,0))))))))))'
         '+IF({n}="",0,(20-IFERROR(INDEX(Postos_Prior,MATCH({cod},Postos_Cod,0)),20))/100)'
     ).format(n=nome, s=sit, c=cir, cod=M % ("N", pr)))
     ws_cal.cell(row=r, column=2, value=(
@@ -1012,6 +1012,7 @@ for i in range(N_POS):
               'IF(AND($D{r}<>"",$E{r}<>"",'
               'OR(IFERROR(INDEX(Equipe_Afin,MATCH($D{r},Equipe_Nome,0),MATCH($E{r},Equipe_Nome,0)),"X")<>"X",'
               'IFERROR(INDEX(Equipe_Afin,MATCH($E{r},Equipe_Nome,0),MATCH($D{r},Equipe_Nome,0)),"X")<>"X")),"DUPLA VETADA",'
+              'IF(OR(AND($D{r}<>"",IFERROR(INDEX(Equipe_Situacao,MATCH($D{r},Equipe_Nome,0)),"Disponível")<>"Disponível"),AND($E{r}<>"",IFERROR(INDEX(Equipe_Situacao,MATCH($E{r},Equipe_Nome,0)),"Disponível")<>"Disponível")),"INDISPONÍVEL",'
               'IF(OR(AND($D{r}<>"",{n1}=0),AND($E{r}<>"",{n2}=0)),"SEM AVALIAÇÃO",'
               'IF({desc}>0,"FALTA HABILIDADE",IF(AND($B{r}>=2,{um}>0),"ATENÇÃO","OK")))))))))'
               ).replace("{n1}", nesp % "$D{r}").replace("{n2}", nesp % "$E{r}")
@@ -1029,9 +1030,9 @@ for i in range(N_POS):
               'IF($F{r}="ATENÇÃO","Especialidade coberta por uma técnica só — se ela sair, a sala para | ","")&'
               'IF(AND($F{r}<>"SEM AVALIAÇÃO",{dtxt}<>""),"Ninguém cobre: "&LEFT({dtxt},LEN({dtxt})-3)&" | ","")&'
               'IF(AND($D{r}<>"",IFERROR(INDEX(Equipe_Situacao,MATCH($D{r},Equipe_Nome,0)),"?")<>"Disponível"),'
-              '"Técnico 1 indisponível | ","")&'
+              '$D{r}&" não está disponível hoje ("&IFERROR(INDEX(Equipe_Situacao,MATCH($D{r},Equipe_Nome,0)),"?")&") — troque | ","")&'
               'IF(AND($E{r}<>"",IFERROR(INDEX(Equipe_Situacao,MATCH($E{r},Equipe_Nome,0)),"?")<>"Disponível"),'
-              '"Técnico 2 indisponível | ","")&'
+              '$E{r}&" não está disponível hoje ("&IFERROR(INDEX(Equipe_Situacao,MATCH($E{r},Equipe_Nome,0)),"?")&") — troque | ","")&'
               'IF(OR(AND($D{r}<>"",COUNTIF(Pai_Tec1,$D{r})+COUNTIF(Pai_Tec2,$D{r})>1),'
               'AND($E{r}<>"",COUNTIF(Pai_Tec1,$E{r})+COUNTIF(Pai_Tec2,$E{r})>1)),'
               '"Técnico escalado em dois ambientes | ","")&'
@@ -1109,6 +1110,8 @@ CHECKS = [
      '=COUNTIF($F$%d:$F$%d,"DUPLA VETADA")' % (PAI_R1, PAI_R2)),
     ("Técnicos sem afinidade com ninguém",
      '=SUMPRODUCT((Equipe_Nome<>"")*(Equipe_AfinN=0))'),
+    ("Ambientes com alguém de folga/férias escalado",
+     '=COUNTIF($F$%d:$F$%d,"INDISPONÍVEL")' % (PAI_R1, PAI_R2)),
     ("Técnicos escalados em mais de um posto",
      '=SUMPRODUCT((Pai_Tec1<>"")*(COUNTIF(Pai_Tec1,Pai_Tec1)+COUNTIF(Pai_Tec2,Pai_Tec1)>1))'),
     ("Cirurgias com alerta no mapa", '=SUMPRODUCT((Mapa_Alerta<>"OK")*(Mapa_Alerta<>""))'),
@@ -1151,15 +1154,18 @@ GUIA = [
      "agenda de novo."),
     ("Habilidade", "Na aba Equipe, marque X na especialidade que a técnica faz. Sem X marcado, "
      "a Situação fica SEM AVALIAÇÃO."),
-    ("Folgas e férias", "Vão para a aba Ausencias, por período. O calendário ao lado mostra o "
-     "período inteiro e quantos faltam em cada dia."),
+    ("Folgas e férias", "Vão para a aba Folgas e Férias, uma linha por período. O calendário ao "
+     "lado mostra o período inteiro e quantos faltam em cada dia. Mudou a escala de folgas? Lance as "
+     "linhas e importe a agenda de novo — enquanto não redistribuir, quem ficou de folga e continuou "
+     "escalado aparece em INDISPONÍVEL, com o nome."),
     ("Quem pode com quem", "Na aba Equipe, à direita do X de habilidade, há uma matriz com os "
      "nomes na vertical e na horizontal: X quer dizer que as duas podem trabalhar juntas. Já vem "
      "toda marcada — apague o X da dupla que não pode (de um lado só basta). A distribuição nunca "
      "junta essas duas, e se você formar a dupla à mão o ambiente fica em DUPLA VETADA."),
     ("Situação", "OK = os dois cobrem tudo · ATENÇÃO = alguma especialidade coberta por um só · "
      "FALTA HABILIDADE = alguma especialidade sem ninguém · INCOMPLETO = falta técnico · "
-     "DUPLA VETADA = os dois não podem trabalhar juntos · SEM EQUIPE = ninguém escalado · NÃO OPERA = ambiente fechado nesse dia."),
+     "DUPLA VETADA = os dois não podem trabalhar juntos · INDISPONÍVEL = alguém ali está de folga, férias ou atestado · "
+     "SEM EQUIPE = ninguém escalado · NÃO OPERA = ambiente fechado nesse dia."),
 ]
 for i, (a, b) in enumerate(GUIA):
     r = GUIA_R + i
@@ -1365,7 +1371,7 @@ for _cond, _fill, _cor in (
         ('OR(${a}{r}="ATENÇÃO",${a}{r}="SEM AVALIAÇÃO",${a}{r}="INCOMPLETO")'.format(a=_AUX, r=DIA_R1),
          _fa, AMAR_T),
         ('OR(${a}{r}="SEM EQUIPE",${a}{r}="FALTA HABILIDADE",${a}{r}="GENTE DEMAIS",'
-         '${a}{r}="EXTRA",${a}{r}="DUPLA VETADA")'.format(a=_AUX, r=DIA_R1), _fr, VERM_T),
+         '${a}{r}="EXTRA",${a}{r}="DUPLA VETADA",${a}{r}="INDISPONÍVEL")'.format(a=_AUX, r=DIA_R1), _fr, VERM_T),
         ('${a}{r}="NÃO OPERA"'.format(a=_AUX, r=DIA_R1), _fc, "808080")):
     ws_dash.conditional_formatting.add(
         "A%d:%s%d" % (DIA_R1, get_column_letter(COL_NOME), DIA_R2),
@@ -1444,7 +1450,7 @@ fc = cf_fill(CINZA)
 sit = "F%d:F%d" % (PAI_R1, PAI_R2)
 for txt, fill, font in (("OK", fv, fvt), ("ATENÇÃO", fa, fat), ("FALTA HABILIDADE", fr, frt),
                         ("SEM EQUIPE", fr, frt), ("INCOMPLETO", fa, fat), ("EXTRA", fa, fat),
-                        ("GENTE DEMAIS", fr, frt), ("DUPLA VETADA", fr, frt),
+                        ("GENTE DEMAIS", fr, frt), ("DUPLA VETADA", fr, frt), ("INDISPONÍVEL", fr, frt),
                         ("SEM AVALIAÇÃO", fa, fat)):
     ws_pai.conditional_formatting.add(sit, CellIsRule(operator="equal", formula=['"%s"' % txt],
                                                       fill=fill, font=font))
@@ -1456,7 +1462,7 @@ for _cond, _fill, _cor in (
         ('$F{r}="OK"'.format(r=PAI_R1), fv, VERDE_T),
         ('OR($F{r}="ATENÇÃO",$F{r}="SEM AVALIAÇÃO",$F{r}="INCOMPLETO")'.format(r=PAI_R1), fa, AMAR_T),
         ('OR($F{r}="SEM EQUIPE",$F{r}="FALTA HABILIDADE",$F{r}="GENTE DEMAIS",$F{r}="EXTRA",'
-         '$F{r}="DUPLA VETADA")'.format(r=PAI_R1),
+         '$F{r}="DUPLA VETADA",$F{r}="INDISPONÍVEL")'.format(r=PAI_R1),
          fr, VERM_T),
         ('$F{r}="NÃO OPERA"'.format(r=PAI_R1), fc, "808080")):
     ws_pai.conditional_formatting.add(_amb, FormulaRule(

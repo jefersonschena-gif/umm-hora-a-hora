@@ -80,6 +80,7 @@ escalados e devolve a **Situação**:
 | **INCOMPLETO** | falta técnico no ambiente |
 | **GENTE DEMAIS** | há mais gente do que o ambiente pede (o box de preparo e a sala de recém-nascido são de uma pessoa só) |
 | **DUPLA VETADA** | os dois escalados estão sem X na matriz de afinidade da aba Equipe |
+| **INDISPONÍVEL** | alguém escalado ali está de folga, férias ou atestado na data (o alerta diz o nome e o motivo) |
 | **SEM EQUIPE** | ninguém escalado — o alerta diz quantas cirurgias precisam ser remanejadas |
 | **NÃO OPERA** | posto fechado nesse dia da semana |
 | **SEM AVALIAÇÃO** | algum técnico escalado ainda não tem X marcado |
@@ -199,6 +200,18 @@ A aba **Folgas e Férias** guarda os períodos (folga, férias, atestado, licen�
 próprios do serviço). Ao lado dos registros fica o calendário do período (16 a 15), com o rodapé
 **funcionários na data · vagas necessárias · déficit** dia a dia.
 
+### Trocar a escala de folgas
+
+Uma linha por período: técnico, tipo, data início, data fim. Um dia só = mesma data nas duas
+colunas. O primeiro dia do período fica em **Configuração → seção 1 → Primeiro dia do período da
+escala** (`Periodo_Ini`); trocar essa data move o calendário inteiro.
+
+Lançar uma folga recalcula na hora **disponíveis**, **déficit** e a situação de cada técnico, mas
+**não redistribui**: a dupla de cada ambiente é valor gravado, não fórmula. Enquanto a agenda não for
+importada de novo, quem ficou de folga e continuou escalado aparece em **INDISPONÍVEL**, o alerta
+nomeia a pessoa e o motivo, e a pendência sobe na fila de ações do Painel — logo abaixo de sala sem
+equipe. Para redistribuir, é só importar a agenda do dia outra vez.
+
 ## Abas
 
 | Aba | Para quê |
@@ -227,6 +240,7 @@ python3 testes/t7_distribuicao.py
 python3 testes/t8_painel.py /tmp/rc/Centro_Cirurgico_Escala.xlsx
 python3 testes/t9_estilo.py
 python3 testes/t10_afinidade.py
+python3 testes/t11_folgas.py
 ```
 
 | Teste | Resultado |
@@ -241,6 +255,7 @@ python3 testes/t10_afinidade.py
 | Painel (números, linha do tempo, fila de ações, rankings) | 56 verificações, 0 divergências |
 | Estilo (o XML que o Excel lê) | 6 verificações, 0 divergências |
 | Afinidade (matriz da aba Equipe, leitura, distribuição e fórmula) | 19 verificações, 0 divergências |
+| Troca da escala de folgas (folga após a importação, redistribuição, período) | 13 verificações, 0 divergências |
 
 ## Cadastro real
 

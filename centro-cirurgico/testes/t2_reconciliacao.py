@@ -71,6 +71,11 @@ def situacao(t):
             return a["tipo"]
     return "Disponível"
 
+def _sit_de(nome):
+    """situação na data de um técnico pelo nome (o que a coluna E da aba Equipe mostra)"""
+    t = next((t for t in EQ if t["nome"] == nome), None)
+    return situacao(t) if t else "Disponível"
+
 def nec_hoje(p, dia=None):
     dia = dia or DATA
     if p["status"] != "Ativo":
@@ -157,6 +162,7 @@ for p in POSTOS:
     elif nal < nh:   sit = "INCOMPLETO"
     elif nal > nh:   sit = "GENTE DEMAIS"
     elif frozenset((t1, t2)) in VETOS:  sit = "DUPLA VETADA"
+    elif any(t and _sit_de(t) != "Disponível" for t in (t1, t2)):  sit = "INDISPONÍVEL"
     elif sem_aval:   sit = "SEM AVALIAÇÃO"
     elif any(c == 0 for c in cob):                 sit = "FALTA HABILIDADE"
     elif nh >= 2 and any(c == 1 for c in cob):     sit = "ATENÇÃO"

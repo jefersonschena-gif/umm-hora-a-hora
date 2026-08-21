@@ -66,6 +66,17 @@ DE ONDE VEM A DUPLA DE CADA AMBIENTE
   por técnica, em rodízio, só para a planilha funcionar. Corrija na aba
   "Equipe", linha por linha: é esse X que decide quem vai para cada sala.
 
+  MUDOU A ESCALA DE FOLGAS?
+  Vá na etiqueta "Folgas e Férias" e escreva uma linha por período: o nome,
+  o tipo (Folga, Férias, Atestado...), o dia que começa e o dia que termina.
+  Se for um dia só, ponha a mesma data nas duas colunas. Quando virar o mês,
+  troque também a data em "Configuração", "Primeiro dia do período da escala" —
+  o calendário inteiro anda junto.
+  Depois de lançar as folgas, IMPORTE A AGENDA DE NOVO. Só lançar a folga não
+  troca ninguém de sala: enquanto você não reimportar, quem ficou de folga e
+  continuou escalado aparece em INDISPONÍVEL, em vermelho, com o nome e o
+  motivo, e a pendência sobe na lista do Painel.
+
   Trocar a data na planilha não redistribui. Para redistribuir (por exemplo
   depois de lançar um atestado novo), rode o "Importar agenda.bat" de novo.
 
