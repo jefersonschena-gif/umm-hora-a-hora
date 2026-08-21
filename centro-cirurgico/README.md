@@ -196,6 +196,7 @@ SAIDA=/tmp python3 testes/t5_sensibilidade.py
 SAIDA=/tmp python3 testes/t6_agenda.py
 python3 testes/t7_distribuicao.py
 python3 testes/t8_painel.py /tmp/rc/Centro_Cirurgico_Escala.xlsx
+python3 testes/t9_estilo.py
 ```
 
 | Teste | Resultado |
@@ -208,6 +209,7 @@ python3 testes/t8_painel.py /tmp/rc/Centro_Cirurgico_Escala.xlsx
 | Importação da agenda (leitura, gravação, ocupação, janelas, atraso, alertas) | 19 verificações, 0 divergências |
 | Distribuição (regras da alocação + conferência no arquivo) | 15 verificações, 0 divergências |
 | Painel (números, linha do tempo, fila de ações, rankings) | 56 verificações, 0 divergências |
+| Estilo (o XML que o Excel lê) | 6 verificações, 0 divergências |
 
 ## Cadastro real
 
@@ -216,6 +218,19 @@ O gerador usa `dados/equipe_real.json` e `dados/cirurgioes_real.json` quando exi
 repositório é público e não recebe nome, COREN ou matrícula de ninguém — nem da equipe, nem dos
 cirurgiões, nem de pacientes.** Rode `DEMO=1 python3 build_centro_cirurgico.py` para gerar a versão
 de demonstração mesmo com o cadastro real presente.
+
+## Formatação condicional: bgColor, não fgColor
+
+Num **dxf** — o formato diferencial que a formatação condicional usa — o Excel pinta o fundo com
+`bgColor` e ignora um `fgColor` sozinho. O LibreOffice aceita os dois. Como a validação recalcula
+no LibreOffice, uma planilha inteira de regras pode passar em todos os testes de valor e chegar
+sem cor nenhuma no Excel: foi exatamente o que aconteceu com a linha do tempo e com os alertas dos
+indicadores.
+
+Por isso todo preenchimento de regra passa por `cf_fill()`, que devolve `PatternFill(bgColor=...)`,
+e o `t9_estilo.py` abre o `.xlsx` como zip e confere no `xl/styles.xml` que nenhum dxf de
+preenchimento voltou a usar `fgColor`. Os preenchimentos fixos (cabeçalho, células de entrada)
+continuam com `fgColor`, que é o correto fora do dxf.
 
 ## Limitações
 

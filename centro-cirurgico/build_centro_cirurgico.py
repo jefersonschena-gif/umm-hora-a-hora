@@ -90,6 +90,16 @@ FILL_HEAD = PatternFill("solid", fgColor=AZ)
 FILL_IN   = PatternFill("solid", fgColor=AZ_CLR)
 FILL_PREM = PatternFill("solid", fgColor=AM)
 FILL_CZ   = PatternFill("solid", fgColor=CINZA)
+
+
+def cf_fill(cor):
+    """Preenchimento para REGRA CONDICIONAL.
+
+    Num dxf (o formato diferencial que a formatação condicional usa) o Excel pinta o fundo
+    com bgColor; fgColor sozinho ele ignora e a célula fica sem preenchimento. O LibreOffice
+    aceita os dois, então a diferença só aparece no Excel.
+    """
+    return PatternFill(bgColor=cor)
 THIN = Side(style="thin", color="BFBFBF")
 BORD = Border(left=THIN, right=THIN, top=THIN, bottom=THIN)
 CTR  = Alignment(horizontal="center", vertical="center")
@@ -1259,10 +1269,10 @@ ws_dash.freeze_panes = "A%d" % DIA_R1
 
 # --- formatação condicional do Painel
 _AUX = get_column_letter(N_COL + 1)
-_fv = PatternFill("solid", fgColor=VERDE)
-_fa = PatternFill("solid", fgColor=AMAR)
-_fr = PatternFill("solid", fgColor=VERM)
-_fc = PatternFill("solid", fgColor=CINZA)
+_fv = cf_fill(VERDE)
+_fa = cf_fill(AMAR)
+_fr = cf_fill(VERM)
+_fc = cf_fill(CINZA)
 _g20 = Font(name="Calibri", size=20, bold=True, color=VERDE_T)
 _a20 = Font(name="Calibri", size=20, bold=True, color=AMAR_T)
 _r20 = Font(name="Calibri", size=20, bold=True, color=VERM_T)
@@ -1291,9 +1301,9 @@ for _cond, _fill, _cor in (
 # a barra da linha do tempo
 _tl = "%s%d:%s%d" % (get_column_letter(COL_T0), DIA_R1, get_column_letter(COL_T0 + N_SLOT - 1), DIA_R2)
 ws_dash.conditional_formatting.add(_tl, CellIsRule(operator="equal", formula=["2"],
-    fill=PatternFill("solid", fgColor="4472C4")))
+    fill=cf_fill("4472C4")))
 ws_dash.conditional_formatting.add(_tl, CellIsRule(operator="equal", formula=["1"],
-    fill=PatternFill("solid", fgColor="FFE699")))
+    fill=cf_fill("FFE699")))
 
 # as ações, pela gravidade
 ws_dash.conditional_formatting.add("C%d:%s%d" % (ACO_P1, get_column_letter(N_COL), ACO_P2),
@@ -1349,10 +1359,10 @@ dve = add_dv(ws_pai, "=Lista_Tecnicos", ["D%d:D%d" % (PAI_R1, PAI_R2), "E%d:E%d"
 dve.errorTitle = "Técnico não cadastrado"; dve.error = "Escolha um técnico da aba Equipe."
 
 # ---------------------------------------------------------------- FORMATAÇÃO CONDICIONAL
-fv, fvt = PatternFill("solid", fgColor=VERDE), Font(color=VERDE_T, bold=True)
-fa, fat = PatternFill("solid", fgColor=AMAR), Font(color=AMAR_T, bold=True)
-fr, frt = PatternFill("solid", fgColor=VERM), Font(color=VERM_T, bold=True)
-fc = PatternFill("solid", fgColor=CINZA)
+fv, fvt = cf_fill(VERDE), Font(color=VERDE_T, bold=True)
+fa, fat = cf_fill(AMAR), Font(color=AMAR_T, bold=True)
+fr, frt = cf_fill(VERM), Font(color=VERM_T, bold=True)
+fc = cf_fill(CINZA)
 
 sit = "F%d:F%d" % (PAI_R1, PAI_R2)
 for txt, fill, font in (("OK", fv, fvt), ("ATENÇÃO", fa, fat), ("FALTA HABILIDADE", fr, frt),
@@ -1419,15 +1429,15 @@ CAL_RNG = "%s%d:%s%d" % (get_column_letter(D1C), CAL_R1, get_column_letter(D2C),
 for i, (tp, sg) in enumerate(TIPOS_AUS):
     ws_aus.conditional_formatting.add(CAL_RNG, CellIsRule(
         operator="equal", formula=['"%s"' % sg],
-        fill=PatternFill("solid", fgColor=CORES_AUS[i]), font=Font(bold=True, size=9)))
+        fill=cf_fill(CORES_AUS[i]), font=Font(bold=True, size=9)))
 ws_aus.conditional_formatting.add(CAL_RNG, CellIsRule(operator="equal", formula=['"!"'], fill=fr, font=frt))
 ws_aus.conditional_formatting.add(CAL_RNG, FormulaRule(
     formula=['%s$1=Data_Mapa' % get_column_letter(D1C)],
-    fill=PatternFill("solid", fgColor=AM)))
+    fill=cf_fill(AM)))
 ws_aus.conditional_formatting.add(CAL_RNG, FormulaRule(
     formula=['AND(%s$1<>"",OR(WEEKDAY(%s$1)=1,WEEKDAY(%s$1)=7,COUNTIF(Feriados,%s$1)>0))'
              % tuple([get_column_letter(D1C)] * 4)],
-    fill=PatternFill("solid", fgColor="EDEDED")))
+    fill=cf_fill("EDEDED")))
 ws_aus.conditional_formatting.add("%s%d:%s%d" % (get_column_letter(D1C), CAL_R2 + 4,
                                                  get_column_letter(D2C), CAL_R2 + 4),
     CellIsRule(operator="greaterThan", formula=["0"], fill=fr, font=frt))
