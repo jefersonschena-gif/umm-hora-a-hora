@@ -29,9 +29,9 @@ def snap(wb):
     p = wb[ABA_MAPA]
     return dict(kpi=[p.cell(row=6, column=c).value for c in range(1, 9)],   # A..H
                 vagas=p["F6"].value,
-                sit=[p.cell(row=PAI_R1 + i, column=5).value for i in range(N_POS)],
-                ocup=[p.cell(row=PAI_R1 + i, column=8).value for i in range(N_POS)],
-                cabe=[p.cell(row=PAI_R1 + i, column=10).value for i in range(N_POS)],
+                sit=[p.cell(row=PAI_R1 + i, column=6).value for i in range(N_POS)],
+                ocup=[p.cell(row=PAI_R1 + i, column=9).value for i in range(N_POS)],
+                cabe=[p.cell(row=PAI_R1 + i, column=11).value for i in range(N_POS)],
                 janelas=janelas_uteis(wb))
 
 

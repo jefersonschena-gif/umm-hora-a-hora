@@ -64,7 +64,7 @@ pai, eqp, aus, cfg = wb[ABA_MAPA], wb[ABA_EQUIPE], wb[ABA_FOLGAS], wb[ABA_CFG]
 dia = pai["A6"].value
 dia = dia.date() if isinstance(dia, datetime) else dia
 
-dupla = [(pai.cell(row=r, column=3).value, pai.cell(row=r, column=4).value)
+dupla = [(pai.cell(row=r, column=4).value, pai.cell(row=r, column=5).value)
          for r in range(10, 26)]
 nomes = [n for d in dupla for n in d if n]
 chk("arquivo: ninguém em dois ambientes", len(nomes), len(set(nomes)))

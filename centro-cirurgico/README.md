@@ -25,15 +25,20 @@ feriados os postos de dia útil não operam e as vagas do dia caem junto.
 Na aba **Equipe**, uma coluna por especialidade. Marque **X** onde o técnico faz aquela cirurgia;
 deixe em branco onde não faz. As colunas vêm da lista de especialidades da aba Configuração.
 
-A planilha cruza as especialidades que passam em cada sala no dia com o X dos dois técnicos
-escalados e devolve a **Situação** do posto:
+A coluna **Técnicos** do Mapa do Dia diz quantos aquele ambiente pede naquele dia: 2 nas salas
+cirúrgicas e na admissão, **1** no box de preparo oftalmológico e na sala de recém-nascido, 0 quando
+o ambiente não opera. Onde é uma pessoa só, a coluna TÉCNICO 2 aparece cinza em vez de azul.
+
+A planilha cruza as especialidades que passam em cada ambiente no dia com o X dos técnicos
+escalados e devolve a **Situação**:
 
 | Situação | Significa |
 |---|---|
 | **OK** | os dois técnicos cobrem todas as especialidades do dia |
 | **ATENÇÃO** | alguma especialidade é coberta por um só dos dois |
 | **FALTA HABILIDADE** | alguma especialidade do dia não é coberta por ninguém da dupla (o alerta diz qual) |
-| **INCOMPLETO** | falta técnico no posto |
+| **INCOMPLETO** | falta técnico no ambiente |
+| **GENTE DEMAIS** | há mais gente do que o ambiente pede (o box de preparo e a sala de recém-nascido são de uma pessoa só) |
 | **SEM EQUIPE** | ninguém escalado — o alerta diz quantas cirurgias precisam ser remanejadas |
 | **NÃO OPERA** | posto fechado nesse dia da semana |
 | **SEM AVALIAÇÃO** | algum técnico escalado ainda não tem X marcado |
@@ -45,7 +50,8 @@ colunas TÉCNICO 1 e TÉCNICO 2 — que continuam sendo células comuns, com lis
 coordenação trocar quem quiser. As regras, nesta ordem:
 
 1. só entra quem está disponível (ativo e sem folga, férias ou atestado na data);
-2. ninguém em dois lugares — a dupla fica o turno inteiro no mesmo ambiente;
+2. ninguém em dois lugares — a dupla (ou a pessoa, onde é uma só) fica o turno inteiro no mesmo
+   ambiente;
 3. déficit é a regra: primeiro cada posto recebe o **mínimo aceitável**, na ordem de prioridade, e
    só depois os que sobram completam as duplas;
 4. dentro do posto, prefere quem marca **X** nas especialidades que passam ali no dia;
@@ -140,9 +146,9 @@ python3 testes/t7_distribuicao.py
 | Teste | Resultado |
 |---|---|
 | Recálculo (LibreOffice) | 0 erros de fórmula |
-| Reconciliação independente | 244 verificações, 0 divergências |
-| Expansão (+1 especialidade, +1 sala, +2 técnicos, +30 cirurgias, +5 ausências) | 0 erros · 287 verificações, 0 divergências |
-| Entradas degeneradas (9 no mapa, 3 em ausências, 4 na escala) | todas tratadas, 0 erros |
+| Reconciliação independente | 255 verificações, 0 divergências |
+| Expansão (+1 especialidade, +1 sala, +2 técnicos, +30 cirurgias, +5 ausências) | 0 erros · 299 verificações, 0 divergências |
+| Entradas degeneradas (9 na agenda, 3 em ausências, 5 na escala) | todas tratadas, 0 erros |
 | Sensibilidade (domingo, feriado, limpeza, janela mínima) | aprovado, original inalterado |
 | Importação da agenda (leitura, gravação, ocupação, janelas, alertas) | 16 verificações, 0 divergências |
 | Distribuição (regras da alocação + conferência no arquivo) | 15 verificações, 0 divergências |

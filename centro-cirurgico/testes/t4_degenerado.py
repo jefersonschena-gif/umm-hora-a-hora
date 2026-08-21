@@ -38,9 +38,10 @@ aus.cell(row=la + 2, column=1, value="Zuleide Marcon"); aus.cell(row=la + 2, col
 aus.cell(row=la + 2, column=3, value=date(2026, 8, 12)); aus.cell(row=la + 2, column=4, value=date(2026, 8, 14))
 POS_R1 = 22 + 20 + 3
 cfg.cell(row=POS_R1 + 1, column=9, value="Inativo")          # SO-02 inativa com cirurgias
-pai.cell(row=11, column=3, value=pai.cell(row=10, column=3).value)   # mesmo técnico em dois postos
-pai.cell(row=12, column=4, value="Fulano Inexistente")               # não cadastrado
-pai.cell(row=13, column=3, value="Zuleide Marcon")                   # técnico de férias
-pai.cell(row=14, column=4, value=None)                               # posto com um técnico só
+pai.cell(row=11, column=4, value=pai.cell(row=10, column=4).value)   # mesmo técnico em dois postos
+pai.cell(row=12, column=5, value="Fulano Inexistente")               # não cadastrado
+pai.cell(row=13, column=4, value="Zuleide Marcon")                   # técnico de férias
+pai.cell(row=14, column=5).value = None                              # posto com um técnico só
+pai.cell(row=20, column=5, value="Bruna Cordeiro")   # 2º técnico em ambiente de 1 só
 wb.save(os.path.join(SAIDA, "t4.xlsx"))
 print("casos degenerados aplicados a partir da linha", L)

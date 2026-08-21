@@ -41,7 +41,9 @@ DE ONDE VEM A DUPLA DE CADA AMBIENTE
   A distribuição usa quem está disponível no dia (aba "Folgas e Férias"),
   o X de habilidade de cada técnica (aba "Equipe") e a prioridade de cada
   ambiente. Ninguém fica em dois lugares e a dupla passa o turno inteiro no
-  mesmo ambiente. Enquanto o X não estiver marcado, a coluna Situação fica
+  mesmo ambiente. Nem todo lugar é dupla: a coluna "Técnicos" diz quantos
+  aquele ambiente pede: o box de preparo e a sala de recém-nascido são de uma
+  pessoa só, e ali a coluna TÉCNICO 2 fica cinza. Enquanto o X não estiver marcado, a coluna Situação fica
   em SEM AVALIAÇÃO — a distribuição acontece do mesmo jeito, só não dá para
   dizer se a dupla cobre as especialidades do dia.
 

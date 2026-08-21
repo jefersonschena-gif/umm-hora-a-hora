@@ -132,8 +132,8 @@ for p in POSTOS:
     if p["tipo"] == "Sala cirúrgica":
         ag = sum(c["plant"] for c in CIRS if c["sala"] == p["cod"] and c["data"] == DATA)
         chk("ocupação %s" % p["cod"], ag / T_MIN, cal.cell(row=mr, column=OCUP_C).value)
-    t1 = pai.cell(row=PAI_R1 + p["i"], column=3).value
-    t2 = pai.cell(row=PAI_R1 + p["i"], column=4).value
+    t1 = pai.cell(row=PAI_R1 + p["i"], column=4).value
+    t2 = pai.cell(row=PAI_R1 + p["i"], column=5).value
     esps_dia = [j for j in range(N_ESP) if m[j] > 0]
     cob = [sum(1 for t in (t1, t2) if t and ESPS[j] in X.get(t, set())) for j in esps_dia]
     chk("nº especialidades %s" % p["cod"], len(esps_dia), cal.cell(row=cr, column=TOT_C).value)
@@ -145,11 +145,13 @@ for p in POSTOS:
     if nh == 0:      sit = "NÃO OPERA" if nal == 0 else "EXTRA"
     elif nal == 0:   sit = "SEM EQUIPE"
     elif nal < nh:   sit = "INCOMPLETO"
+    elif nal > nh:   sit = "GENTE DEMAIS"
     elif sem_aval:   sit = "SEM AVALIAÇÃO"
     elif any(c == 0 for c in cob):                 sit = "FALTA HABILIDADE"
     elif nh >= 2 and any(c == 1 for c in cob):     sit = "ATENÇÃO"
     else:            sit = "OK"
-    chk("situação %s" % p["cod"], sit, pai.cell(row=PAI_R1 + p["i"], column=5).value)
+    chk("situação %s" % p["cod"], sit, pai.cell(row=PAI_R1 + p["i"], column=6).value)
+    chk("técnicos pedidos %s" % p["cod"], nec_hoje(p), pai.cell(row=PAI_R1 + p["i"], column=2).value)
 
 # 3. Painel — indicadores do dia
 chk("no quadro", len([t for t in EQ if t["status"] == "Ativo"]), pai["C6"].value)
@@ -157,7 +159,7 @@ chk("ausentes", len([t for t in EQ if t["status"] == "Ativo" and situacao(t) != 
 chk("disponíveis", len(disp), pai["E6"].value)
 chk("vagas do dia", sum(nec_hoje(p) for p in POSTOS), pai["F6"].value)
 chk("déficit", max(0, sum(nec_hoje(p) for p in POSTOS) - len(disp)), pai["G6"].value)
-sem_eq = [p for p in POSTOS if pai.cell(row=PAI_R1 + p["i"], column=5).value == "SEM EQUIPE"]
+sem_eq = [p for p in POSTOS if pai.cell(row=PAI_R1 + p["i"], column=6).value == "SEM EQUIPE"]
 chk("postos sem equipe", len(sem_eq), pai["H6"].value)
 
 # 4. jogo de sala — janelas recalculadas do zero
@@ -172,13 +174,13 @@ for p in POSTOS:
     for k, d in enumerate(jan):
         chk("janela %s#%d" % (p["cod"], k), d, sal.cell(row=2 + p["i"] * JOGO_K + k, column=5).value)
     r = PAI_R1 + p["i"]
-    maior, texto = (max(jan) if jan else 0), str(pai.cell(row=r, column=9).value)
+    maior, texto = (max(jan) if jan else 0), str(pai.cell(row=r, column=10).value)
     chk("painel maior janela %s" % p["cod"], True,
         ("(%d min)" % maior) in texto if maior else texto == "—")
     chk("painel cabe até %s" % p["cod"], max(0, max(jan) - LIMPEZA) if max(jan) else None,
-        pai.cell(row=r, column=10).value)
-    chk("painel outras janelas %s" % p["cod"], max(0, sum(1 for d in jan if d >= JANELA) - 1),
         pai.cell(row=r, column=11).value)
+    chk("painel outras janelas %s" % p["cod"], max(0, sum(1 for d in jan if d >= JANELA) - 1),
+        pai.cell(row=r, column=12).value)
 
 # 5. calendário do período — funcionários, vagas e déficit dia a dia
 CAL_C1, CAL_R1 = 9, 3

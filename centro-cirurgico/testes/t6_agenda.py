@@ -99,7 +99,7 @@ for cod, v in sorted(salas.items()):
                  if cal.cell(row=r, column=1).value == cod)
     nome = next(cfg.cell(row=r, column=2).value for r in range(45, 61)
                 if cfg.cell(row=r, column=1).value == cod)
-    obt_l = next(pai.cell(row=r, column=10).value for r in range(10, 26)
+    obt_l = next(pai.cell(row=r, column=11).value for r in range(10, 26)
                  if pai.cell(row=r, column=1).value == nome)
     chk("ocupação %s (min)" % cod, ocup, obt_o)
     chk("cabe até %s (min)" % cod, cabe, obt_l)
