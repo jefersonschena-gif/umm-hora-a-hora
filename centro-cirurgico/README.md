@@ -51,12 +51,26 @@ A agenda diária chega em PDF (mapa do centro cirúrgico do sistema do hospital)
 `importar_agenda.py` lê esse PDF e escreve as cirurgias direto no `Mapa_Cirurgico`:
 
 ```bash
+pip install openpyxl "pypdf[crypto]"
 python3 importar_agenda.py AGENDA_21.08.pdf Centro_Cirurgico_Escala.xlsx
-# -> Centro_Cirurgico_Escala_2026-08-21.xlsx (o arquivo de entrada nunca é sobrescrito)
+# -> Centro_Cirurgico_Escala_2026-08-21.xlsx (o arquivo de entrada nunca é sobrescrito;
+#    reimportar o mesmo dia gera _v2, _v3...)
 ```
+
+Sem argumentos (`python3 importar_agenda.py`), ele usa o PDF mais recente e a planilha mais recente
+da própria pasta — é assim que os atalhos do Windows funcionam.
 
 O que entra: sala, hora de início, hora de término, procedimento e cirurgião. Os dados de paciente
 do PDF (nome, prontuário, nascimento, convênio, leito) **não são lidos nem gravados**.
+
+### Instalar na máquina da coordenação (Windows)
+
+A pasta `windows/` traz os dois atalhos. Monte uma pasta única com `importar_agenda.py`, a
+planilha, `instalar_uma_vez.bat`, `Importar agenda.bat` e `LEIA-ME.txt`. Na primeira vez, duplo
+clique em **instalar_uma_vez.bat** (acha o Python, instala `openpyxl` e `pypdf`, e explica como
+instalar o Python se faltar — marcando *Add python.exe to PATH*). No dia a dia: salvar o PDF na
+pasta e dar duplo clique em **Importar agenda.bat** (ou arrastar o PDF em cima dele). A planilha do
+dia abre sozinha.
 
 O PDF não traz a especialidade da cirurgia, traz o cirurgião. A seção **8. CIRURGIÕES** da aba
 Configuração faz o de/para: preenchida uma vez, a importação passa a preencher a coluna
@@ -126,6 +140,7 @@ de demonstração mesmo com o cadastro real presente.
   LibreOffice. Sem macros, Power Query ou matrizes dinâmicas.
 * Capacidades: 16 postos, 20 especialidades, 30 técnicos, 200 cirurgias/dia, 150 registros de
   ausência, 20 feriados, 60 cirurgiões, 13 janelas por sala.
-* A importação depende do `pdftotext` (poppler-utils) e do leiaute atual do relatório do
-  hospital; nomes de procedimento longos já vêm cortados no próprio PDF.
+* A importação lê o PDF com o `pypdf` (ou `pdftotext`, se o pypdf não estiver instalado) e depende
+  do leiaute atual do relatório do hospital; nomes de procedimento longos já vêm cortados no
+  próprio PDF.
 * Uma escala por vez: para guardar o dia fechado, salve uma cópia do arquivo.

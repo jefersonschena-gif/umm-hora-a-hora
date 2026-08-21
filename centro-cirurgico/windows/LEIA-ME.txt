@@ -1,0 +1,42 @@
+﻿IMPORTADOR DA AGENDA DO CENTRO CIRÚRGICO
+=========================================
+
+Esta pasta transforma o PDF da agenda diária do hospital em linhas do
+Mapa_Cirúrgico da planilha de escala, já com a especialidade preenchida.
+
+O QUE TEM AQUI
+  instalar_uma_vez.bat   -> prepara o computador (roda só na primeira vez)
+  Importar agenda.bat    -> o do dia a dia
+  importar_agenda.py     -> o programa em si (não precisa abrir)
+  Centro_Cirurgico_*.xlsx-> a planilha
+
+PRIMEIRA VEZ
+  1. Clique duas vezes em "instalar_uma_vez.bat".
+  2. Se ele disser que falta o Python: baixe em
+     https://www.python.org/downloads/windows/ e, na PRIMEIRA tela do
+     instalador, marque "Add python.exe to PATH". Depois rode de novo.
+  3. Quando aparecer "Pronto", está instalado.
+
+TODO DIA
+  1. Salve o PDF da agenda DENTRO desta pasta.
+  2. Clique duas vezes em "Importar agenda.bat".
+     (ou arraste o PDF em cima do "Importar agenda.bat")
+  3. A planilha do dia abre sozinha, com um nome novo:
+     Centro_Cirurgico_Escala_2026-08-21.xlsx
+     O arquivo anterior nunca é apagado nem sobrescrito.
+
+O QUE LER NA TELA PRETA ANTES DE FECHAR
+  "sem especialidade" -> apareceu um cirurgião novo. Ele já foi acrescentado
+      na aba Configuração, seção 8 (CIRURGIÕES). Escolha a especialidade dele
+      ali uma única vez e salve; nas próximas agendas já vem preenchido.
+  "passam do plantão" -> cirurgias que terminam depois das 13:00. Elas entram
+      no mapa, marcadas, e só os minutos até as 13:00 contam na ocupação.
+  "sala sem cadastro" -> a agenda trouxe uma sala que não existe na aba
+      Configuração, seção 5 (POSTOS).
+
+O QUE NÃO ENTRA NA PLANILHA
+  Nome do paciente, prontuário, data de nascimento, convênio e leito NÃO são
+  lidos nem gravados. Só entram sala, horários, procedimento e cirurgião.
+
+SE DER ALGUM ERRO
+  A tela preta mostra a mensagem e fica aberta. Tire uma foto dela.

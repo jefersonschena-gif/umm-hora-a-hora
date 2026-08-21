@@ -3,8 +3,12 @@
 
     python3 importar_agenda.py AGENDA_21.08.pdf Centro_Cirurgico_Escala.xlsx [saida.xlsx]
 
+Sem argumentos, procura na pasta do próprio programa o PDF mais recente e a planilha mais
+recente — é assim que os atalhos "Importar agenda" funcionam.
+
 O que faz
-  1. lê o PDF (pdftotext -layout) e extrai sala, início, término, procedimento e cirurgião;
+  1. lê o PDF (pypdf, ou pdftotext se o pypdf não estiver instalado) e extrai sala, início,
+     término, procedimento e cirurgião;
   2. traduz "Sala 1" para o código do posto usando a tabela POSTOS da aba Configuração;
   3. traduz o cirurgião para a especialidade usando a tabela CIRURGIÕES da aba Configuração,
      acrescentando ali, em branco, todo cirurgião ainda não cadastrado;
@@ -18,6 +22,7 @@ lido nem gravado: só entram sala, horários, procedimento e cirurgião.
 import json
 import os
 import re
+import shutil
 import subprocess
 import sys
 from datetime import date, datetime, time
@@ -63,12 +68,24 @@ def _distribui(linha, faixas):
     return {n: " ".join(v) for n, v in campos.items()}
 
 
+def texto_do_pdf(pdf):
+    """Texto do PDF preservando as colunas. Usa o pypdf; sem ele, cai no pdftotext."""
+    try:
+        from pypdf import PdfReader
+    except ImportError:
+        if shutil.which("pdftotext") is None:
+            sys.exit("Instale o leitor de PDF:  pip install pypdf")
+        return subprocess.run(["pdftotext", "-layout", pdf, "-"],
+                              capture_output=True, text=True).stdout
+    leitor = PdfReader(pdf)
+    if leitor.is_encrypted:          # o relatório do hospital vem protegido contra cópia
+        leitor.decrypt("")
+    return "\n".join(p.extract_text(extraction_mode="layout") for p in leitor.pages)
+
+
 def ler_agenda(pdf):
     """Extrai as cirurgias do PDF do mapa cirúrgico."""
-    if subprocess.run(["which", "pdftotext"], capture_output=True).returncode != 0:
-        sys.exit("pdftotext não encontrado (instale poppler-utils).")
-    return ler_texto(subprocess.run(["pdftotext", "-layout", pdf, "-"],
-                                    capture_output=True, text=True).stdout)
+    return ler_texto(texto_do_pdf(pdf))
 
 
 def ler_texto(texto):
@@ -182,7 +199,14 @@ def importar(pdf, entrada, saida=None, cirs=None):
     if d_ws is not None:
         d_ws["%s%d" % (d_c, d_r)] = dia
 
-    saida = saida or entrada.replace(".xlsx", "_%s.xlsx" % dia.strftime("%Y-%m-%d"))
+    if not saida:
+        # tira um "_AAAA-MM-DD" e um "_vN" que já estejam no nome, para não empilhar sufixos
+        base = re.sub(r"_\d{4}-\d{2}-\d{2}(_v\d+)?(?=\.xlsx$)", "", entrada)
+        saida = base.replace(".xlsx", "_%s.xlsx" % dia.strftime("%Y-%m-%d"))
+        v = 2   # nunca sobrescreve: reimportar o mesmo dia gera _v2, _v3...
+        while os.path.exists(saida):
+            saida = base.replace(".xlsx", "_%s_v%d.xlsx" % (dia.strftime("%Y-%m-%d"), v))
+            v += 1
     if os.path.abspath(saida) == os.path.abspath(entrada):
         sys.exit("A saída não pode ser o arquivo de entrada.")
     wb.save(saida)
@@ -205,7 +229,41 @@ def importar(pdf, entrada, saida=None, cirs=None):
     return saida
 
 
+def _mais_recente(pasta, ext, ignorar=()):
+    alvos = [os.path.join(pasta, f) for f in os.listdir(pasta)
+             if f.lower().endswith(ext) and not f.startswith("~$")
+             and not any(t in f for t in ignorar)]
+    return max(alvos, key=os.path.getmtime) if alvos else None
+
+
+def main(args):
+    abrir = "--abrir" in args
+    args = [a for a in args if a != "--abrir"]
+    saida = _rodar(args)
+    if abrir and saida and hasattr(os, "startfile"):   # Windows: abre a planilha pronta
+        os.startfile(saida)                            # noqa: S606
+    return saida
+
+
+def _rodar(args):
+    if len(args) >= 2:
+        return importar(args[0], args[1], args[2] if len(args) > 2 else None)
+    pasta = os.path.dirname(os.path.abspath(__file__))
+    pdf = args[0] if args else _mais_recente(pasta, ".pdf")
+    planilha = _mais_recente(pasta, ".xlsx")
+    if not pdf:
+        sys.exit("Nenhum PDF encontrado em %s. Copie a agenda para essa pasta." % pasta)
+    if not planilha:
+        sys.exit("Nenhuma planilha .xlsx encontrada em %s." % pasta)
+    print("agenda ..............: %s" % os.path.basename(pdf))
+    print("planilha ............: %s" % os.path.basename(planilha))
+    return importar(pdf, planilha)
+
+
 if __name__ == "__main__":
-    if len(sys.argv) < 3:
-        sys.exit(__doc__)
-    importar(sys.argv[1], sys.argv[2], sys.argv[3] if len(sys.argv) > 3 else None)
+    try:
+        main(sys.argv[1:])
+    except SystemExit:
+        raise
+    except Exception as e:                       # mensagem legível em vez de traceback
+        sys.exit("Não deu para importar: %s" % e)
