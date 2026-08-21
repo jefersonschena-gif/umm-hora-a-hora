@@ -25,8 +25,9 @@ TODO DIA
   3. A planilha do dia abre sozinha, com um nome novo:
      Centro_Cirurgico_Escala_2026-08-21.xlsx
      O arquivo anterior nunca é apagado nem sobrescrito.
-  4. Abra a aba "Mapa do Dia": está tudo lá. Para trocar alguém de lugar,
-     escolha outro nome nas células azuis (TÉCNICO 1 / TÉCNICO 2).
+  4. A planilha abre na aba "Painel": ali está o que fazer hoje, em ordem.
+     Resolva o que estiver na lista indo para a aba "Mapa do Dia" — é lá que
+     se troca alguém de lugar, nas células azuis (TÉCNICO 1 / TÉCNICO 2).
 
 O QUE LER NA TELA PRETA ANTES DE FECHAR
   "sem especialidade" -> apareceu um cirurgião novo. Ele já foi acrescentado

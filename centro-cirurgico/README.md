@@ -1,8 +1,27 @@
 # Centro Cirúrgico — Escala Diária
 
-Planilha operacional da coordenação de enfermagem. **Tudo do dia acontece na aba Mapa do Dia**,
-e ela já chega preenchida: cada ambiente com a sua dupla, as especialidades que passam ali, a
-ocupação e o tempo em que a sala fica vaga. As outras abas são cadastro.
+Planilha operacional da coordenação de enfermagem. A aba **Painel** responde de bate-pronto o que
+fazer hoje; a aba **Mapa do Dia** é onde se trabalha, e já chega preenchida: cada ambiente com a
+sua dupla, as especialidades que passam ali, a ocupação e o tempo em que a sala fica vaga. As
+outras abas são cadastro.
+
+## Painel
+
+Uma tela, quatro blocos, tudo por fórmula — nada para preencher ali:
+
+* **A faixa do dia** — AÇÃO NECESSÁRIA / ATENÇÃO / QUASE PRONTO / DIA FECHADO, pela pendência mais
+  grave que existir.
+* **Os números** — cirurgias, ambientes abertos, prontos, com pendência, disponíveis, déficit e o
+  maior atraso previsto.
+* **O que fazer agora** — as 8 pendências mais urgentes, em ordem, já com o ambiente e o motivo.
+  Cada pendência recebe uma gravidade (sem equipe com cirurgia marcada = 900, falta habilidade =
+  800, gente demais = 700, incompleto = 650, atenção = 400…), e as quatro que não são de um
+  ambiente — matriz de habilidades vazia, agenda não importada, cirurgião sem especialidade,
+  déficit — entram acima de todas.
+* **Onde encaixar** e **Risco de atraso** — os três maiores de cada, com horário e minutos.
+
+O ranking de encaixe só considera salas com **Aceita encaixe = Sim** na aba Configuração: a de
+urgência e a do centro obstétrico ficam de fora.
 
 **Arquivo:** `Centro_Cirurgico_Escala.xlsx` (demonstração) · `..._REAL.xlsx` quando há cadastro real.
 
@@ -141,6 +160,7 @@ próprios do serviço). Ao lado dos registros fica o calendário do período (16
 
 | Aba | Para quê |
 |---|---|
+| `Painel` | a primeira tela: faixa do dia, números, o que fazer agora, onde encaixar, risco de atraso |
 | `Mapa do Dia` | o dia inteiro numa tabela: ambiente, dupla, situação, ocupação, sala vaga |
 | `Agenda do Dia` | as cirurgias, vindas do PDF do hospital |
 | `Equipe` | cadastro + o X de habilidade por especialidade |
@@ -161,6 +181,7 @@ SAIDA=/tmp python3 testes/t4_degenerado.py
 SAIDA=/tmp python3 testes/t5_sensibilidade.py
 SAIDA=/tmp python3 testes/t6_agenda.py
 python3 testes/t7_distribuicao.py
+python3 testes/t8_painel.py /tmp/rc/Centro_Cirurgico_Escala.xlsx
 ```
 
 | Teste | Resultado |
@@ -172,6 +193,7 @@ python3 testes/t7_distribuicao.py
 | Sensibilidade (domingo, feriado, limpeza, atraso, janela mínima) | aprovado, original inalterado |
 | Importação da agenda (leitura, gravação, ocupação, janelas, atraso, alertas) | 19 verificações, 0 divergências |
 | Distribuição (regras da alocação + conferência no arquivo) | 15 verificações, 0 divergências |
+| Painel (números, fila de ações, rankings) | 23 verificações, 0 divergências |
 
 ## Cadastro real
 
@@ -186,7 +208,7 @@ de demonstração mesmo com o cadastro real presente.
 * Só SUMIFS, COUNTIFS, SUMPRODUCT, INDEX, MATCH, LARGE, IF e IFERROR — compatível com Excel e
   LibreOffice. Sem macros, Power Query ou matrizes dinâmicas.
 * Capacidades: 16 postos, 20 especialidades, 30 técnicos, 200 cirurgias/dia, 150 registros de
-  ausência, 20 feriados, 60 cirurgiões, 13 janelas por sala.
+  ausência, 20 feriados, 60 cirurgiões, 13 janelas por sala, 8 ações visíveis no Painel.
 * A importação lê o PDF com o `pypdf` (ou `pdftotext`, se o pypdf não estiver instalado) e depende
   do leiaute atual do relatório do hospital; nomes de procedimento longos já vêm cortados no
   próprio PDF.

@@ -22,7 +22,7 @@ cfg.cell(row=r, column=5, value="Sim")
 # (b) nova sala na 12ª linha de postos
 r = POS_R1 + 11
 for c, v in enumerate(["SO-09", "Sala 9 — Robótica", "Sala cirúrgica", 2, 2, 12,
-                       "Cirurgia Robótica", "Seg a Sex", "Ativo", "Sala nova"], start=1):
+                       "Cirurgia Robótica", "Seg a Sex", "Ativo", "Sala nova", "Sim"], start=1):
     cfg.cell(row=r, column=c, value=v)
 # (c) dois técnicos novos, com X na especialidade nova
 for i, (mt, nm) in enumerate([("TEC-023", "Ariane Fontella"), ("TEC-024", "Márcio Dalpiaz")]):
@@ -57,7 +57,8 @@ for i, (tec, tipo, d1, d2) in enumerate([
     aus.cell(row=r, column=1, value=tec); aus.cell(row=r, column=2, value=tipo)
     aus.cell(row=r, column=3, value=d1); aus.cell(row=r, column=4, value=d2)
 # (f) escalar a dupla da sala nova (12ª linha do bloco de escala do Painel)
-pai.cell(row=10 + 11, column=7, value="Ariane Fontella")
-pai.cell(row=10 + 11, column=8, value="Márcio Dalpiaz")
+# TÉCNICO 1 e TÉCNICO 2 do Mapa do Dia são as colunas D e E
+pai.cell(row=10 + 11, column=4, value="Ariane Fontella")
+pai.cell(row=10 + 11, column=5, value="Márcio Dalpiaz")
 wb.save(os.path.join(SAIDA, "t3.xlsx"))
 print("expansão aplicada: +1 especialidade, +1 sala, +2 técnicos, +%d cirurgias, +5 ausências" % len(novas))
