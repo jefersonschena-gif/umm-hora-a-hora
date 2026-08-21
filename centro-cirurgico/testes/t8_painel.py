@@ -16,7 +16,7 @@ wb = openpyxl.load_workbook(ARQ, data_only=True)
 pai, mapa, age, cfg, eqp = (wb[ABA_PAINEL], wb[ABA_MAPA], wb[ABA_AGENDA], wb[ABA_CFG], wb[ABA_EQUIPE])
 
 PAI_R1, N_POS, POS_R1 = 10, 16, 45
-COL_NOME, COL_DUPLA, N_SLOT, SLOT = 8, 8, 24, 15
+COL_NOME, COL_DUPLA, N_SLOT, SLOT = 11, 10, 36, 10
 COL_T0 = COL_NOME + COL_DUPLA + 1
 N_COL = COL_NOME + COL_DUPLA + N_SLOT
 DIA_R1 = 12
@@ -25,7 +25,7 @@ ACO_P1 = DIA_R2 + 4
 ACO_P2 = ACO_P1 + 7
 ENC_P1 = ACO_P2 + 4
 ATR_P1 = ENC_P1 + 6
-KPI_INI = [1, 7, 12, 17, 23, 28, 33]
+KPI_INI = [1, 10, 17, 24, 33, 40, 47]
 JANELA = cfg["B17"].value or 0
 LIMPEZA = cfg["B16"].value or 0
 T_INI = cfg["B11"].value
@@ -72,7 +72,7 @@ chk("disponíveis", sum(1 for r in range(2, 32)
 chk("maior atraso", max([N(l["atraso"]) for l in LIN] + [0]), num(6))
 
 # --- 2. linha do tempo: recalculada da agenda do dia
-DATA = pai["E4"].value
+DATA = pai["G4"].value
 DATA = DATA.date() if isinstance(DATA, datetime) else DATA
 CIRS = {}
 for r in range(2, 202):
@@ -142,7 +142,7 @@ for i in range(3):
     chk("encaixe %d ambiente" % (i + 1), cand[i]["nome"] if i < len(cand) else None,
         pai.cell(row=r, column=3).value)
     chk("encaixe %d cabe até" % (i + 1), cand[i]["cabe"] if i < len(cand) else None,
-        pai.cell(row=r, column=25).value)
+        pai.cell(row=r, column=33).value)
 chk("nenhuma sala que não aceita encaixe no ranking", [],
     [pai.cell(row=ENC_P1 + i, column=3).value for i in range(3)
      for l in LIN if l["encaixe"] != "Sim" and l["nome"] == pai.cell(row=ENC_P1 + i, column=3).value])
@@ -153,7 +153,7 @@ for i in range(3):
     chk("atraso %d ambiente" % (i + 1), atr[i]["nome"] if i < len(atr) else None,
         pai.cell(row=r, column=3).value)
     chk("atraso %d minutos" % (i + 1), atr[i]["atraso"] if i < len(atr) else None,
-        pai.cell(row=r, column=12).value)
+        pai.cell(row=r, column=15).value)
 
 print("\n".join(res))
 print("\nTESTE 8 (painel): %d/%d" % (ok, len(res)))

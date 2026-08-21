@@ -14,13 +14,17 @@ Uma tela, quatro blocos, tudo por fórmula — nada para preencher ali:
 * **Os números** — cirurgias, ambientes abertos, prontos, com pendência, disponíveis, déficit e o
   maior atraso previsto.
 * **O dia inteiro** — uma linha por ambiente: o nome pintado pela Situação (verde, amarelo,
-  vermelho, cinza), a dupla em nome curto e a **linha do tempo do plantão** — 24 colunas de 15 min
-  cobrindo 07:00–13:00. Barra cheia é sala ocupada, barra clara são os 20 min de limpeza, vazio é
-  sala livre. É a gestão visual: dá para ver o buraco de cada sala sem ler um número.
+  vermelho, cinza), a dupla em nome curto e a **linha do tempo do plantão** — 36 colunas de 10 min
+  cobrindo 07:00–13:00. Barra cheia é sala ocupada, barra clara é a limpeza, vazio é sala livre. É
+  a gestão visual: dá para ver o buraco de cada sala sem ler um número.
+
+  A coluna vale **10 minutos** porque a limpeza dura 20: assim ela ocupa dois quadradinhos exatos.
+  Com colunas de 15 min, 20 min de limpeza pintavam 30 — a barra amarela mentia sobre a própria
+  duração.
 
   Cada célula da barra vale 2 (cirurgia), 1 (limpeza) ou 0, escondida por formato `;;;` e pintada
   pela formatação condicional. O valor sai de dois SUMPRODUCT que testam sobreposição entre o
-  intervalo da cirurgia e o quarto de hora. Por causa disso a aba inteira usa uma grade de 40
+  intervalo da cirurgia e a fatia de 10 min. Por causa disso a aba inteira usa uma grade de 57
   colunas estreitas e iguais, e todo bloco maior é montado mesclando essas colunas.
 * **O que fazer agora** — as 8 pendências mais urgentes, em ordem, já com o ambiente e o motivo.
   Cada pendência recebe uma gravidade (sem equipe com cirurgia marcada = 900, falta habilidade =

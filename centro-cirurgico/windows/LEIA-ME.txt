@@ -27,8 +27,9 @@ TODO DIA
      O arquivo anterior nunca é apagado nem sobrescrito.
   4. A planilha abre na aba "Painel": cada sala aparece numa linha, com a sua
      cor (verde = pronto, amarelo = olhar, vermelho = resolver) e a barra do
-     dia inteiro — barra cheia é sala ocupada, barra clara é a limpeza, vazio
-     é sala livre. Logo abaixo está o que fazer hoje, em ordem.
+     dia inteiro. Cada quadradinho são 10 minutos: barra cheia é sala ocupada,
+     barra clara é a limpeza (que dura 20 min, por isso são sempre dois
+     quadradinhos), vazio é sala livre. Logo abaixo está o que fazer hoje, em ordem.
      Resolva o que estiver na lista indo para a aba "Mapa do Dia" — é lá que
      se troca alguém de lugar, nas células azuis (TÉCNICO 1 / TÉCNICO 2).
 

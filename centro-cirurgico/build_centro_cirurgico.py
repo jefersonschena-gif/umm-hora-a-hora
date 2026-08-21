@@ -54,10 +54,12 @@ RNK_R1, RNK_R2 = ACO_R2 + 3, ACO_R2 + 2 + N_POS            # Calc: rankings do p
 N_ACOES_VISIVEIS = 8
 
 # geometria do Painel: grade estreita e uniforme, e a largura de cada indicador nela
-COL_NOME, COL_DUPLA = 8, 8      # colunas do nome do ambiente e da dupla
-SLOT, N_SLOT = 15, 24           # a linha do tempo: 24 colunas de 15 min = 6 h de plantão
+COL_NOME, COL_DUPLA = 11, 10    # colunas do nome do ambiente e da dupla
+# A linha do tempo usa colunas de 10 min porque a limpeza dura 20: assim ela ocupa dois
+# quadradinhos exatos. Com colunas de 15 min, 20 min de limpeza pintavam 30.
+SLOT, N_SLOT = 10, 36           # 36 x 10 min = 6 h de plantão
 N_COL_DASH = COL_NOME + COL_DUPLA + N_SLOT
-KPI_LARG = [6, 5, 5, 6, 5, 5, 8]
+KPI_LARG = [9, 7, 7, 9, 7, 7, 11]
 KPI_INI, _acc = [], 1
 for _w in KPI_LARG:
     KPI_INI.append(_acc)
@@ -1110,7 +1112,7 @@ ws_dash["A2"] = ("O dia inteiro numa tela. Esta aba só mostra — quem escala e
                  "Mapa do Dia.")
 ws_dash["A2"].font = F_NOTA
 for _c in range(1, N_COL + 1):
-    ws_dash.column_dimensions[get_column_letter(_c)].width = 3.6
+    ws_dash.column_dimensions[get_column_letter(_c)].width = 2.6
 ws_dash.column_dimensions[get_column_letter(N_COL + 1)].hidden = True   # auxiliar
 
 def faixa(row, c1, c2, valor, fonte=None, fill=None, alinha=CTR, borda=True, nf=None):
@@ -1126,10 +1128,10 @@ def faixa(row, c1, c2, valor, fonte=None, fill=None, alinha=CTR, borda=True, nf=
     if nf: c.number_format = nf
     return c
 
-faixa(4, 1, 4, "DATA DO MAPA", F_OUT, alinha=LFT, borda=False)
-faixa(4, 5, 9, "=Data_Mapa", Font(name="Calibri", size=14, bold=True, color="0070C0"),
+faixa(4, 1, 6, "DATA DO MAPA", F_OUT, alinha=LFT, borda=False)
+faixa(4, 7, 12, "=Data_Mapa", Font(name="Calibri", size=14, bold=True, color="0070C0"),
       borda=False, nf="DD/MM/YYYY")
-faixa(4, 10, 16,
+faixa(4, 13, 21,
       '=IF(Data_Mapa="","",CHOOSE(WEEKDAY(Data_Mapa),"domingo","segunda","terça","quarta",'
       '"quinta","sexta","sábado")&IF(COUNTIF(Feriados,Data_Mapa)>0," · feriado",""))',
       F_OUT, alinha=LFT, borda=False)
@@ -1172,9 +1174,9 @@ sec(ws_dash, DIA_R1 - 2, "O DIA INTEIRO — a cor do ambiente é a situação ·
     N_COL)
 faixa(DIA_R1 - 1, 1, COL_NOME, "Ambiente", F_HEAD, FILL_HEAD)
 faixa(DIA_R1 - 1, COL_NOME + 1, COL_NOME + COL_DUPLA, "Dupla do plantão", F_HEAD, FILL_HEAD)
-for h in range(N_SLOT // 4):
-    c1 = COL_T0 + h * 4
-    faixa(DIA_R1 - 1, c1, c1 + 3,
+for h in range(N_SLOT // 6):          # cada hora são 6 colunas de 10 min
+    c1 = COL_T0 + h * 6
+    faixa(DIA_R1 - 1, c1, c1 + 5,
           '=TEXT(MOD(Turno_Ini+%d/1440,1),"HH:MM")' % (h * 60), F_HEAD, FILL_HEAD,
           alinha=Alignment(horizontal="left", vertical="center", indent=1))
 ws_dash.row_dimensions[DIA_R1 - 1].height = 20
@@ -1207,7 +1209,8 @@ for i in range(N_POS):
 DIA_R2 = DIA_R1 + N_POS - 1
 
 faixa(DIA_R2 + 1, 1, N_COL,
-      "Barra cheia = sala ocupada · barra clara = os 20 min de limpeza · vazio = sala livre",
+      "Cada quadradinho são 10 minutos. Barra cheia = sala ocupada · barra clara = a limpeza, "
+      "que dura 20 min e por isso ocupa dois · vazio = sala livre.",
       F_NOTA, alinha=LFT, borda=False)
 
 # --- o que fazer agora
@@ -1228,7 +1231,7 @@ ACO_P2 = ACO_P1 + N_ACOES_VISIVEIS - 1
 
 def ranking(r1, titulo, cabecalhos, colunas, guarda, pos):
     sec(ws_dash, r1 - 2, titulo, N_COL)
-    lim = [(1, 2), (3, 11), (12, 24), (25, 32)]
+    lim = [(1, 2), (3, 14), (15, 32), (33, 44)]
     for (c1, c2), t in zip(lim, cabecalhos):
         faixa(r1 - 1, c1, c2, t, F_HEAD, FILL_HEAD)
     for i in range(3):
