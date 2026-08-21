@@ -57,6 +57,35 @@ chk("matriz de habilidades em branco ainda distribui", 9,
     len([n for v in alocar(POSTOS, ESP, TODOS, {n: set() for n in TODOS}).values() for n in v]))
 chk("resultado é estável entre execuções", alocar(POSTOS, ESP, TODOS, SK), a)
 
+# --- duplas que não podem trabalhar juntas
+def juntos(aloc, x, y):
+    return any(x in v and y in v for v in aloc.values())
+
+v1 = alocar(POSTOS, ESP, TODOS, SK, [("Ana", "Bia")])
+chk("veto simples separa a dupla", False, juntos(v1, "Ana", "Bia"))
+chk("veto não perde ninguém", 9, len([n for v in v1.values() for n in v]))
+chk("veto na ordem inversa também vale", False,
+    juntos(alocar(POSTOS, ESP, TODOS, SK, [("Bia", "Ana")]), "Ana", "Bia"))
+
+v2 = alocar(POSTOS, ESP, TODOS, SK, [("Ana", "Bia"), ("Ana", "Cris"), ("Fabi", "Hel")])
+chk("vetos múltiplos, nenhum par proibido junto", [],
+    [(x, y) for x, y in (("Ana", "Bia"), ("Ana", "Cris"), ("Fabi", "Hel")) if juntos(v2, x, y)])
+chk("vetos múltiplos: ninguém repetido", True,
+    len([n for v in v2.values() for n in v]) == len({n for v in v2.values() for n in v}))
+
+# quem não pode com ninguém acaba sozinho no posto, e o posto fica incompleto
+sozinho = alocar([("S1", 2, 2, 1), ("S2", 2, 2, 2)], {"S1": [], "S2": []},
+                 ["Ana", "Bia", "Cris", "Dai"], {n: set() for n in ("Ana", "Bia", "Cris", "Dai")},
+                 [("Ana", "Bia"), ("Ana", "Cris"), ("Ana", "Dai")])
+chk("vetada com todos fica sozinha no posto", ["Ana"], sozinho["S1"])
+chk("o resto do quadro continua alocado", 2, len(sozinho["S2"]))
+
+# veto com nome que não existe, e veto de alguém consigo mesmo: ignorados sem quebrar
+chk("veto com nome fora do quadro é ignorado", 9,
+    len([n for v in alocar(POSTOS, ESP, TODOS, SK, [("Ana", "Fulano")]).values() for n in v]))
+chk("veto de alguém com ela mesma é ignorado", 9,
+    len([n for v in alocar(POSTOS, ESP, TODOS, SK, [("Ana", "Ana")]).values() for n in v]))
+
 # ---------------------------------------------------------------- conferência no arquivo
 ARQ = os.environ.get("ARQ", os.path.join(RAIZ, "Centro_Cirurgico_Escala.xlsx"))
 wb = openpyxl.load_workbook(ARQ)
@@ -68,6 +97,14 @@ dupla = [(pai.cell(row=r, column=4).value, pai.cell(row=r, column=5).value)
          for r in range(10, 26)]
 nomes = [n for d in dupla for n in d if n]
 chk("arquivo: ninguém em dois ambientes", len(nomes), len(set(nomes)))
+
+_v1 = next(r for r in range(1, 400)
+           if str(cfg.cell(row=r, column=1).value or "").startswith("9. DUPLAS")) + 2
+VETOS = {frozenset((cfg.cell(row=r, column=1).value, cfg.cell(row=r, column=2).value))
+         for r in range(_v1, _v1 + 30)
+         if cfg.cell(row=r, column=1).value and cfg.cell(row=r, column=2).value}
+chk("arquivo: nenhuma dupla vetada escalada junta", [],
+    [sorted(par) for par in VETOS for d in dupla if par == frozenset(d)])
 
 status = {eqp.cell(row=r, column=2).value: eqp.cell(row=r, column=4).value
           for r in range(2, 32) if eqp.cell(row=r, column=2).value}

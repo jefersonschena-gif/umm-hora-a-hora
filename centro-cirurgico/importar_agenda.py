@@ -14,7 +14,7 @@ O que faz
      acrescentando ali, em branco, todo cirurgião ainda não cadastrado;
   4. substitui no Agenda do Dia as linhas da data da agenda (as demais datas ficam intactas);
   5. distribui os técnicos disponíveis pelos ambientes do dia (prioridade do posto, X de
-     habilidade e ninguém em dois lugares) e escreve a dupla de cada um no Painel;
+     habilidade, duplas vetadas e ninguém em dois lugares) e escreve a dupla no Mapa do Dia;
   6. aponta o Painel (Data_Mapa) para a data importada;
   7. grava uma NOVA versão do arquivo — o original nunca é sobrescrito.
 
@@ -212,7 +212,11 @@ def distribuir(wb, dia, cirurgias):
                 marcados.add(e)
         skills[nome] = marcados
 
-    aloc = alocar(postos, esp_posto, disp, skills)
+    # duplas que não podem trabalhar juntas
+    veto_b = _coluna(wb, "Veto_B")
+    vetos = [(a, veto_b[k]) for k, a in enumerate(_coluna(wb, "Veto_A")) if a and veto_b[k]]
+
+    aloc = alocar(postos, esp_posto, disp, skills, vetos)
 
     pai, p1, p2, col1 = _faixa(wb, "Pai_Tec1")
     _, _, _, col2 = _faixa(wb, "Pai_Tec2")
@@ -224,7 +228,7 @@ def distribuir(wb, dia, cirurgias):
         pai["%s%d" % (col1, p1 + i)] = equipe[0] if len(equipe) > 0 else None
         pai["%s%d" % (col2, p1 + i)] = equipe[1] if len(equipe) > 1 else None
         escalados += len(equipe)
-    return escalados, sum(1 for c in aloc if aloc[c])
+    return escalados, sum(1 for c in aloc if aloc[c]), len(vetos)
 
 
 def importar(pdf, entrada, saida=None, cirs=None):
@@ -282,7 +286,7 @@ def importar(pdf, entrada, saida=None, cirs=None):
 
     # distribui os técnicos pelos ambientes do dia
     do_dia = [dict(cod=v[1], esp=v[4]) for v in novas]
-    escalados, atendidos = distribuir(wb, dia, do_dia)
+    escalados, atendidos, vetados = distribuir(wb, dia, do_dia)
 
     d_ws, d_r, _, d_c = _faixa(wb, "Data_Mapa") if "Data_Mapa" in wb.defined_names else (None,) * 4
     if d_ws is not None:
@@ -307,6 +311,8 @@ def importar(pdf, entrada, saida=None, cirs=None):
     print("cirurgias importadas : %d em %d salas" % (len(novas), len({c['sala'] for c in cirs})))
     print("outras datas mantidas: %d linhas" % len(outras))
     print("técnicos distribuídos: %d em %d ambientes" % (escalados, atendidos))
+    if vetados:
+        print("duplas vetadas respeitadas: %d" % vetados)
     if sem_sala:
         print("! sala sem cadastro .: %s" % ", ".join(sorted(sem_sala)))
     if sem_esp:

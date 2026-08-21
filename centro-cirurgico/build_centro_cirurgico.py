@@ -32,13 +32,14 @@ from openpyxl.formatting.rule import CellIsRule, FormulaRule
 OUT = "/home/user/umm-hora-a-hora/centro-cirurgico/Centro_Cirurgico_Escala.xlsx"
 
 # ---------------------------------------------------------------- dimensões
-N_ESP, N_POS, N_EQ, N_MAPA, N_AUS, N_CIR = 20, 16, 30, 200, 150, 60
+N_ESP, N_POS, N_EQ, N_MAPA, N_AUS, N_CIR, N_VETO = 20, 16, 30, 200, 150, 60, 30
 JOGO_K, DIAS = 13, 31
 ESP_R1, ESP_R2 = 22, 21 + N_ESP          # Configuração: especialidades
 POS_R1, POS_R2 = ESP_R2 + 4, ESP_R2 + 3 + N_POS
 FER_R1, FER_R2 = POS_R2 + 4, POS_R2 + 3 + 20
 AUS_T1, AUS_T2 = FER_R2 + 4, FER_R2 + 3 + 7
 CIR_R1, CIR_R2 = AUS_T2 + 4, AUS_T2 + 3 + N_CIR   # Configuração: cirurgiões
+VET_R1, VET_R2 = CIR_R2 + 4, CIR_R2 + 3 + N_VETO  # Configuração: duplas vetadas
 EQ_R1, EQ_R2 = 2, 1 + N_EQ               # Equipe
 XC1, XC2 = 8, 7 + N_ESP                  # Equipe: colunas H.. do X
 XL1, XL2 = get_column_letter(XC1), get_column_letter(XC2)
@@ -249,6 +250,11 @@ PROCS = {"Ortopedia": ["Artroplastia total de joelho", "Artroscopia de ombro"],
  "Cirurgia Plástica": ["Dermolipectomia abdominal"], "Cirurgia Vascular": ["Safenectomia"]}
 CIRURGIOES = ["Dr. Almeida","Dra. Bernardes","Dr. Coelho","Dra. Delgado","Dr. Esteves",
               "Dra. Fialho","Dr. Gouveia","Dra. Hirano"]
+VETOS = [  # (técnico, técnico, motivo) — duplas que não podem trabalhar juntas
+    ("Camila Bertoldi", "Simone Dalpra", "Não se entendem em sala"),
+    ("Marcia Tonet", "Odair Bianchi", "Pedido da coordenação"),
+] if not USANDO_REAL else []
+
 CIR_TAB = [  # de/para cirurgião -> especialidade usado na importação da agenda
     (n, e, "") for n, e in zip(CIRURGIOES,
         ["Ortopedia", "Cirurgia Geral", "Neurocirurgia", "Cirurgia Plástica",
@@ -309,7 +315,7 @@ def build_escala():
     disp = [e[1] for e in EQUIPE if e[3] == "Ativo" and e[1] not in AUSENTES]
     postos = [(p[0], p[3], p[4], p[5]) for p in POSTOS if opera_hoje(p[0])]
     esp = {cod: list(esp_do_posto(cod)) for cod, _, _, _ in postos}
-    return alocar(postos, esp, disp, SKILLS)
+    return alocar(postos, esp, disp, SKILLS, [(v[0], v[1]) for v in VETOS])
 
 ALOC = build_escala()   # {cod: [técnico 1, técnico 2]}
 
@@ -447,6 +453,21 @@ ws_cfg.cell(row=CIR_R2 + 1, column=1,
                   "passa a preencher a coluna Especialidade do Mapa sozinha e acrescenta aqui, em "
                   "branco, todo cirurgião novo que aparecer.").font = F_NOTA
 
+sec(ws_cfg, VET_R1 - 2, "9. DUPLAS QUE NÃO PODEM TRABALHAR JUNTAS", 3)
+head(ws_cfg, VET_R1 - 1, ["Técnico", "Não pode com", "Motivo"], height=28)
+fmt(ws_cfg, VET_R1, VET_R2, 1, 3, align=CTR, fill=FILL_PREM)
+for i in range(N_VETO):
+    r = VET_R1 + i
+    for c_ in (1, 2, 3):
+        ws_cfg.cell(row=r, column=c_).alignment = LFT
+    if i < len(VETOS):
+        for j, v in enumerate(VETOS[i]):
+            ws_cfg.cell(row=r, column=1 + j, value=v)
+ws_cfg.cell(row=VET_R2 + 1, column=1,
+            value="A ordem não importa: A com B é o mesmo que B com A. A distribuição nunca junta "
+                  "quem está aqui, e se a dupla for formada à mão o ambiente fica em DUPLA VETADA "
+                  "no Mapa do Dia.").font = F_NOTA
+
 ws_cfg.cell(row=4, column=7, value="LISTAS AUXILIARES").font = F_SEC
 head(ws_cfg, 5, ["Status cadastral", "Status da cirurgia", "Tipo de posto"], col0=7, height=28)
 for j, col in enumerate((["Ativo", "Afastado", "Desligado"],
@@ -471,6 +492,8 @@ dn("Aus_Tipos", R(S_CFG, "$A$%d:$A$%d" % (AUS_T1, AUS_T2)))
 dn("Aus_Siglas", R(S_CFG, "$B$%d:$B$%d" % (AUS_T1, AUS_T2)))
 for nm, col in (("Cir_Nome", "A"), ("Cir_Esp", "B")):
     dn(nm, R(S_CFG, "$%s$%d:$%s$%d" % (col, CIR_R1, col, CIR_R2)))
+for nm, col in (("Veto_A", "A"), ("Veto_B", "B")):
+    dn(nm, R(S_CFG, "$%s$%d:$%s$%d" % (col, VET_R1, col, VET_R2)))
 dn("Lista_StatusCad", R(S_CFG, "$G$6:$G$8"))
 dn("Lista_StatusCir", R(S_CFG, "$H$6:$H$9"))
 dn("Lista_TipoPosto", R(S_CFG, "$I$6:$I$7"))
@@ -809,9 +832,10 @@ for i in range(N_POS):
     cir = M % ("H", pr)
     ws_cal.cell(row=r, column=1, value=(
         '=IF({n}="",0,IF({s}="SEM EQUIPE",IF(N({c})>0,900,850),'
-        'IF({s}="FALTA HABILIDADE",800,IF({s}="GENTE DEMAIS",700,IF({s}="INCOMPLETO",650,'
+        'IF({s}="FALTA HABILIDADE",800,IF({s}="DUPLA VETADA",750,'
+        'IF({s}="GENTE DEMAIS",700,IF({s}="INCOMPLETO",650,'
         'IF({s}="EXTRA",600,IF({s}="ATENÇÃO",400,'
-        'IF(AND({s}="SEM AVALIAÇÃO",COUNTIF(Equipe_X,"X")>0),300,0))))))))'
+        'IF(AND({s}="SEM AVALIAÇÃO",COUNTIF(Equipe_X,"X")>0),300,0)))))))))'
         '+IF({n}="",0,(20-IFERROR(INDEX(Postos_Prior,MATCH({cod},Postos_Cod,0)),20))/100)'
     ).format(n=nome, s=sit, c=cir, cod=M % ("N", pr)))
     ws_cal.cell(row=r, column=2, value=(
@@ -950,8 +974,9 @@ for i in range(N_POS):
               'IF(AND($D{r}="",$E{r}=""),"SEM EQUIPE",'
               'IF((--($D{r}<>"")+--($E{r}<>""))<$B{r},"INCOMPLETO",'
               'IF((--($D{r}<>"")+--($E{r}<>""))>$B{r},"GENTE DEMAIS",'
+              'IF(SUMPRODUCT((Veto_A<>"")*(Veto_B<>"")*(((Veto_A=$D{r})*(Veto_B=$E{r}))+((Veto_A=$E{r})*(Veto_B=$D{r}))))>0,"DUPLA VETADA",'
               'IF(OR(AND($D{r}<>"",{n1}=0),AND($E{r}<>"",{n2}=0)),"SEM AVALIAÇÃO",'
-              'IF({desc}>0,"FALTA HABILIDADE",IF(AND($B{r}>=2,{um}>0),"ATENÇÃO","OK"))))))))'
+              'IF({desc}>0,"FALTA HABILIDADE",IF(AND($B{r}>=2,{um}>0),"ATENÇÃO","OK")))))))))'
               ).replace("{n1}", nesp % "$D{r}").replace("{n2}", nesp % "$E{r}")
                 .replace("{desc}", R(S_CAL, "$%s%d" % (DISP_L, cr)))
                 .replace("{um}", R(S_CAL, "$%s%d" % (OCUP_L, cr))),
@@ -960,6 +985,7 @@ for i in range(N_POS):
               'IF($F{r}="SEM EQUIPE",IF(N($H{r})>0,"","Ambiente sem equipe | "),"")&'
               'IF($F{r}="INCOMPLETO","Falta "&($B{r}-(--($D{r}<>"")+--($E{r}<>"")))&IF($B{r}-(--($D{r}<>"")+--($E{r}<>""))=1," técnico"," técnicos")&" neste ambiente | ","")&'
               'IF($F{r}="GENTE DEMAIS","Este ambiente é de "&$B{r}&IF($B{r}=1," técnico só"," técnicos")&": tire o excedente | ","")&'
+              'IF($F{r}="DUPLA VETADA",$D{r}&" e "&$E{r}&" não podem trabalhar juntas | ","")&'
               'IF($F{r}="EXTRA","Técnico escalado em ambiente que não opera hoje | ","")&'
               'IF(AND($F{r}="NÃO OPERA",N($H{r})>0),"Ambiente não opera hoje e tem cirurgia | ","")&'
               'IF($F{r}="SEM AVALIAÇÃO","Técnico sem habilidade marcada na aba Equipe | ","")&'
@@ -1042,6 +1068,8 @@ CHECKS = [
     ("Postos com especialidade sem ninguém que faça",
      '=COUNTIF($F$%d:$F$%d,"FALTA HABILIDADE")' % (PAI_R1, PAI_R2)),
     ("Ambientes com técnico a mais", '=COUNTIF($F$%d:$F$%d,"GENTE DEMAIS")' % (PAI_R1, PAI_R2)),
+    ("Duplas que não podiam trabalhar juntas",
+     '=COUNTIF($F$%d:$F$%d,"DUPLA VETADA")' % (PAI_R1, PAI_R2)),
     ("Técnicos escalados em mais de um posto",
      '=SUMPRODUCT((Pai_Tec1<>"")*(COUNTIF(Pai_Tec1,Pai_Tec1)+COUNTIF(Pai_Tec2,Pai_Tec1)>1))'),
     ("Cirurgias com alerta no mapa", '=SUMPRODUCT((Mapa_Alerta<>"OK")*(Mapa_Alerta<>""))'),
@@ -1086,9 +1114,12 @@ GUIA = [
      "a Situação fica SEM AVALIAÇÃO."),
     ("Folgas e férias", "Vão para a aba Ausencias, por período. O calendário ao lado mostra o "
      "período inteiro e quantos faltam em cada dia."),
+    ("Quem não pode com quem", "A seção 9 da aba Configuração lista as duplas que não podem "
+     "trabalhar juntas. A distribuição já evita, e se você formar uma delas à mão o ambiente fica "
+     "em DUPLA VETADA."),
     ("Situação", "OK = os dois cobrem tudo · ATENÇÃO = alguma especialidade coberta por um só · "
      "FALTA HABILIDADE = alguma especialidade sem ninguém · INCOMPLETO = falta técnico · "
-     "SEM EQUIPE = ninguém escalado · NÃO OPERA = ambiente fechado nesse dia."),
+     "DUPLA VETADA = os dois não podem trabalhar juntos · SEM EQUIPE = ninguém escalado · NÃO OPERA = ambiente fechado nesse dia."),
 ]
 for i, (a, b) in enumerate(GUIA):
     r = GUIA_R + i
@@ -1294,7 +1325,7 @@ for _cond, _fill, _cor in (
         ('OR(${a}{r}="ATENÇÃO",${a}{r}="SEM AVALIAÇÃO",${a}{r}="INCOMPLETO")'.format(a=_AUX, r=DIA_R1),
          _fa, AMAR_T),
         ('OR(${a}{r}="SEM EQUIPE",${a}{r}="FALTA HABILIDADE",${a}{r}="GENTE DEMAIS",'
-         '${a}{r}="EXTRA")'.format(a=_AUX, r=DIA_R1), _fr, VERM_T),
+         '${a}{r}="EXTRA",${a}{r}="DUPLA VETADA")'.format(a=_AUX, r=DIA_R1), _fr, VERM_T),
         ('${a}{r}="NÃO OPERA"'.format(a=_AUX, r=DIA_R1), _fc, "808080")):
     ws_dash.conditional_formatting.add(
         "A%d:%s%d" % (DIA_R1, get_column_letter(COL_NOME), DIA_R2),
@@ -1347,6 +1378,8 @@ add_dv(ws_cfg, '"Ativo,Inativo"', ["I%d:I%d" % (POS_R1, POS_R2)])
 add_dv(ws_cfg, '"Sim,Não"', ["K%d:K%d" % (POS_R1, POS_R2)])
 add_dv(ws_cfg, "1", ["D%d:E%d" % (POS_R1, POS_R2)], kind="whole", operator="between", formula2="4")
 add_dv(ws_cfg, "=Lista_Especialidades", ["B%d:B%d" % (CIR_R1, CIR_R2)])
+add_dv(ws_cfg, "=Lista_Tecnicos", ["A%d:A%d" % (VET_R1, VET_R2),
+                                   "B%d:B%d" % (VET_R1, VET_R2)])
 add_dv(ws_aus, "=Lista_Tecnicos", ["A%d:A%d" % (AU_R1, AU_R2)])
 add_dv(ws_aus, "=Aus_Tipos", ["B%d:B%d" % (AU_R1, AU_R2)])
 dvd = add_dv(ws_aus, "DATE(2000,1,1)", ["C%d:D%d" % (AU_R1, AU_R2)], kind="date",
@@ -1370,7 +1403,7 @@ fc = cf_fill(CINZA)
 sit = "F%d:F%d" % (PAI_R1, PAI_R2)
 for txt, fill, font in (("OK", fv, fvt), ("ATENÇÃO", fa, fat), ("FALTA HABILIDADE", fr, frt),
                         ("SEM EQUIPE", fr, frt), ("INCOMPLETO", fa, fat), ("EXTRA", fa, fat),
-                        ("GENTE DEMAIS", fr, frt),
+                        ("GENTE DEMAIS", fr, frt), ("DUPLA VETADA", fr, frt),
                         ("SEM AVALIAÇÃO", fa, fat)):
     ws_pai.conditional_formatting.add(sit, CellIsRule(operator="equal", formula=['"%s"' % txt],
                                                       fill=fill, font=font))
@@ -1381,7 +1414,8 @@ _amb = "A%d:B%d" % (PAI_R1, PAI_R2)
 for _cond, _fill, _cor in (
         ('$F{r}="OK"'.format(r=PAI_R1), fv, VERDE_T),
         ('OR($F{r}="ATENÇÃO",$F{r}="SEM AVALIAÇÃO",$F{r}="INCOMPLETO")'.format(r=PAI_R1), fa, AMAR_T),
-        ('OR($F{r}="SEM EQUIPE",$F{r}="FALTA HABILIDADE",$F{r}="GENTE DEMAIS",$F{r}="EXTRA")'.format(r=PAI_R1),
+        ('OR($F{r}="SEM EQUIPE",$F{r}="FALTA HABILIDADE",$F{r}="GENTE DEMAIS",$F{r}="EXTRA",'
+         '$F{r}="DUPLA VETADA")'.format(r=PAI_R1),
          fr, VERM_T),
         ('$F{r}="NÃO OPERA"'.format(r=PAI_R1), fc, "808080")):
     ws_pai.conditional_formatting.add(_amb, FormulaRule(
@@ -1465,7 +1499,7 @@ if _o.environ.get("VISUAL") == "1":
     for nome, area in {S_PAI: "A1:M%d" % (CHK_R2 + 1),
                        S_MAP: "A1:N24", S_EQP: "A1:%s28" % get_column_letter(XC2 + 1),
                        S_AUS: "A1:%s%d" % (get_column_letter(D2C + 4), CAL_R2 + 4),
-                       S_CFG: "A1:K%d" % (CIR_R1 + 12)}.items():
+                       S_CFG: "A1:K%d" % (VET_R1 + 6)}.items():
         w = wb[nome]
         w.page_setup.orientation = "landscape"
         w.page_setup.fitToWidth = 1; w.page_setup.fitToHeight = 1

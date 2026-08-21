@@ -27,6 +27,13 @@ DATA = pai["A6"].value
 PERIODO = cfg["B8"].value
 T_INI, T_MIN = cfg["B11"].value, cfg["B13"].value
 LIMPEZA, JANELA = cfg["B16"].value, cfg["B17"].value
+
+# duplas que não podem trabalhar juntas (seção 9 da Configuração, achada pelo título)
+_v1 = next(r for r in range(1, 400)
+           if str(cfg.cell(row=r, column=1).value or "").startswith("9. DUPLAS")) + 2
+VETOS = {frozenset((cfg.cell(row=r, column=1).value, cfg.cell(row=r, column=2).value))
+         for r in range(_v1, _v1 + 30)
+         if cfg.cell(row=r, column=1).value and cfg.cell(row=r, column=2).value}
 BASE = T_INI.hour * 60 + T_INI.minute
 FERIADOS = {cfg.cell(row=FER_R1 + i, column=1).value for i in range(20)
             if cfg.cell(row=FER_R1 + i, column=1).value}
@@ -146,6 +153,7 @@ for p in POSTOS:
     elif nal == 0:   sit = "SEM EQUIPE"
     elif nal < nh:   sit = "INCOMPLETO"
     elif nal > nh:   sit = "GENTE DEMAIS"
+    elif frozenset((t1, t2)) in VETOS:  sit = "DUPLA VETADA"
     elif sem_aval:   sit = "SEM AVALIAÇÃO"
     elif any(c == 0 for c in cob):                 sit = "FALTA HABILIDADE"
     elif nh >= 2 and any(c == 1 for c in cob):     sit = "ATENÇÃO"

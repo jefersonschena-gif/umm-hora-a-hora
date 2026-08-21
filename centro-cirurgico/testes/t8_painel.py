@@ -104,8 +104,9 @@ for l in LIN:
     chk("linha do tempo %s: barras" % l["nome"], esperado, obtido)
 
 # --- 3. fila de ações
-GRAV = {"SEM EQUIPE": 900, "FALTA HABILIDADE": 800, "GENTE DEMAIS": 700, "INCOMPLETO": 650,
-        "EXTRA": 600, "ATENÇÃO": 400, "SEM AVALIAÇÃO": 300}
+GRAV = {"SEM EQUIPE": 900, "FALTA HABILIDADE": 800, "DUPLA VETADA": 750,
+        "GENTE DEMAIS": 700, "INCOMPLETO": 650, "EXTRA": 600, "ATENÇÃO": 400,
+        "SEM AVALIAÇÃO": 300}
 chk("nenhum ambiente com pendência mostra alerta OK", [],
     [l["nome"] for l in LIN if l["sit"] in GRAV and l["alerta"] == "OK"])
 matriz_vazia = sum(1 for r in range(2, 32) for c in range(8, 28)

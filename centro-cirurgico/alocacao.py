@@ -9,7 +9,9 @@ Regras que a distribuição respeita, nesta ordem:
      posto operando no mínimo, não posto vazio;
   4. dentro do posto, prefere quem marca X nas especialidades que passam ali no dia;
   5. no empate, prefere quem tem menos habilidades, guardando os polivalentes para os
-     postos que ainda virão.
+     postos que ainda virão;
+  6. duas pessoas vetadas uma para a outra nunca dividem o mesmo posto — nem na distribuição
+     inicial, nem nas trocas.
 
 Depois da distribuição inicial roda um passe de trocas: qualquer troca de dois técnicos
 entre postos que aumente a cobertura total é aceita, até não haver mais ganho.
@@ -28,20 +30,26 @@ def _cobertura(esp, equipe, skills):
     return p
 
 
-def alocar(postos, esp_por_posto, disponiveis, skills):
+def alocar(postos, esp_por_posto, disponiveis, skills, vetos=()):
     """postos: [(cod, necessarios, minimo, prioridade)] · esp_por_posto: {cod: [especialidades]}
     disponiveis: [nome] · skills: {nome: set(especialidades marcadas com X)}
+    vetos: pares (a, b) que não podem dividir o mesmo posto
     Devolve {cod: [nomes]} — na ordem em que devem aparecer como TÉCNICO 1 e 2."""
     ordem = sorted(postos, key=lambda p: (p[3], p[0]))
     livres = sorted(disponiveis)
     aloc = {cod: [] for cod, _, _, _ in postos}
+    proibido = {frozenset(par) for par in vetos if len(set(par)) == 2}
+
+    def choca(nome, equipe):
+        return any(frozenset((nome, outro)) in proibido for outro in equipe)
 
     def preencher(cod, quantos):
         esp = esp_por_posto.get(cod, [])
         for _ in range(quantos):
-            if not livres:
+            candidatos = [t for t in livres if not choca(t, aloc[cod])]
+            if not candidatos:
                 return
-            escolhido = min(livres, key=lambda t: (
+            escolhido = min(candidatos, key=lambda t: (
                 -sum(1 for e in esp if e in skills.get(t, ())),   # cobre mais
                 len(skills.get(t, ())),                           # menos polivalente
                 t))
@@ -66,8 +74,10 @@ def alocar(postos, esp_por_posto, disponiveis, skills):
                 for ia in range(len(aloc[ca])):
                     for ib in range(len(aloc[cb])):
                         aloc[ca][ia], aloc[cb][ib] = aloc[cb][ib], aloc[ca][ia]
+                        veta = (choca(aloc[ca][ia], aloc[ca][:ia] + aloc[ca][ia + 1:])
+                                or choca(aloc[cb][ib], aloc[cb][:ib] + aloc[cb][ib + 1:]))
                         novo = total()
-                        if novo > melhor + 1e-9:
+                        if not veta and novo > melhor + 1e-9:
                             melhor, ganhou = novo, True
                         else:
                             aloc[ca][ia], aloc[cb][ib] = aloc[cb][ib], aloc[ca][ia]

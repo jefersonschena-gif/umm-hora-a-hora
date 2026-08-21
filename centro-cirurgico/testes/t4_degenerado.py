@@ -43,5 +43,10 @@ pai.cell(row=12, column=5, value="Fulano Inexistente")               # não cada
 pai.cell(row=13, column=4, value="Zuleide Marcon")                   # técnico de férias
 pai.cell(row=14, column=5).value = None                              # posto com um técnico só
 pai.cell(row=20, column=5, value="Bruna Cordeiro")   # 2º técnico em ambiente de 1 só
+# dupla vetada formada à mão: acha a seção 9 pelo título, sem depender da geometria
+VET_R1 = next(r for r in range(1, 400)
+              if str(cfg.cell(row=r, column=1).value or "").startswith("9. DUPLAS")) + 2
+pai.cell(row=15, column=4, value=cfg.cell(row=VET_R1, column=1).value)
+pai.cell(row=15, column=5, value=cfg.cell(row=VET_R1, column=2).value)
 wb.save(os.path.join(SAIDA, "t4.xlsx"))
 print("casos degenerados aplicados a partir da linha", L)

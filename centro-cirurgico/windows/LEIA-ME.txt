@@ -45,8 +45,9 @@ O QUE LER NA TELA PRETA ANTES DE FECHAR
 DE ONDE VEM A DUPLA DE CADA AMBIENTE
   A distribuição usa quem está disponível no dia (aba "Folgas e Férias"),
   o X de habilidade de cada técnica (aba "Equipe") e a prioridade de cada
-  ambiente. Ninguém fica em dois lugares e a dupla passa o turno inteiro no
-  mesmo ambiente. Nem todo lugar é dupla: a coluna "Técnicos" diz quantos
+  ambiente. Ninguém fica em dois lugares, a dupla passa o turno inteiro no
+  mesmo ambiente, e quem não pode trabalhar junto (aba "Configuração", seção 9)
+  nunca cai na mesma sala. Nem todo lugar é dupla: a coluna "Técnicos" diz quantos
   aquele ambiente pede: o box de preparo e a sala de recém-nascido são de uma
   pessoa só, e ali a coluna TÉCNICO 2 fica cinza. Enquanto o X não estiver marcado, a coluna Situação fica
   em SEM AVALIAÇÃO — a distribuição acontece do mesmo jeito, só não dá para

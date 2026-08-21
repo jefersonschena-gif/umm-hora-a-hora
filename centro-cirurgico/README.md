@@ -79,6 +79,7 @@ escalados e devolve a **Situação**:
 | **FALTA HABILIDADE** | alguma especialidade do dia não é coberta por ninguém da dupla (o alerta diz qual) |
 | **INCOMPLETO** | falta técnico no ambiente |
 | **GENTE DEMAIS** | há mais gente do que o ambiente pede (o box de preparo e a sala de recém-nascido são de uma pessoa só) |
+| **DUPLA VETADA** | os dois escalados estão na lista de quem não pode trabalhar junto |
 | **SEM EQUIPE** | ninguém escalado — o alerta diz quantas cirurgias precisam ser remanejadas |
 | **NÃO OPERA** | posto fechado nesse dia da semana |
 | **SEM AVALIAÇÃO** | algum técnico escalado ainda não tem X marcado |
@@ -96,7 +97,9 @@ coordenação trocar quem quiser. As regras, nesta ordem:
    só depois os que sobram completam as duplas;
 4. dentro do posto, prefere quem marca **X** nas especialidades que passam ali no dia;
 5. no empate, prefere quem tem menos habilidades, guardando os polivalentes para os postos
-   seguintes.
+   seguintes;
+6. **duas pessoas vetadas uma para a outra nunca dividem o mesmo posto** — nem na distribuição
+   inicial, nem nas trocas que o passe de melhoria tentaria fazer.
 
 Depois roda um passe de trocas: qualquer troca entre dois postos que aumente a cobertura total é
 aceita, até não haver mais ganho. Com a matriz de habilidades ainda em branco a distribuição
@@ -168,6 +171,20 @@ O que a planilha sinaliza na aba `Agenda do Dia`:
 A emenda sem folga **não** é sinalizada como erro na coluna Alerta: ela é a regra nessa agenda, e
 vira número na coluna Atraso previsto do Mapa do Dia.
 
+## Quem não pode com quem
+
+A seção **9. DUPLAS QUE NÃO PODEM TRABALHAR JUNTAS** da aba Configuração é uma tabela de pares
+(técnico, técnico, motivo), com lista suspensa nas duas colunas. A ordem não importa — A com B é o
+mesmo que B com A.
+
+A distribuição respeita: ao escolher a segunda pessoa de um ambiente, quem tem veto com a primeira
+sai da lista de candidatos, e o passe de trocas desfaz qualquer troca que formaria um par proibido.
+Se a coordenação montar a dupla à mão mesmo assim, a Situação do ambiente vira **DUPLA VETADA** e o
+alerta nomeia as duas pessoas.
+
+Quando alguém está vetado com todo mundo que sobrou, o ambiente fica com uma pessoa só (INCOMPLETO)
+em vez de formar a dupla proibida — a planilha prefere mostrar o problema a escondê-lo.
+
 ## Ausências
 
 A aba **Folgas e Férias** guarda os períodos (folga, férias, atestado, licença, treinamento e os códigos
@@ -208,10 +225,10 @@ python3 testes/t9_estilo.py
 | Recálculo (LibreOffice) | 0 erros de fórmula |
 | Reconciliação independente | 255 verificações, 0 divergências |
 | Expansão (+1 especialidade, +1 sala, +2 técnicos, +30 cirurgias, +5 ausências) | 0 erros · 299 verificações, 0 divergências |
-| Entradas degeneradas (9 na agenda, 3 em ausências, 5 na escala) | todas tratadas, 0 erros |
+| Entradas degeneradas (9 na agenda, 3 em ausências, 6 na escala) | todas tratadas, 0 erros |
 | Sensibilidade (domingo, feriado, limpeza, atraso, janela mínima) | aprovado, original inalterado |
 | Importação da agenda (leitura, gravação, ocupação, janelas, atraso, alertas) | 19 verificações, 0 divergências |
-| Distribuição (regras da alocação + conferência no arquivo) | 15 verificações, 0 divergências |
+| Distribuição (regras da alocação, vetos + conferência no arquivo) | 25 verificações, 0 divergências |
 | Painel (números, linha do tempo, fila de ações, rankings) | 56 verificações, 0 divergências |
 | Estilo (o XML que o Excel lê) | 6 verificações, 0 divergências |
 
