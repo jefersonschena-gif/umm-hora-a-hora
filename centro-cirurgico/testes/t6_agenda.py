@@ -14,7 +14,7 @@ from importar_agenda import ler_texto, importar
 
 SP = os.environ.get("SAIDA", os.path.dirname(os.path.abspath(__file__)))
 SRC = os.path.join(RAIZ, "Centro_Cirurgico_Escala.xlsx")
-T0, TM, LIMP = 7 * 60, 360, 20
+T0, TM = 7 * 60, 360
 
 CAB = ("  Início - Término               Prontuário Paciente                        DN         Idade\n"
        "  {d} {hi} - {d} {hf} 1000000 111 - PACIENTE FICTICIO                       01/01/1980 46a\n"
@@ -81,6 +81,9 @@ linhas_dia = [r for r in range(2, 202) if mapa.cell(row=r, column=2).value
 chk("linhas importadas no mapa", len(AG), len(linhas_dia))
 
 # --- reconciliação independente
+# a limpeza que a planilha ACRESCENTA depois de cada cirurgia sai da própria Configuração:
+# a agenda do hospital já reserva a limpeza dentro do horário, então ali é 0
+LIMP = cfg["B16"].value or 0
 mm = lambda h: int(h[:2]) * 60 + int(h[3:]) - T0
 salas = {}
 for s, hi, hf, _, _ in AG:
@@ -94,7 +97,7 @@ for cod, v in sorted(salas.items()):
         ini = 0 if k == 0 else min(v[k - 1][1] + LIMP, TM)
         jan.append(max(0, min(a, TM) - ini))
     jan.append(max(0, TM - min(v[-1][1] + LIMP, TM)))
-    cabe = max(0, max(jan) - LIMP)
+    maior = max(jan)
     obt_o = next(cal.cell(row=r, column=4).value for r in range(2, 18)
                  if cal.cell(row=r, column=1).value == cod)
     nome = next(cfg.cell(row=r, column=2).value for r in range(45, 61)
@@ -102,10 +105,10 @@ for cod, v in sorted(salas.items()):
     obt_l = next(pai.cell(row=r, column=11).value for r in range(10, 26)
                  if pai.cell(row=r, column=1).value == nome)
     chk("ocupação %s (min)" % cod, ocup, obt_o)
-    chk("cabe até %s (min)" % cod, cabe, obt_l)
+    chk("minutos livres %s (min)" % cod, maior or None, obt_l)
 
 alertas = [mapa.cell(row=r, column=14).value for r in linhas_dia]
-chk("emendas sem limpeza sinalizadas", 2,
+chk("emendas sem limpeza sinalizadas", 2 if LIMP else 0,
     sum(1 for a in alertas if a and "Sem intervalo para limpeza" in a))
 chk("cirurgia fora do plantão sinalizada", 1,
     sum(1 for a in alertas if a and "Fora da janela do plantão" in a))

@@ -58,11 +58,12 @@ print("2) data -> feriado 07/09: vagas do dia %s" % s["vagas"],
       "OK" if s["vagas"] == 7 else "FALHOU (esperado 7)")
 if s["vagas"] != 7: falhas.append("feriado")
 
+LIMP_BASE = recalc(SRC)[ABA_CFG]["B16"].value or 0
 s = snap(cenario("limpeza", {"B16": 40}))
 pior = [i for i in range(N_POS)
         if isinstance(base["ocup"][i], float) and isinstance(s["ocup"][i], float)
         and s["ocup"][i] < base["ocup"][i] - 1e-9]
-print("3) limpeza 20->40 min: ocupação sobe em toda sala com cirurgia:",
+print("3) limpeza %s->40 min: ocupação sobe em toda sala com cirurgia:" % LIMP_BASE,
       "OK" if not pior else "FALHOU %s" % pior)
 falhas += pior
 

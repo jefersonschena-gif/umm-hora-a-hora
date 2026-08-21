@@ -6,7 +6,8 @@ Serviço:
   8 salas x 2 técnicos + admissão x 2 + box de preparo oftalmológico x 1 +
   sala de recém-nascido x 1 = 20 vagas por dia, para 22 técnicos.
   Sala 6 exclusiva do centro obstétrico, sala 7 reservada a urgências,
-  box de preparo apoia a sala 8. Limpeza de 20 min ao fim de cada cirurgia.
+  box de preparo apoia a sala 8. A agenda do hospital já reserva a limpeza dentro do
+  horário de cada cirurgia — o término é a sala liberada.
   Não se realizam cirurgias cardíacas.
 
 Habilidade: marca-se X na aba Equipe, uma coluna por especialidade.
@@ -138,7 +139,8 @@ FERIADOS = [(date(2026, 1, 1), "Confraternização Universal"), (date(2026, 2, 1
 DIA = date(2026, 8, 20)
 PERIODO_INI = date(2026, 8, 16)
 TURNO_INI, TURNO_FIM, TURNO_MIN = time(7, 0), time(13, 0), 360
-LIMPEZA, JANELA_MIN = 20, 30
+LIMPEZA, JANELA_MIN = 0, 30
+LIMPEZA_DEMO = 20   # só para a agenda fictícia do arquivo de demonstração ter folgas
 COORDENACAO = "Coordenação de Enfermagem"
 
 # ---------------------------------------------------------------- cadastro de demonstração
@@ -234,14 +236,14 @@ def build_mapa():
         while decorrido < TURNO_MIN * alvo and k < 6:
             esp = esps[k % len(esps)]
             dur = int(round(ESP_DUR[esp] * random.uniform(0.8, 1.15) / 5.0) * 5)
-            if decorrido + dur + LIMPEZA > TURNO_MIN:
+            if decorrido + dur + LIMPEZA_DEMO > TURNO_MIN:
                 break
             ini = BASE_MIN + decorrido
             st = "Cancelada" if (sala == "SO-02" and k == 2) else "Agendada"
             cirs.append(dict(data=DIA, sala=sala, ini=ini, fim=ini + dur, esp=esp,
                              proc=PROCS[esp][k % len(PROCS[esp])],
                              cir=CIRURGIOES[(len(cirs) + k) % len(CIRURGIOES)], status=st, dur=dur))
-            decorrido += dur + LIMPEZA + (folga if k == 1 else 0)
+            decorrido += dur + LIMPEZA_DEMO + (folga if k == 1 else 0)
             k += 1
     cirs.sort(key=lambda c: (c["sala"], c["ini"]))
     return cirs
@@ -332,8 +334,12 @@ c.border = BORD; c.alignment = CTR; c.number_format = "0"
 ws_cfg.cell(row=13, column=3, value="Turno_Min").font = F_NOTA
 
 sec(ws_cfg, 15, "3. OPERAÇÃO", 3)
-prem(16, "Limpeza e preparação após cada cirurgia (min)", LIMPEZA, "0", "Limpeza_Min")
+prem(16, "Limpeza a ACRESCENTAR depois de cada cirurgia (min)", LIMPEZA, "0", "Limpeza_Min")
 prem(17, "Janela mínima para considerar encaixe (min)", JANELA_MIN, "0", "Janela_Min")
+ws_cfg.cell(row=18, column=1,
+            value="A agenda do hospital já reserva a limpeza dentro do horário de cada cirurgia: o "
+                  "horário de término é a sala liberada. Por isso aqui fica 0. Se um dia a agenda "
+                  "passar a trazer só o tempo cirúrgico, ponha 20 e a planilha volta a somar.").font = F_NOTA
 
 sec(ws_cfg, ESP_R1 - 2, "4. ESPECIALIDADES — viram as colunas de habilidade na aba Equipe", 5)
 head(ws_cfg, ESP_R1 - 1, ["Código", "Especialidade", "Tipo", "Duração média (min)", "Ativa"], height=28)
@@ -595,9 +601,10 @@ for i in range(N_MAPA):
         16: '=IF(NOT(ISNUMBER($C{r})),0,ROUND(MOD($C{r}-Turno_Ini,1)*1440,0))',
         17: '=IF($J{r}<=0,0,$P{r}+$I{r})',
         19: '=ROW()',
-        # minutos em que a sala fica de fato ocupada dentro do plantão: a cirurgia mais a
-        # limpeza, cortada no fim do turno e na entrada da cirurgia seguinte (a agenda do
-        # hospital costuma emendar uma na outra, e sem isso a ocupação passaria de 100%)
+        # minutos em que a sala fica de fato ocupada dentro do plantão: do início ao término
+        # da cirurgia (a agenda já traz a limpeza dentro desse horário), mais a limpeza que a
+        # Configuração mandar acrescentar, cortado no fim do turno e na entrada da cirurgia
+        # seguinte — assim uma agenda emendada não soma duas vezes o mesmo minuto
         20: ('=IF($J{r}<=0,0,MAX(0,MIN($P{r}+$I{r}+Limpeza_Min,Turno_Min,'
              'IFERROR(INDEX(Mapa_RelIni,MATCH($B{r}&"#"&$A{r}&"#"&($K{r}+1),Mapa_Chave,0)),Turno_Min))'
              '-MIN($P{r},Turno_Min)))'),
@@ -725,7 +732,7 @@ for i in range(N_EQ):
 dn("Sug_Nome", R(S_CAL, "$A$%d:$A$%d" % (SUG_R1, SUG_R2)))
 
 # ---------------------------------------------------------------- CALC_SALAS (oculta): janelas livres
-head(ws_sal, 1, ["Sala", "Janela", "iniRel", "fimRel", "Duração (min)", "Cabe até (min)"], height=20)
+head(ws_sal, 1, ["Sala", "Janela", "iniRel", "fimRel", "Duração (min)"], height=20)
 SAL_R1 = 2
 for i in range(N_POS):
     mr = MIX_R1 + i
@@ -745,7 +752,6 @@ for i in range(N_POS):
             '=IF($C{r}="","",IFERROR(INDEX(Mapa_RelIni,MATCH($A{r}&"#"&Data_Mapa&"#{k1}",Mapa_Chave,0)),Turno_Min))'
         ).format(r=r, k1=k + 1))
         ws_sal.cell(row=r, column=5, value='=IF($C{r}="","",MAX(0,$D{r}-$C{r}))'.format(r=r))
-        ws_sal.cell(row=r, column=6, value='=IF($E{r}="","",MAX(0,$E{r}-Limpeza_Min))'.format(r=r))
 SAL_R2 = SAL_R1 + N_POS * JOGO_K - 1
 
 # --- necessários HOJE por posto (considera dia da semana, feriado e status) — coluna AD do Calc
@@ -803,19 +809,19 @@ ws_pai.row_dimensions[6].height = 26
 sec(ws_pai, 8, "2. O MAPA — quem fica em cada lugar hoje")
 head(ws_pai, 9, ["Ambiente", "Técnicos", "Especialidades do dia", "TÉCNICO 1", "TÉCNICO 2",
                  "Situação", "Alertas", "Cirurgias", "Ocupação", "Sala vaga (maior janela)",
-                 "Cabe até (min)", "Outras janelas", "Quem está livre e cobre mais", "", ""],
+                 "Minutos livres", "Outras janelas", "Quem está livre e cobre mais", "", ""],
      height=38)
 for i in range(N_POS):
     r, mr, cr = PAI_R1 + i, MIX_R1 + i, COB_R1 + i
     j1, j2 = SAL_R1 + i * JOGO_K, SAL_R1 + i * JOGO_K + JOGO_K - 1
     bC = R(S_SAL, "$C$%d:$C$%d" % (j1, j2)); bD = R(S_SAL, "$D$%d:$D$%d" % (j1, j2))
-    bE = R(S_SAL, "$E$%d:$E$%d" % (j1, j2)); bF = R(S_SAL, "$F$%d:$F$%d" % (j1, j2))
+    bE = R(S_SAL, "$E$%d:$E$%d" % (j1, j2))
     sug_col = get_column_letter(CC1 + i)
     sug_rng = R(S_CAL, "%s$%d:%s$%d" % (sug_col, SUG_R1, sug_col, SUG_R2))
     nesp = 'IFERROR(INDEX(Equipe_NEsp,MATCH(%s,Equipe_Nome,0)),0)'
     janela1 = ('IFERROR(TEXT(MOD(Turno_Ini+INDEX({c},MATCH(LARGE({e},1),{e},0))/1440,1),"HH:MM")&" → "&'
-               'TEXT(MOD(Turno_Ini+INDEX({d},MATCH(LARGE({e},1),{e},0))/1440,1),"HH:MM")&'
-               '" ("&LARGE({e},1)&" min)","—")').format(c=bC, d=bD, e=bE)
+               'TEXT(MOD(Turno_Ini+INDEX({d},MATCH(LARGE({e},1),{e},0))/1440,1),"HH:MM"),"—")'
+               ).format(c=bC, d=bD, e=bE)
     f = {
         "N": '=IF(%s="","",%s)' % (R(S_CAL, "$A%d" % mr), R(S_CAL, "$A%d" % mr)),
         "A": '=IF($N{r}="","",IFERROR(INDEX(Postos_Nome,MATCH($N{r},Postos_Cod,0)),$N{r}))',
@@ -856,7 +862,7 @@ for i in range(N_POS):
         "I": '=IF(OR($N{r}="",{t}<>"Sala cirúrgica"),"",{o})'.replace(
             "{t}", R(S_CAL, "$B%d" % mr)).replace("{o}", R(S_CAL, "$%s%d" % (OCUP_L, mr))),
         "J": '=IF($N{r}="","",IF(MAX(<E>)=0,"—",<J1>))'.replace("<E>", bE).replace("<J1>", janela1),
-        "K": '=IF(OR($N{r}="",MAX(<E>)=0),"",MAX(<F>))'.replace("<E>", bE).replace("<F>", bF),
+        "K": '=IF(OR($N{r}="",MAX(<E>)=0),"",MAX(<E>))'.replace("<E>", bE),
         "L": '=IF($N{r}="","",MAX(0,COUNTIF(<E>,">="&Janela_Min)-1))'.replace("<E>", bE),
         "M": ('=IF($N{r}="","",IFERROR(INDEX(Sug_Nome,MATCH(LARGE({s},1),{s},0)),"—")'
               '&IFERROR(" · "&INDEX(Sug_Nome,MATCH(LARGE({s},2),{s},0)),"")'
@@ -950,8 +956,9 @@ GUIA = [
     ("Nem todo lugar é dupla", "A coluna Técnicos diz quantos o ambiente pede hoje. Onde é uma "
      "pessoa só — box de preparo, sala de recém-nascido — a coluna TÉCNICO 2 aparece cinza e "
      "fica vazia; se alguém for posto ali, a Situação avisa GENTE DEMAIS."),
-    ("Jogo de sala", "Sala vaga mostra o maior intervalo livre da sala com horário, e Cabe até "
-     "diz de quanto cabe um encaixe já descontada a limpeza."),
+    ("Jogo de sala", "Sala vaga mostra o maior intervalo livre da sala, com horário, e Minutos "
+     "livres diz o tamanho dele. Como a agenda do hospital já reserva a limpeza dentro do horário "
+     "de cada cirurgia, o intervalo inteiro é aproveitável para um encaixe."),
     ("Trocar a data", "Troque a DATA aqui em cima: ausentes, vagas necessárias e agenda do dia "
      "se ajustam sozinhos. A distribuição dos técnicos, não — para redistribuir, importe a "
      "agenda de novo."),

@@ -16,7 +16,10 @@ ocupação e o tempo em que a sala fica vaga. As outras abas são cadastro.
 | Sala de recém-nascido | 1 | bloco obstétrico |
 | **Total** | **20 vagas/dia** | para um quadro de **22 técnicos** |
 
-Plantão da manhã, 07:00–13:00. **20 min** de limpeza e preparação após cada cirurgia.
+Plantão da manhã, 07:00–13:00. A agenda do hospital **já reserva a limpeza dentro do horário de
+cada cirurgia** — o término é a sala liberada, e por isso a premissa *Limpeza a acrescentar* fica em
+**0** na aba Configuração. Se um dia a agenda passar a trazer só o tempo cirúrgico, basta pôr 20 ali
+que todas as contas voltam a somar.
 Não se realizam cirurgias cardíacas. Cada posto declara em que dias funciona; nos fins de semana e
 feriados os postos de dia útil não operam e as vagas do dia caem junto.
 
@@ -66,9 +69,10 @@ Trocar a data na planilha **não** redistribui — para redistribuir, importe a 
 
 ## Jogo de sala
 
-Na mesma linha de cada ambiente: ocupação, a **maior janela livre com horário**
-("11:20 → 13:00 (100 min)"), de quanto cabe um encaixe já descontada a limpeza, e quantas outras
-janelas passam do mínimo. A aba `Agenda do Dia` traz o mesmo cirurgia a cirurgia.
+Na mesma linha de cada ambiente: ocupação, a **maior janela livre com horário** ("11:00 → 13:00"),
+quantos minutos ela tem e quantas outras janelas passam do mínimo. Como a limpeza já vem dentro do
+horário de cada cirurgia, a janela inteira é aproveitável para um encaixe. A aba `Agenda do Dia`
+traz o mesmo cirurgia a cirurgia.
 
 ## Importar a agenda do hospital
 
@@ -109,7 +113,8 @@ Duas coisas que a agenda do hospital costuma trazer e a planilha sinaliza na aba
 
 * **Fora da janela do plantão** — cirurgia que começa ou termina depois das 13:00. Ela entra no
   mapa, mas só os minutos dentro do plantão contam na ocupação.
-* **Sem intervalo para limpeza** — a agenda emenda a próxima cirurgia antes dos 20 min de limpeza.
+* **Sem intervalo para limpeza** — só aparece se a premissa *Limpeza a acrescentar* for maior que
+  zero e a agenda emendar a cirurgia seguinte antes desse tempo.
 
 ## Ausências
 

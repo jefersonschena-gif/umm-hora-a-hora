@@ -168,16 +168,18 @@ for p in POSTOS:
         continue
     ag = sorted([c for c in CIRS if c["sala"] == p["cod"] and c["ocup"] > 0 and c["data"] == DATA],
                 key=lambda c: c["rel"])
-    jan = [max(0, (ag[0]["rel"] if ag else T_MIN))]
+    faixas = [(0, ag[0]["rel"] if ag else T_MIN)]
     for k, c in enumerate(ag):
-        jan.append(max(0, (ag[k + 1]["rel"] if k + 1 < len(ag) else T_MIN) - (c["relfim"] + LIMPEZA)))
+        faixas.append((c["relfim"] + LIMPEZA, ag[k + 1]["rel"] if k + 1 < len(ag) else T_MIN))
+    jan = [max(0, b - a) for a, b in faixas]
     for k, d in enumerate(jan):
         chk("janela %s#%d" % (p["cod"], k), d, sal.cell(row=2 + p["i"] * JOGO_K + k, column=5).value)
     r = PAI_R1 + p["i"]
     maior, texto = (max(jan) if jan else 0), str(pai.cell(row=r, column=10).value)
-    chk("painel maior janela %s" % p["cod"], True,
-        ("(%d min)" % maior) in texto if maior else texto == "—")
-    chk("painel cabe até %s" % p["cod"], max(0, max(jan) - LIMPEZA) if max(jan) else None,
+    hhmm = lambda m: "%02d:%02d" % (((BASE + m) // 60) % 24, (BASE + m) % 60)
+    a, b = faixas[jan.index(maior)] if maior else (0, 0)     # a fórmula pega a primeira igual
+    chk("painel maior janela %s" % p["cod"], "%s → %s" % (hhmm(a), hhmm(b)) if maior else "—", texto)
+    chk("painel minutos livres %s" % p["cod"], maior if maior else None,
         pai.cell(row=r, column=11).value)
     chk("painel outras janelas %s" % p["cod"], max(0, sum(1 for d in jan if d >= JANELA) - 1),
         pai.cell(row=r, column=12).value)

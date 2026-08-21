@@ -34,6 +34,7 @@ O QUE LER NA TELA PRETA ANTES DE FECHAR
       ali uma única vez e salve; nas próximas agendas já vem preenchido.
   "passam do plantão" -> cirurgias que terminam depois das 13:00. Elas entram
       no mapa, marcadas, e só os minutos até as 13:00 contam na ocupação.
+      (O horário de término da agenda já inclui a limpeza da sala.)
   "sala sem cadastro" -> a agenda trouxe uma sala que não existe na aba
       Configuração, seção 5 (POSTOS).
 
