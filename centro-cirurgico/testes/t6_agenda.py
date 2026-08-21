@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """Teste 6 — importação da agenda: leitura do PDF (via texto de referência), gravação no
-Mapa_Cirurgico e reconciliação independente da ocupação e das janelas de jogo de sala.
+Agenda do Dia e reconciliação independente da ocupação e das janelas de jogo de sala.
 
 O texto de referência reproduz o leiaute do mapa do hospital com dados fictícios — nenhum
 dado de paciente entra no repositório."""
@@ -9,6 +9,7 @@ import openpyxl
 
 RAIZ = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, RAIZ)
+from abas import ABA_AGENDA, ABA_CFG, ABA_EQUIPE, ABA_FOLGAS, ABA_MAPA
 from importar_agenda import ler_texto, importar
 
 SP = os.environ.get("SAIDA", os.path.dirname(os.path.abspath(__file__)))
@@ -68,7 +69,7 @@ shutil.copy(SRC, alvo)
 saida = importar(None, alvo, os.path.join(SP, "t6_importada.xlsx"), cirs=cirs)
 rc = recalc(saida)
 wb = openpyxl.load_workbook(rc, data_only=True)
-mapa, cal, pai = wb["Mapa_Cirurgico"], wb["Calc"], wb["Painel"]
+mapa, cal, pai, cfg = wb[ABA_AGENDA], wb["Calc"], wb[ABA_MAPA], wb[ABA_CFG]
 
 erros = [(w.title, c.coordinate) for w in wb.worksheets for row in w.iter_rows() for c in row
          if isinstance(c.value, str) and any(e in c.value for e in
@@ -86,20 +87,22 @@ for s, hi, hf, _, _ in AG:
     salas.setdefault("SO-%02d" % int(s.split()[1]), []).append((mm(hi), mm(hf)))
 for cod, v in sorted(salas.items()):
     v.sort()
-    ocup = livre = 0
+    ocup, jan = 0, []
     for k, (a, b) in enumerate(v):
         prox = v[k + 1][0] if k + 1 < len(v) else TM
         ocup += max(0, min(b + LIMP, TM, prox) - min(a, TM))
         ini = 0 if k == 0 else min(v[k - 1][1] + LIMP, TM)
-        livre += max(0, min(a, TM) - ini)
-    livre += max(0, TM - min(v[-1][1] + LIMP, TM))
+        jan.append(max(0, min(a, TM) - ini))
+    jan.append(max(0, TM - min(v[-1][1] + LIMP, TM)))
+    cabe = max(0, max(jan) - LIMP)
     obt_o = next(cal.cell(row=r, column=4).value for r in range(2, 18)
                  if cal.cell(row=r, column=1).value == cod)
-    JOG = 28   # bloco 3 do Painel (jogo de sala)
-    obt_l = next(pai.cell(row=r, column=3).value for r in range(JOG, JOG + 16)
-                 if pai.cell(row=r, column=1).value == cod)
+    nome = next(cfg.cell(row=r, column=2).value for r in range(45, 61)
+                if cfg.cell(row=r, column=1).value == cod)
+    obt_l = next(pai.cell(row=r, column=10).value for r in range(10, 26)
+                 if pai.cell(row=r, column=1).value == nome)
     chk("ocupação %s (min)" % cod, ocup, obt_o)
-    chk("livre %s (min)" % cod, livre, obt_l)
+    chk("cabe até %s (min)" % cod, cabe, obt_l)
 
 alertas = [mapa.cell(row=r, column=14).value for r in linhas_dia]
 chk("emendas sem limpeza sinalizadas", 2,

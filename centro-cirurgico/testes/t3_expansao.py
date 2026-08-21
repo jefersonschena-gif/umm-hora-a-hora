@@ -1,13 +1,16 @@
 # -*- coding: utf-8 -*-
 """Teste 3 — expansão: +1 especialidade, +1 sala, +2 técnicos, +30 cirurgias, +5 ausências."""
+import os as _os, sys as _sys
+_sys.path.insert(0, _os.path.dirname(_os.path.dirname(_os.path.abspath(__file__))))
+from abas import ABA_AGENDA, ABA_CFG, ABA_EQUIPE, ABA_FOLGAS, ABA_MAPA
 import os, openpyxl
 from datetime import time, date
 SAIDA = os.environ.get("SAIDA", os.path.dirname(os.path.abspath(__file__)))
 SRC = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
                    "Centro_Cirurgico_Escala.xlsx")
 wb = openpyxl.load_workbook(SRC)
-cfg, eqp, aus, mapa, pai = (wb["Configuração"], wb["Equipe"], wb["Ausencias"],
-                            wb["Mapa_Cirurgico"], wb["Painel"])
+cfg, eqp, aus, mapa, pai = (wb[ABA_CFG], wb[ABA_EQUIPE], wb[ABA_FOLGAS],
+                            wb[ABA_AGENDA], wb[ABA_MAPA])
 N_ESP, N_POS = 20, 16
 ESP_R1 = 22; POS_R1 = ESP_R1 + N_ESP + 3
 # (a) nova especialidade na primeira linha livre -> vira mais uma coluna de X na aba Equipe

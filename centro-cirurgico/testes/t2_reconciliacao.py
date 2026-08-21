@@ -1,25 +1,29 @@
 # -*- coding: utf-8 -*-
 """Teste 2 — reconciliação independente: recalcula tudo em Python a partir das ENTRADAS
 lidas do arquivo recalculado e compara com o que as fórmulas produziram."""
+import os as _os, sys as _sys
+_sys.path.insert(0, _os.path.dirname(_os.path.dirname(_os.path.abspath(__file__))))
+from abas import ABA_AGENDA, ABA_CFG, ABA_EQUIPE, ABA_FOLGAS, ABA_MAPA
 import sys, openpyxl
 
 wb = openpyxl.load_workbook(sys.argv[1], data_only=True)
-pai, mapa, eqp, aus, cfg = (wb["Painel"], wb["Mapa_Cirurgico"], wb["Equipe"],
-                            wb["Ausencias"], wb["Configuração"])
+pai, mapa, eqp, aus, cfg = (wb[ABA_MAPA], wb[ABA_AGENDA], wb[ABA_EQUIPE],
+                            wb[ABA_FOLGAS], wb[ABA_CFG])
 cal, sal = wb["Calc"], wb["Calc_Salas"]
 
 N_ESP, N_POS, N_EQ, JOGO_K, DIAS = 20, 16, 30, 13, 31
 ESP_R1 = 22
 POS_R1 = ESP_R1 + N_ESP + 3
 FER_R1 = POS_R1 + N_POS + 3
-PAI_R1, JOG_R1 = 10, 28
-EQH_R1 = JOG_R1 + N_POS + 2
+PAI_R1 = 10
+PAI_R2 = PAI_R1 + N_POS - 1
+EQH_R1 = PAI_R2 + 4   # bloco 3 do Painel
 CHK_R1 = EQH_R1 + N_EQ + 2
 MIX_R1, COB_R1 = 2, 2 + N_POS + 2
 XC1, CC1 = 8, 5
 TOT_C, DISP_C, OCUP_C, NEC_C = CC1 + N_ESP, CC1 + N_ESP + 1, CC1 + N_ESP + 2, CC1 + N_ESP + 5
 
-DATA = pai["B6"].value
+DATA = pai["A6"].value
 PERIODO = cfg["B8"].value
 T_INI, T_MIN = cfg["B11"].value, cfg["B13"].value
 LIMPEZA, JANELA = cfg["B16"].value, cfg["B17"].value
@@ -128,8 +132,8 @@ for p in POSTOS:
     if p["tipo"] == "Sala cirúrgica":
         ag = sum(c["plant"] for c in CIRS if c["sala"] == p["cod"] and c["data"] == DATA)
         chk("ocupação %s" % p["cod"], ag / T_MIN, cal.cell(row=mr, column=OCUP_C).value)
-    t1 = pai.cell(row=PAI_R1 + p["i"], column=7).value
-    t2 = pai.cell(row=PAI_R1 + p["i"], column=8).value
+    t1 = pai.cell(row=PAI_R1 + p["i"], column=3).value
+    t2 = pai.cell(row=PAI_R1 + p["i"], column=4).value
     esps_dia = [j for j in range(N_ESP) if m[j] > 0]
     cob = [sum(1 for t in (t1, t2) if t and ESPS[j] in X.get(t, set())) for j in esps_dia]
     chk("nº especialidades %s" % p["cod"], len(esps_dia), cal.cell(row=cr, column=TOT_C).value)
@@ -145,21 +149,16 @@ for p in POSTOS:
     elif any(c == 0 for c in cob):                 sit = "FALTA HABILIDADE"
     elif nh >= 2 and any(c == 1 for c in cob):     sit = "ATENÇÃO"
     else:            sit = "OK"
-    chk("situação %s" % p["cod"], sit, pai.cell(row=PAI_R1 + p["i"], column=9).value)
+    chk("situação %s" % p["cod"], sit, pai.cell(row=PAI_R1 + p["i"], column=5).value)
 
 # 3. Painel — indicadores do dia
-chk("no quadro", len([t for t in EQ if t["status"] == "Ativo"]), pai["D6"].value)
-chk("ausentes", len([t for t in EQ if t["status"] == "Ativo" and situacao(t) != "Disponível"]), pai["E6"].value)
-chk("disponíveis", len(disp), pai["F6"].value)
-chk("vagas do dia", sum(nec_hoje(p) for p in POSTOS), pai["G6"].value)
-chk("déficit", max(0, sum(nec_hoje(p) for p in POSTOS) - len(disp)), pai["H6"].value)
-sem_eq = [p for p in POSTOS if pai.cell(row=PAI_R1 + p["i"], column=9).value == "SEM EQUIPE"]
-chk("postos descobertos", len(sem_eq), pai["I6"].value)
-chk("cirurgias a remanejar",
-    sum(1 for c in CIRS if c["ocup"] > 0 and c["data"] == DATA
-        and c["sala"] in {p["cod"] for p in sem_eq}), pai["J6"].value)
-escalados = {pai.cell(row=PAI_R1 + p["i"], column=c).value for p in POSTOS for c in (7, 8)} - {None}
-chk("reserva", len(disp - escalados), pai["K6"].value)
+chk("no quadro", len([t for t in EQ if t["status"] == "Ativo"]), pai["C6"].value)
+chk("ausentes", len([t for t in EQ if t["status"] == "Ativo" and situacao(t) != "Disponível"]), pai["D6"].value)
+chk("disponíveis", len(disp), pai["E6"].value)
+chk("vagas do dia", sum(nec_hoje(p) for p in POSTOS), pai["F6"].value)
+chk("déficit", max(0, sum(nec_hoje(p) for p in POSTOS) - len(disp)), pai["G6"].value)
+sem_eq = [p for p in POSTOS if pai.cell(row=PAI_R1 + p["i"], column=5).value == "SEM EQUIPE"]
+chk("postos sem equipe", len(sem_eq), pai["H6"].value)
 
 # 4. jogo de sala — janelas recalculadas do zero
 for p in POSTOS:
@@ -172,11 +171,14 @@ for p in POSTOS:
         jan.append(max(0, (ag[k + 1]["rel"] if k + 1 < len(ag) else T_MIN) - (c["relfim"] + LIMPEZA)))
     for k, d in enumerate(jan):
         chk("janela %s#%d" % (p["cod"], k), d, sal.cell(row=2 + p["i"] * JOGO_K + k, column=5).value)
-    r = JOG_R1 + p["i"]
-    chk("painel livre total %s" % p["cod"], sum(jan), pai.cell(row=r, column=3).value)
+    r = PAI_R1 + p["i"]
+    maior, texto = (max(jan) if jan else 0), str(pai.cell(row=r, column=9).value)
+    chk("painel maior janela %s" % p["cod"], True,
+        ("(%d min)" % maior) in texto if maior else texto == "—")
     chk("painel cabe até %s" % p["cod"], max(0, max(jan) - LIMPEZA) if max(jan) else None,
-        pai.cell(row=r, column=5).value)
-    chk("painel janelas %s" % p["cod"], sum(1 for d in jan if d >= JANELA), pai.cell(row=r, column=8).value)
+        pai.cell(row=r, column=10).value)
+    chk("painel outras janelas %s" % p["cod"], max(0, sum(1 for d in jan if d >= JANELA) - 1),
+        pai.cell(row=r, column=11).value)
 
 # 5. calendário do período — funcionários, vagas e déficit dia a dia
 CAL_C1, CAL_R1 = 9, 3

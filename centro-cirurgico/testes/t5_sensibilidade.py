@@ -1,11 +1,14 @@
 # -*- coding: utf-8 -*-
 """Teste 5 — sensibilidade: alterar premissas percorre INPUT -> PROCESSAMENTO -> OUTPUT."""
+import os as _os, sys as _sys
+_sys.path.insert(0, _os.path.dirname(_os.path.dirname(_os.path.abspath(__file__))))
+from abas import ABA_AGENDA, ABA_CFG, ABA_EQUIPE, ABA_FOLGAS, ABA_MAPA
 import os, subprocess, shutil, openpyxl
 from datetime import date
 SP = os.environ.get("SAIDA", os.path.dirname(os.path.abspath(__file__)))
 SRC = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
                    "Centro_Cirurgico_Escala.xlsx")
-PAI_R1, N_POS, JOG_R1 = 10, 16, 28
+PAI_R1, N_POS, JOGO_K = 10, 16, 13
 
 def recalc(path):
     out = os.path.join(SP, "rc5"); shutil.rmtree(out, ignore_errors=True); os.makedirs(out)
@@ -16,34 +19,44 @@ def recalc(path):
 def cenario(tag, muda_cfg=None, data=None):
     wb = openpyxl.load_workbook(SRC)
     for cel, v in (muda_cfg or {}).items():
-        wb["Configuração"][cel] = v
+        wb[ABA_CFG][cel] = v
     if data:
-        wb["Painel"]["B6"] = data
+        wb[ABA_MAPA]["A6"] = data
     f = os.path.join(SP, "t5_%s.xlsx" % tag); wb.save(f)
     return recalc(f)
 
 def snap(wb):
-    p = wb["Painel"]
-    return dict(kpi=[p.cell(row=6, column=c).value for c in range(4, 12)],
-                sit=[p.cell(row=PAI_R1 + i, column=9).value for i in range(N_POS)],
-                ocup=[p.cell(row=PAI_R1 + i, column=5).value for i in range(N_POS)],
-                livre=[p.cell(row=JOG_R1 + i, column=3).value for i in range(N_POS)],
-                janelas=[p.cell(row=JOG_R1 + i, column=8).value for i in range(N_POS)])
+    p = wb[ABA_MAPA]
+    return dict(kpi=[p.cell(row=6, column=c).value for c in range(1, 9)],   # A..H
+                vagas=p["F6"].value,
+                sit=[p.cell(row=PAI_R1 + i, column=5).value for i in range(N_POS)],
+                ocup=[p.cell(row=PAI_R1 + i, column=8).value for i in range(N_POS)],
+                cabe=[p.cell(row=PAI_R1 + i, column=10).value for i in range(N_POS)],
+                janelas=janelas_uteis(wb))
+
+
+def janelas_uteis(wb):
+    """Quantas janelas de cada sala passam do mínimo (lido direto do Calc_Salas)."""
+    sal, minimo = wb["Calc_Salas"], wb[ABA_CFG]["B17"].value or 0
+    return [sum(1 for k in range(JOGO_K)
+                if isinstance(sal.cell(row=2 + i * JOGO_K + k, column=5).value, (int, float))
+                and sal.cell(row=2 + i * JOGO_K + k, column=5).value >= minimo)
+            for i in range(N_POS)]
 
 base = snap(recalc(SRC)); falhas = []
-print("BASE  indicadores:", base["kpi"])
+print("BASE  indicadores:", base["kpi"][1:])
 
 s = snap(cenario("domingo", data=date(2026, 8, 23)))
 opera = sum(1 for x in s["sit"] if x not in (None, "", "NÃO OPERA"))
 print("1) data -> domingo 23/08: vagas do dia %s (base %s), postos operando %d"
-      % (s["kpi"][3], base["kpi"][3], opera),
-      "OK" if s["kpi"][3] < base["kpi"][3] else "FALHOU")
-if not s["kpi"][3] < base["kpi"][3]: falhas.append("domingo")
+      % (s["vagas"], base["vagas"], opera),
+      "OK" if s["vagas"] < base["vagas"] else "FALHOU")
+if not s["vagas"] < base["vagas"]: falhas.append("domingo")
 
 s = snap(cenario("feriado", data=date(2026, 9, 7)))
-print("2) data -> feriado 07/09: vagas do dia %s" % s["kpi"][3],
-      "OK" if s["kpi"][3] == 7 else "FALHOU (esperado 7)")
-if s["kpi"][3] != 7: falhas.append("feriado")
+print("2) data -> feriado 07/09: vagas do dia %s" % s["vagas"],
+      "OK" if s["vagas"] == 7 else "FALHOU (esperado 7)")
+if s["vagas"] != 7: falhas.append("feriado")
 
 s = snap(cenario("limpeza", {"B16": 40}))
 pior = [i for i in range(N_POS)

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Importa a agenda diária do centro cirúrgico (PDF do hospital) para o Mapa_Cirurgico.
+"""Importa a agenda diária do centro cirúrgico (PDF do hospital) para o Agenda do Dia.
 
     python3 importar_agenda.py AGENDA_21.08.pdf Centro_Cirurgico_Escala.xlsx [saida.xlsx]
 
@@ -12,9 +12,11 @@ O que faz
   2. traduz "Sala 1" para o código do posto usando a tabela POSTOS da aba Configuração;
   3. traduz o cirurgião para a especialidade usando a tabela CIRURGIÕES da aba Configuração,
      acrescentando ali, em branco, todo cirurgião ainda não cadastrado;
-  4. substitui no Mapa_Cirurgico as linhas da data da agenda (as demais datas ficam intactas);
-  5. aponta o Painel (Data_Mapa) para a data importada;
-  6. grava uma NOVA versão do arquivo — o original nunca é sobrescrito.
+  4. substitui no Agenda do Dia as linhas da data da agenda (as demais datas ficam intactas);
+  5. distribui os técnicos disponíveis pelos ambientes do dia (prioridade do posto, X de
+     habilidade e ninguém em dois lugares) e escreve a dupla de cada um no Painel;
+  6. aponta o Painel (Data_Mapa) para a data importada;
+  7. grava uma NOVA versão do arquivo — o original nunca é sobrescrito.
 
 O PDF traz dados de paciente (nome, prontuário, nascimento, convênio, leito). Nada disso é
 lido nem gravado: só entram sala, horários, procedimento e cirurgião.
@@ -29,11 +31,14 @@ from datetime import date, datetime, time
 
 from openpyxl import load_workbook
 
+from abas import ABA_AGENDA, ABA_CFG, ABA_EQUIPE, ABA_MAPA
+from alocacao import alocar
+
 RE_HORA = re.compile(r"(\d{2}/\d{2}/\d{2})\s+(\d{2}:\d{2})\s*-\s*(\d{2}/\d{2}/\d{2})\s+(\d{2}:\d{2})")
 RE_TIPO = re.compile(r"(?:Atendimento )?(?:Ambulatorial|Internado|Externo|Hospital Dia|"
                      r"Urgência|Emergência)")
 CAB = ["Cirurgião", "Anestesista", "Cirurgia", "Tipo de Atendimento", "Observações", "Acomodação"]
-MP_R1, MP_R2 = 2, 201          # faixa de dados do Mapa_Cirurgico
+MP_R1, MP_R2 = 2, 201          # faixa de dados do Agenda do Dia
 STATUS_PADRAO = "Agendada"
 
 
@@ -142,13 +147,93 @@ def _hhmm(t):
     return time(int(t[:2]), int(t[3:]))
 
 
+def _coluna(wb, nome):
+    """Valores de um nome definido de coluna, na ordem das linhas."""
+    ws, r1, r2, col = _faixa(wb, nome)
+    return [ws["%s%d" % (col, r)].value for r in range(r1, r2 + 1)]
+
+
+def _opera(func, dia, feriados):
+    """O posto funciona nessa data? (dia da semana e feriado)"""
+    fer = dia in feriados
+    if func == "Seg a Sex":
+        return dia.weekday() <= 4 and not fer
+    if func == "Seg a Sáb":
+        return dia.weekday() <= 5 and not fer
+    return True
+
+
+def distribuir(wb, dia, cirurgias):
+    """Escreve no Painel a dupla de cada ambiente. Devolve (escalados, postos atendidos)."""
+    cod = _coluna(wb, "Postos_Cod")
+    nec = _coluna(wb, "Postos_Nec")
+    mini = _coluna(wb, "Postos_Min")
+    prio = _coluna(wb, "Postos_Prior")
+    esp_ref = _coluna(wb, "Postos_Esp")
+    func = _coluna(wb, "Postos_Func")
+    status = _coluna(wb, "Postos_Status")
+    feriados = {d.date() if isinstance(d, datetime) else d
+                for d in _coluna(wb, "Feriados") if d}
+
+    postos, esp_posto = [], {}
+    for i, c in enumerate(cod):
+        if not c or status[i] != "Ativo" or not _opera(func[i], dia, feriados):
+            continue
+        postos.append((c, int(nec[i] or 0), int(mini[i] or 0), int(prio[i] or 99)))
+        do_dia = sorted({x["esp"] for x in cirurgias if x["cod"] == c and x["esp"]})
+        esp_posto[c] = do_dia or ([esp_ref[i]] if esp_ref[i] else [])
+
+    # quem está disponível: ativo e sem ausência cobrindo a data
+    nomes = _coluna(wb, "Equipe_Nome")
+    st = _coluna(wb, "Equipe_Status")
+    ini, fim = _coluna(wb, "Aus_Ini"), _coluna(wb, "Aus_Fim")
+    ausentes = set()
+    for k, t in enumerate(_coluna(wb, "Aus_Tec")):
+        a = ini[k].date() if isinstance(ini[k], datetime) else ini[k]
+        b = fim[k].date() if isinstance(fim[k], datetime) else fim[k]
+        if t and a and b and a <= dia <= b:
+            ausentes.add(t)
+    disp = [n for i, n in enumerate(nomes) if n and st[i] == "Ativo" and n not in ausentes]
+
+    # X de habilidade
+    esp_nomes = [e for e in _coluna(wb, "Esp_Nome")]
+    eq = wb[ABA_EQUIPE]
+    dest = list(wb.defined_names["Equipe_X"].destinations)[0][1].replace("$", "")
+    (ca, ra), (cb, rb) = [(re.sub(r"\d", "", x), int(re.sub(r"\D", "", x)))
+                          for x in dest.split(":")]
+    c0 = eq[ca + str(ra)].column
+    skills = {}
+    for k, nome in enumerate(nomes):
+        if not nome:
+            continue
+        marcados = set()
+        for j, e in enumerate(esp_nomes):
+            if e and str(eq.cell(row=ra + k, column=c0 + j).value or "").strip().upper() == "X":
+                marcados.add(e)
+        skills[nome] = marcados
+
+    aloc = alocar(postos, esp_posto, disp, skills)
+
+    pai, p1, p2, col1 = _faixa(wb, "Pai_Tec1")
+    _, _, _, col2 = _faixa(wb, "Pai_Tec2")
+    escalados = 0
+    for i, c in enumerate(cod):
+        if p1 + i > p2:
+            break
+        equipe = aloc.get(c, []) if c else []
+        pai["%s%d" % (col1, p1 + i)] = equipe[0] if len(equipe) > 0 else None
+        pai["%s%d" % (col2, p1 + i)] = equipe[1] if len(equipe) > 1 else None
+        escalados += len(equipe)
+    return escalados, sum(1 for c in aloc if aloc[c])
+
+
 def importar(pdf, entrada, saida=None, cirs=None):
     cirs = cirs if cirs is not None else ler_agenda(pdf)
     if not cirs:
         sys.exit("Nenhuma cirurgia encontrada no PDF — confira se é o mapa do centro cirúrgico.")
     dia = cirs[0]["data"]
     wb = load_workbook(entrada)
-    cfg, mapa = wb["Configuração"], wb["Mapa_Cirurgico"]
+    cfg, mapa = wb[ABA_CFG], wb[ABA_AGENDA]
 
     ws, p1, p2, _ = _faixa(wb, "Postos_Cod")
     postos = {str(ws.cell(row=r, column=2).value).strip(): ws.cell(row=r, column=1).value
@@ -178,7 +263,7 @@ def importar(pdf, entrada, saida=None, cirs=None):
 
     linhas = sorted(outras + novas, key=lambda v: (str(v[0]), str(v[1]), str(v[2])))
     if len(linhas) > MP_R2 - MP_R1 + 1:
-        sys.exit("Mapa_Cirurgico tem %d linhas e a importação precisa de %d."
+        sys.exit("Agenda do Dia tem %d linhas e a importação precisa de %d."
                  % (MP_R2 - MP_R1 + 1, len(linhas)))
     for i in range(MP_R2 - MP_R1 + 1):
         r = MP_R1 + i
@@ -194,6 +279,10 @@ def importar(pdf, entrada, saida=None, cirs=None):
         ws.cell(row=livres.pop(0), column=1).value = nome
 
     mapa.print_area = "A1:N%d" % max(MP_R1, MP_R1 + len(linhas) - 1)
+
+    # distribui os técnicos pelos ambientes do dia
+    do_dia = [dict(cod=v[1], esp=v[4]) for v in novas]
+    escalados, atendidos = distribuir(wb, dia, do_dia)
 
     d_ws, d_r, _, d_c = _faixa(wb, "Data_Mapa") if "Data_Mapa" in wb.defined_names else (None,) * 4
     if d_ws is not None:
@@ -217,6 +306,7 @@ def importar(pdf, entrada, saida=None, cirs=None):
     print("data da agenda ......: %s" % dia.strftime("%d/%m/%Y"))
     print("cirurgias importadas : %d em %d salas" % (len(novas), len({c['sala'] for c in cirs})))
     print("outras datas mantidas: %d linhas" % len(outras))
+    print("técnicos distribuídos: %d em %d ambientes" % (escalados, atendidos))
     if sem_sala:
         print("! sala sem cadastro .: %s" % ", ".join(sorted(sem_sala)))
     if sem_esp:

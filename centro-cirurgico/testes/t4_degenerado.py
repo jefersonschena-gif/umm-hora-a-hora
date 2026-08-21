@@ -1,12 +1,15 @@
 # -*- coding: utf-8 -*-
 """Teste 4 — entradas degeneradas: o comportamento tem de ser previsível e sem erro de fórmula."""
+import os as _os, sys as _sys
+_sys.path.insert(0, _os.path.dirname(_os.path.dirname(_os.path.abspath(__file__))))
+from abas import ABA_AGENDA, ABA_CFG, ABA_EQUIPE, ABA_FOLGAS, ABA_MAPA
 import os, openpyxl
 from datetime import time, date
 SAIDA = os.environ.get("SAIDA", os.path.dirname(os.path.abspath(__file__)))
 SRC = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
                    "Centro_Cirurgico_Escala.xlsx")
 wb = openpyxl.load_workbook(SRC)
-cfg, aus, mapa, pai = wb["Configuração"], wb["Ausencias"], wb["Mapa_Cirurgico"], wb["Painel"]
+cfg, aus, mapa, pai = wb[ABA_CFG], wb[ABA_FOLGAS], wb[ABA_AGENDA], wb[ABA_MAPA]
 L = [r for r in range(2, 202) if mapa.cell(row=r, column=2).value is None][0]
 d = mapa["A2"].value
 casos = [
@@ -35,9 +38,9 @@ aus.cell(row=la + 2, column=1, value="Zuleide Marcon"); aus.cell(row=la + 2, col
 aus.cell(row=la + 2, column=3, value=date(2026, 8, 12)); aus.cell(row=la + 2, column=4, value=date(2026, 8, 14))
 POS_R1 = 22 + 20 + 3
 cfg.cell(row=POS_R1 + 1, column=9, value="Inativo")          # SO-02 inativa com cirurgias
-pai.cell(row=11, column=7, value=pai.cell(row=10, column=7).value)   # mesmo técnico em dois postos
-pai.cell(row=12, column=8, value="Fulano Inexistente")               # não cadastrado
-pai.cell(row=13, column=7, value="Zuleide Marcon")                   # técnico de férias
-pai.cell(row=14, column=8, value=None)                               # posto com um técnico só
+pai.cell(row=11, column=3, value=pai.cell(row=10, column=3).value)   # mesmo técnico em dois postos
+pai.cell(row=12, column=4, value="Fulano Inexistente")               # não cadastrado
+pai.cell(row=13, column=3, value="Zuleide Marcon")                   # técnico de férias
+pai.cell(row=14, column=4, value=None)                               # posto com um técnico só
 wb.save(os.path.join(SAIDA, "t4.xlsx"))
 print("casos degenerados aplicados a partir da linha", L)

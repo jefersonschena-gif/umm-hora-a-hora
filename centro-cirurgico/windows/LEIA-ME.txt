@@ -1,8 +1,9 @@
 ﻿IMPORTADOR DA AGENDA DO CENTRO CIRÚRGICO
 =========================================
 
-Esta pasta transforma o PDF da agenda diária do hospital em linhas do
-Mapa_Cirúrgico da planilha de escala, já com a especialidade preenchida.
+Esta pasta transforma o PDF da agenda diária do hospital na planilha do dia,
+já pronta: cada ambiente com a sua dupla, as especialidades que passam ali,
+a ocupação e o tempo em que a sala fica vaga.
 
 O QUE TEM AQUI
   instalar_uma_vez.bat   -> prepara o computador (roda só na primeira vez)
@@ -24,6 +25,8 @@ TODO DIA
   3. A planilha do dia abre sozinha, com um nome novo:
      Centro_Cirurgico_Escala_2026-08-21.xlsx
      O arquivo anterior nunca é apagado nem sobrescrito.
+  4. Abra a aba "Mapa do Dia": está tudo lá. Para trocar alguém de lugar,
+     escolha outro nome nas células azuis (TÉCNICO 1 / TÉCNICO 2).
 
 O QUE LER NA TELA PRETA ANTES DE FECHAR
   "sem especialidade" -> apareceu um cirurgião novo. Ele já foi acrescentado
@@ -33,6 +36,17 @@ O QUE LER NA TELA PRETA ANTES DE FECHAR
       no mapa, marcadas, e só os minutos até as 13:00 contam na ocupação.
   "sala sem cadastro" -> a agenda trouxe uma sala que não existe na aba
       Configuração, seção 5 (POSTOS).
+
+DE ONDE VEM A DUPLA DE CADA AMBIENTE
+  A distribuição usa quem está disponível no dia (aba "Folgas e Férias"),
+  o X de habilidade de cada técnica (aba "Equipe") e a prioridade de cada
+  ambiente. Ninguém fica em dois lugares e a dupla passa o turno inteiro no
+  mesmo ambiente. Enquanto o X não estiver marcado, a coluna Situação fica
+  em SEM AVALIAÇÃO — a distribuição acontece do mesmo jeito, só não dá para
+  dizer se a dupla cobre as especialidades do dia.
+
+  Trocar a data na planilha não redistribui. Para redistribuir (por exemplo
+  depois de lançar um atestado novo), rode o "Importar agenda.bat" de novo.
 
 O QUE NÃO ENTRA NA PLANILHA
   Nome do paciente, prontuário, data de nascimento, convênio e leito NÃO são

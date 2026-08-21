@@ -14,11 +14,13 @@ Habilidade: marca-se X na aba Equipe, uma coluna por especialidade.
   dos dois técnicos escalados e diz o que está coberto, o que está coberto por
   um só e o que não está coberto por ninguém.
 
-Abas: Painel (trabalho do dia) · Mapa_Cirurgico · Equipe · Ausencias ·
+Abas: Mapa do Dia (trabalho do dia) · Agenda do Dia · Equipe · Folgas e Férias ·
       Configuração · Calc e Calc_Salas (ocultas, só cálculo).
 """
 import random
 from datetime import date, time, timedelta
+from abas import ABA_AGENDA, ABA_CFG, ABA_EQUIPE, ABA_FOLGAS, ABA_MAPA
+from alocacao import alocar
 from openpyxl import Workbook
 from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
 from openpyxl.utils import get_column_letter
@@ -50,8 +52,8 @@ CL1, CL2 = get_column_letter(CC1), get_column_letter(CC2)
 TOT_C, DISP_C, OCUP_C = CC2 + 1, CC2 + 2, CC2 + 3
 TOT_L, DISP_L, OCUP_L = (get_column_letter(c) for c in (TOT_C, DISP_C, OCUP_C))
 
-S_PAI, S_MAP, S_EQP, S_AUS = "Painel", "Mapa_Cirurgico", "Equipe", "Ausencias"
-S_CFG, S_CAL, S_SAL = "Configuração", "Calc", "Calc_Salas"
+S_PAI, S_MAP, S_EQP, S_AUS = ABA_MAPA, ABA_AGENDA, ABA_EQUIPE, ABA_FOLGAS
+S_CFG, S_CAL, S_SAL = ABA_CFG, "Calc", "Calc_Salas"
 
 def R(sheet, addr):
     return "'%s'!%s" % (sheet, addr)
@@ -257,40 +259,24 @@ def esp_do_posto(cod):
         mins = {p[6]: TURNO_MIN}
     return mins
 
+def opera_hoje(cod):
+    """O posto funciona nessa data? (dia da semana, feriado e status do cadastro)"""
+    p = [x for x in POSTOS if x[0] == cod][0]
+    if p[7] == "Seg a Sex" and (DIA.weekday() > 4 or DIA in FER_DATAS):
+        return False
+    if p[7] == "Seg a Sáb" and (DIA.weekday() > 5 or DIA in FER_DATAS):
+        return False
+    return True
+
+FER_DATAS = {f[0] for f in FERIADOS}
+
 def build_escala():
-    """Cobertura por prioridade; dentro dela, o posto com menos gente apta é preenchido
-    primeiro, e cada vaga recebe quem cobre mais especialidades daquele posto."""
     disp = [e[1] for e in EQUIPE if e[3] == "Ativo" and e[1] not in AUSENTES]
-    prio = {p[0]: p[5] for p in POSTOS}
-    vagas, restantes = [], len(disp)
-    for cod, nome, tipo, nec, minimo, prior, esp_ref, func, obs in sorted(POSTOS, key=lambda p: p[5]):
-        if restantes < minimo:
-            continue
-        alvo = nec if restantes >= nec else minimo
-        vagas += [cod] * alvo
-        restantes -= alvo
-    aloc, usados, slot = {}, set(), {}
-    pend = list(vagas)
-    while pend:
-        melhor, escolha = None, None
-        for cod in set(pend):
-            esps = set(esp_do_posto(cod))
-            livres = [n for n in disp if n not in usados]
-            if not livres:
-                continue
-            aptos = sum(1 for n in livres if esps <= SKILLS.get(n, set()))
-            top = max(livres, key=lambda n: (len(esps & SKILLS.get(n, set())), -NOMES.index(n)))
-            chave = (aptos if aptos else 99, prio[cod], -len(esps & SKILLS.get(top, set())), cod)
-            if melhor is None or chave < melhor:
-                melhor, escolha = chave, (cod, top)
-        if escolha is None:
-            break
-        cod, n = escolha
-        slot[cod] = slot.get(cod, 0) + 1
-        aloc.setdefault(cod, {})[slot[cod]] = n
-        usados.add(n); pend.remove(cod)
-    return aloc
-ALOC = build_escala()
+    postos = [(p[0], p[3], p[4], p[5]) for p in POSTOS if opera_hoje(p[0])]
+    esp = {cod: list(esp_do_posto(cod)) for cod, _, _, _ in postos}
+    return alocar(postos, esp, disp, SKILLS)
+
+ALOC = build_escala()   # {cod: [técnico 1, técnico 2]}
 
 # ================================================================ WORKBOOK
 wb = Workbook()
@@ -428,7 +414,7 @@ for j, col in enumerate((["Ativo", "Afastado", "Desligado"],
 dn("Periodo_Ini", R(S_CFG, "$B$8")); dn("Turno_Ini", R(S_CFG, "$B$11"))
 dn("Turno_Fim", R(S_CFG, "$B$12")); dn("Turno_Min", R(S_CFG, "$B$13"))
 dn("Limpeza_Min", R(S_CFG, "$B$16")); dn("Janela_Min", R(S_CFG, "$B$17"))
-dn("Data_Mapa", R(S_PAI, "$B$6"))
+dn("Data_Mapa", R(S_PAI, "$A$6"))
 for nm, col in (("Esp_Cod", "A"), ("Esp_Nome", "B"), ("Esp_Tipo", "C"), ("Esp_Dur", "D")):
     dn(nm, R(S_CFG, "$%s$%d:$%s$%d" % (col, ESP_R1, col, ESP_R2)))
 for nm, col in (("Postos_Cod", "A"), ("Postos_Nome", "B"), ("Postos_Tipo", "C"), ("Postos_Nec", "D"),
@@ -690,8 +676,8 @@ dn("Mix_Esp", R(S_CAL, "$%s$1:$%s$1" % (CL1, CL2)))
 # posição do bloco de escala dentro do Painel (usada pelas fórmulas de apoio)
 PAI_R1 = 10
 PAI_R2 = PAI_R1 + N_POS - 1
-dn("Pai_Tec1", R(S_PAI, "$G$%d:$G$%d" % (PAI_R1, PAI_R2)))
-dn("Pai_Tec2", R(S_PAI, "$H$%d:$H$%d" % (PAI_R1, PAI_R2)))
+dn("Pai_Tec1", R(S_PAI, "$C$%d:$C$%d" % (PAI_R1, PAI_R2)))
+dn("Pai_Tec2", R(S_PAI, "$D$%d:$D$%d" % (PAI_R1, PAI_R2)))
 
 # --- cobertura: quantos dos dois técnicos escalados marcam X em cada especialidade do dia
 head(ws_cal, COB_R1 - 1, ["Posto", "", "", ""] + [""] * N_ESP +
@@ -703,7 +689,7 @@ for i in range(N_ESP):
 for i in range(N_POS):
     r, mr, pr = COB_R1 + i, MIX_R1 + i, PAI_R1 + i
     ws_cal.cell(row=r, column=1, value='=IF($A{mr}="","",$A{mr})'.format(mr=mr))
-    t1, t2 = R(S_PAI, "$G%d" % pr), R(S_PAI, "$H%d" % pr)
+    t1, t2 = R(S_PAI, "$C%d" % pr), R(S_PAI, "$D%d" % pr)
     for j in range(N_ESP):
         col = get_column_letter(CC1 + j)
         ws_cal.cell(row=r, column=CC1 + j, value=(
@@ -777,184 +763,155 @@ for i in range(N_POS):
         'OR(WEEKDAY(Data_Mapa,2)>6,COUNTIF(Feriados,Data_Mapa)>0))),0,'
         'IFERROR(INDEX(Postos_Nec,MATCH($A{r},Postos_Cod,0)),0)))').format(r=r))
 
-# ================================================================ PAINEL
-ws_pai["A1"] = "CENTRO CIRÚRGICO — ESCALA DO DIA"; ws_pai["A1"].font = F_TIT
-ws_pai["A2"] = ("Tudo do dia acontece nesta aba. Escolha a data, confira o mapa e preencha os técnicos "
-                "nas células azuis. As demais abas são cadastro.")
+# ================================================================ PAINEL — MAPA DO DIA
+ws_pai["A1"] = "CENTRO CIRÚRGICO — MAPA DO DIA"; ws_pai["A1"].font = F_TIT
+ws_pai["A2"] = ("Esta aba já vem preenchida: cada ambiente com a sua dupla, as especialidades que "
+                "passam ali e o tempo em que a sala fica vaga. Para trocar alguém, escolha outro "
+                "nome nas células azuis.")
 ws_pai["A2"].font = F_NOTA
-widths(ws_pai, {"A": 14, "B": 26, "C": 11, "D": 10, "E": 10, "F": 40, "G": 26, "H": 26,
-                "I": 17, "J": 42, "K": 34, "L": 8})
-ws_pai.column_dimensions["L"].hidden = True
+widths(ws_pai, {"A": 26, "B": 34, "C": 26, "D": 26, "E": 17, "F": 40, "G": 10, "H": 11,
+                "I": 24, "J": 11, "K": 12, "L": 30, "M": 8, "N": 8})
+for c_ in ("M", "N"):
+    ws_pai.column_dimensions[c_].hidden = True
 
 sec(ws_pai, 4, "1. O DIA")
-head(ws_pai, 5, ["Período", "DATA DA ESCALA", "Dia", "No quadro", "Ausentes", "DISPONÍVEIS",
-                 "Vagas do dia", "DÉFICIT", "Postos descobertos", "Cirurgias a remanejar",
-                 "Reserva"], height=34)
+head(ws_pai, 5, ["DATA", "Dia", "No quadro", "Ausentes", "DISPONÍVEIS", "Vagas do dia",
+                 "DÉFICIT", "Postos sem equipe", "", "", "", ""], height=34)
 kpis = {
-    1: '=TEXT(Periodo_Ini,"DD/MM")&" a "&TEXT(Periodo_Ini+%d,"DD/MM")' % (DIAS - 1),
-    2: None,
-    3: ('=IF($B$6="","",CHOOSE(WEEKDAY($B$6),"domingo","segunda","terça","quarta","quinta","sexta","sábado")'
-        '&IF(COUNTIF(Feriados,$B$6)>0," · feriado",""))'),
-    4: '=SUMPRODUCT((Equipe_Nome<>"")*(Equipe_Status="Ativo"))',
-    5: '=SUMPRODUCT((Equipe_Nome<>"")*(Equipe_Status="Ativo")*(Equipe_Situacao<>"Disponível"))',
-    6: '=SUMPRODUCT((Equipe_Nome<>"")*(Equipe_Situacao="Disponível"))',
-    7: '=SUM(%s)' % R(S_CAL, "$%s$%d:$%s$%d" % (NEC_L, MIX_R1, NEC_L, MIX_R2)),
-    8: '=MAX(0,$G$6-$F$6)',
-    9: '=COUNTIF($I$%d:$I$%d,"SEM EQUIPE")' % (PAI_R1, PAI_R2),
-    10: '=SUMIFS($D$%d:$D$%d,$I$%d:$I$%d,"SEM EQUIPE")' % (PAI_R1, PAI_R2, PAI_R1, PAI_R2),
-    11: ('=SUMPRODUCT((Equipe_Nome<>"")*(Equipe_Situacao="Disponível")*'
-         '((COUNTIF(Pai_Tec1,Equipe_Nome)+COUNTIF(Pai_Tec2,Equipe_Nome))=0))'),
+    1: None,
+    2: ('=IF($A$6="","",CHOOSE(WEEKDAY($A$6),"domingo","segunda","terça","quarta","quinta","sexta","sábado")'
+        '&IF(COUNTIF(Feriados,$A$6)>0," · feriado",""))'),
+    3: '=SUMPRODUCT((Equipe_Nome<>"")*(Equipe_Status="Ativo"))',
+    4: '=SUMPRODUCT((Equipe_Nome<>"")*(Equipe_Status="Ativo")*(Equipe_Situacao<>"Disponível"))',
+    5: '=SUMPRODUCT((Equipe_Nome<>"")*(Equipe_Situacao="Disponível"))',
+    6: '=SUM(%s)' % R(S_CAL, "$%s$%d:$%s$%d" % (NEC_L, MIX_R1, NEC_L, MIX_R2)),
+    7: '=MAX(0,$F$6-$E$6)',
+    8: '=COUNTIF($E$%d:$E$%d,"SEM EQUIPE")' % (PAI_R1, PAI_R2),
 }
 for col, f in kpis.items():
     c = ws_pai.cell(row=6, column=col)
     c.border = BORD; c.alignment = CTR
     c.font = Font(name="Calibri", size=12, bold=True, color=AZ)
-    if col == 2:
+    if col == 1:
         c.value = DIA; c.number_format = "DD/MM/YYYY"; c.fill = FILL_PREM
         c.font = Font(name="Calibri", size=12, bold=True, color="0070C0")
     else:
         c.value = f; c.fill = FILL_IN
-        c.number_format = "0" if col >= 4 else "General"
+        c.number_format = "0" if col >= 3 else "General"
 ws_pai.row_dimensions[6].height = 26
 
-sec(ws_pai, 8, "2. ESCALA DO DIA — escolha os técnicos nas células azuis")
-head(ws_pai, 9, ["Posto", "Nome do posto", "Opera hoje", "Cirurgias", "Ocupação",
-                 "Especialidades do dia", "TÉCNICO 1", "TÉCNICO 2", "Situação", "Alertas",
-                 "Quem está livre e cobre mais"], height=34)
+sec(ws_pai, 8, "2. O MAPA — quem fica em cada lugar hoje")
+head(ws_pai, 9, ["Ambiente", "Especialidades do dia", "TÉCNICO 1", "TÉCNICO 2", "Situação",
+                 "Alertas", "Cirurgias", "Ocupação", "Sala vaga (maior janela)", "Cabe até (min)",
+                 "Outras janelas", "Quem está livre e cobre mais", "", ""], height=38)
 for i in range(N_POS):
     r, mr, cr = PAI_R1 + i, MIX_R1 + i, COB_R1 + i
+    j1, j2 = SAL_R1 + i * JOGO_K, SAL_R1 + i * JOGO_K + JOGO_K - 1
+    bC = R(S_SAL, "$C$%d:$C$%d" % (j1, j2)); bD = R(S_SAL, "$D$%d:$D$%d" % (j1, j2))
+    bE = R(S_SAL, "$E$%d:$E$%d" % (j1, j2)); bF = R(S_SAL, "$F$%d:$F$%d" % (j1, j2))
     sug_col = get_column_letter(CC1 + i)
     sug_rng = R(S_CAL, "%s$%d:%s$%d" % (sug_col, SUG_R1, sug_col, SUG_R2))
     nesp = 'IFERROR(INDEX(Equipe_NEsp,MATCH(%s,Equipe_Nome,0)),0)'
+    janela1 = ('IFERROR(TEXT(MOD(Turno_Ini+INDEX({c},MATCH(LARGE({e},1),{e},0))/1440,1),"HH:MM")&" → "&'
+               'TEXT(MOD(Turno_Ini+INDEX({d},MATCH(LARGE({e},1),{e},0))/1440,1),"HH:MM")&'
+               '" ("&LARGE({e},1)&" min)","—")').format(c=bC, d=bD, e=bE)
     f = {
-        "A": '=IF(%s="","",%s)' % (R(S_CAL, "$A%d" % mr), R(S_CAL, "$A%d" % mr)),
-        "B": '=IF($A{r}="","",IFERROR(INDEX(Postos_Nome,MATCH($A{r},Postos_Cod,0)),""))',
-        "C": '=IF($A{r}="","",IF({n}=0,"Não","Sim"))'.replace("{n}", R(S_CAL, "$%s%d" % (NEC_L, mr))),
-        "D": ('=IF(OR($A{r}="",{t}<>"Sala cirúrgica"),"",'
-              'COUNTIFS(Mapa_Sala,$A{r},Mapa_Data,Data_Mapa,Mapa_MinOcup,">0"))'
-              ).replace("{t}", R(S_CAL, "$B%d" % mr)),
-        "E": '=IF(OR($A{r}="",{t}<>"Sala cirúrgica"),"",{o})'.replace(
-            "{t}", R(S_CAL, "$B%d" % mr)).replace("{o}", R(S_CAL, "$%s%d" % (OCUP_L, mr))),
-        "F": '=IF(OR($A{r}="",{x}=""),"",LEFT({x},LEN({x})-3))'.replace(
+        "M": '=IF(%s="","",%s)' % (R(S_CAL, "$A%d" % mr), R(S_CAL, "$A%d" % mr)),
+        "A": '=IF($M{r}="","",IFERROR(INDEX(Postos_Nome,MATCH($M{r},Postos_Cod,0)),$M{r}))',
+        "B": '=IF(OR($M{r}="",{x}=""),"",LEFT({x},LEN({x})-3))'.replace(
             "{x}", R(S_CAL, "$%s%d" % (get_column_letter(CC2 + 4), cr))),
-        "I": ('=IF($A{r}="","",IF({nec}=0,IF(AND($G{r}="",$H{r}=""),"NÃO OPERA","EXTRA"),'
-              'IF(AND($G{r}="",$H{r}=""),"SEM EQUIPE",'
-              'IF((--($G{r}<>"")+--($H{r}<>""))<{nec},"INCOMPLETO",'
-              'IF(OR(AND($G{r}<>"",{n1}=0),AND($H{r}<>"",{n2}=0)),"SEM AVALIAÇÃO",'
+        "E": ('=IF($M{r}="","",IF({nec}=0,IF(AND($C{r}="",$D{r}=""),"NÃO OPERA","EXTRA"),'
+              'IF(AND($C{r}="",$D{r}=""),"SEM EQUIPE",'
+              'IF((--($C{r}<>"")+--($D{r}<>""))<{nec},"INCOMPLETO",'
+              'IF(OR(AND($C{r}<>"",{n1}=0),AND($D{r}<>"",{n2}=0)),"SEM AVALIAÇÃO",'
               'IF({desc}>0,"FALTA HABILIDADE",IF(AND({nec}>=2,{um}>0),"ATENÇÃO","OK")))))))'
               ).replace("{nec}", R(S_CAL, "$%s%d" % (NEC_L, mr)))
-                .replace("{n1}", nesp % "$G{r}").replace("{n2}", nesp % "$H{r}")
+                .replace("{n1}", nesp % "$C{r}").replace("{n2}", nesp % "$D{r}")
                 .replace("{desc}", R(S_CAL, "$%s%d" % (DISP_L, cr)))
                 .replace("{um}", R(S_CAL, "$%s%d" % (OCUP_L, cr))),
-        "L": ('=IF($A{r}="","",'
-              'IF(AND($I{r}="SEM EQUIPE",N($D{r})>0),"Sem equipe — "&$D{r}&" cirurgia(s) a remanejar | ","")&'
-              'IF($I{r}="SEM EQUIPE",IF(N($D{r})>0,"","Posto sem equipe | "),"")&'
-              'IF($I{r}="INCOMPLETO","Falta 1 técnico no posto | ","")&'
-              'IF($I{r}="EXTRA","Técnico escalado em posto que não opera hoje | ","")&'
-              'IF(AND($I{r}="NÃO OPERA",N($D{r})>0),"Posto não opera hoje e tem cirurgia | ","")&'
-              'IF($I{r}="SEM AVALIAÇÃO","Técnico sem habilidade marcada na aba Equipe | ","")&'
-              'IF(AND($I{r}<>"SEM AVALIAÇÃO",{dtxt}<>""),"Ninguém cobre: "&LEFT({dtxt},LEN({dtxt})-3)&" | ","")&'
-              'IF(AND($G{r}<>"",IFERROR(INDEX(Equipe_Situacao,MATCH($G{r},Equipe_Nome,0)),"?")<>"Disponível"),'
+        "N": ('=IF($M{r}="","",'
+              'IF(AND($E{r}="SEM EQUIPE",N($G{r})>0),"Sem equipe — "&$G{r}&" cirurgia(s) a remanejar | ","")&'
+              'IF($E{r}="SEM EQUIPE",IF(N($G{r})>0,"","Posto sem equipe | "),"")&'
+              'IF($E{r}="INCOMPLETO","Falta 1 técnico no posto | ","")&'
+              'IF($E{r}="EXTRA","Técnico escalado em posto que não opera hoje | ","")&'
+              'IF(AND($E{r}="NÃO OPERA",N($G{r})>0),"Posto não opera hoje e tem cirurgia | ","")&'
+              'IF($E{r}="SEM AVALIAÇÃO","Técnico sem habilidade marcada na aba Equipe | ","")&'
+              'IF(AND($E{r}<>"SEM AVALIAÇÃO",{dtxt}<>""),"Ninguém cobre: "&LEFT({dtxt},LEN({dtxt})-3)&" | ","")&'
+              'IF(AND($C{r}<>"",IFERROR(INDEX(Equipe_Situacao,MATCH($C{r},Equipe_Nome,0)),"?")<>"Disponível"),'
               '"Técnico 1 indisponível | ","")&'
-              'IF(AND($H{r}<>"",IFERROR(INDEX(Equipe_Situacao,MATCH($H{r},Equipe_Nome,0)),"?")<>"Disponível"),'
+              'IF(AND($D{r}<>"",IFERROR(INDEX(Equipe_Situacao,MATCH($D{r},Equipe_Nome,0)),"?")<>"Disponível"),'
               '"Técnico 2 indisponível | ","")&'
-              'IF(OR(AND($G{r}<>"",COUNTIF(Pai_Tec1,$G{r})+COUNTIF(Pai_Tec2,$G{r})>1),'
-              'AND($H{r}<>"",COUNTIF(Pai_Tec1,$H{r})+COUNTIF(Pai_Tec2,$H{r})>1)),'
+              'IF(OR(AND($C{r}<>"",COUNTIF(Pai_Tec1,$C{r})+COUNTIF(Pai_Tec2,$C{r})>1),'
+              'AND($D{r}<>"",COUNTIF(Pai_Tec1,$D{r})+COUNTIF(Pai_Tec2,$D{r})>1)),'
               '"Técnico escalado em dois postos | ","")&'
-              'IF(AND($E{r}<>"",$E{r}>1),"Ocupação acima do plantão | ",""))'
+              'IF(AND($H{r}<>"",$H{r}>1),"Ocupação acima do plantão | ",""))'
               ).replace("{dtxt}", R(S_CAL, "$%s%d" % (get_column_letter(CC2 + 5), cr))),
-        "J": '=IF($A{r}="","",IF($L{r}="","OK",LEFT($L{r},LEN($L{r})-3)))',
-        "K": ('=IF($A{r}="","",IFERROR(INDEX(Sug_Nome,MATCH(LARGE({s},1),{s},0)),"—")'
+        "F": '=IF($M{r}="","",IF($N{r}="","OK",LEFT($N{r},LEN($N{r})-3)))',
+        "G": ('=IF(OR($M{r}="",{t}<>"Sala cirúrgica"),"",'
+              'COUNTIFS(Mapa_Sala,$M{r},Mapa_Data,Data_Mapa,Mapa_MinOcup,">0"))'
+              ).replace("{t}", R(S_CAL, "$B%d" % mr)),
+        "H": '=IF(OR($M{r}="",{t}<>"Sala cirúrgica"),"",{o})'.replace(
+            "{t}", R(S_CAL, "$B%d" % mr)).replace("{o}", R(S_CAL, "$%s%d" % (OCUP_L, mr))),
+        "I": '=IF($M{r}="","",IF(MAX(<E>)=0,"—",<J1>))'.replace("<E>", bE).replace("<J1>", janela1),
+        "J": '=IF(OR($M{r}="",MAX(<E>)=0),"",MAX(<F>))'.replace("<E>", bE).replace("<F>", bF),
+        "K": '=IF($M{r}="","",MAX(0,COUNTIF(<E>,">="&Janela_Min)-1))'.replace("<E>", bE),
+        "L": ('=IF($M{r}="","",IFERROR(INDEX(Sug_Nome,MATCH(LARGE({s},1),{s},0)),"—")'
               '&IFERROR(" · "&INDEX(Sug_Nome,MATCH(LARGE({s},2),{s},0)),"")'
               '&IFERROR(" · "&INDEX(Sug_Nome,MATCH(LARGE({s},3),{s},0)),""))').replace("{s}", sug_rng),
     }
     for col, formula in f.items():
         cel = ws_pai[col + str(r)]
         cel.value = formula.format(r=r); cel.border = BORD; cel.font = F_OUT; cel.alignment = CTR
-    for col in ("B", "F", "J", "K"):
+    for col in ("A", "B", "F", "I", "L"):
         ws_pai[col + str(r)].alignment = LFTW
-    ws_pai["E%d" % r].number_format = "0.0%"
-    ws_pai["D%d" % r].number_format = "0"
-    for col in ("G", "H"):
+    ws_pai["H%d" % r].number_format = "0.0%"
+    for col in ("G", "J", "K"):
+        ws_pai[col + str(r)].number_format = "0"
+    for col in ("C", "D"):
         cel = ws_pai[col + str(r)]
         cel.font = F_IN; cel.fill = FILL_IN; cel.alignment = LFT
         if i < len(POSTOS):
-            slot = 1 if col == "G" else 2
-            v = ALOC.get(POSTOS[i][0], {}).get(slot)
-            if v:
-                cel.value = v
+            escalados = ALOC.get(POSTOS[i][0], [])
+            k = 0 if col == "C" else 1
+            if k < len(escalados):
+                cel.value = escalados[k]
     ws_pai.row_dimensions[r].height = 30
 
-# --- bloco 3: jogo de sala
-JOG_R1 = PAI_R2 + 3
-sec(ws_pai, JOG_R1 - 2, "3. JOGO DE SALA — onde a sala fica vaga hoje")
-head(ws_pai, JOG_R1 - 1, ["Sala", "Ocupação", "Total livre (min)", "Maior janela livre",
-                          "Cabe até (min)", "2ª maior janela", "Cabe até (min)",
-                          "Janelas ≥ mínimo", "", "", ""], height=32)
-for i in range(N_POS):
-    r, mr = JOG_R1 + i, MIX_R1 + i
-    j1, j2 = SAL_R1 + i * JOGO_K, SAL_R1 + i * JOGO_K + JOGO_K - 1
-    bE = R(S_SAL, "$E$%d:$E$%d" % (j1, j2)); bF = R(S_SAL, "$F$%d:$F$%d" % (j1, j2))
-    bC = R(S_SAL, "$C$%d:$C$%d" % (j1, j2)); bD = R(S_SAL, "$D$%d:$D$%d" % (j1, j2))
-    def janela(n):
-        return ('IFERROR(TEXT(MOD(Turno_Ini+INDEX({c},MATCH(LARGE({e},{n}),{e},0))/1440,1),"HH:MM")&" → "&'
-                'TEXT(MOD(Turno_Ini+INDEX({d},MATCH(LARGE({e},{n}),{e},0))/1440,1),"HH:MM")&'
-                '" ("&LARGE({e},{n})&" min)","—")').format(c=bC, d=bD, e=bE, n=n)
-    f = {
-        "A": '=IF(%s="","",%s)' % (R(S_SAL, "$A$%d" % j1), R(S_SAL, "$A$%d" % j1)),
-        "B": '=IF($A{r}="","",%s)' % R(S_CAL, "$%s%d" % (OCUP_L, mr)),
-        "C": '=IF($A{r}="","",SUM(%s))' % bE,
-        "D": '=IF(OR($A{r}="",MAX(<E>)=0),"—",<J1>)'.replace("<E>", bE).replace("<J1>", janela(1)),
-        "E": '=IF(OR($A{r}="",MAX(<E>)=0),"",MAX(<F>))'.replace("<E>", bE).replace("<F>", bF),
-        "F": '=IF(OR($A{r}="",IFERROR(LARGE(<E>,2),0)=0),"—",<J2>)'.replace("<E>", bE).replace("<J2>", janela(2)),
-        "G": '=IF(OR($A{r}="",IFERROR(LARGE(<E>,2),0)=0),"",MAX(0,LARGE(<E>,2)-Limpeza_Min))'.replace("<E>", bE),
-        "H": '=IF($A{r}="","",COUNTIF(<E>,">="&Janela_Min))'.replace("<E>", bE),
-    }
-    for col, formula in f.items():
-        cel = ws_pai[col + str(r)]
-        cel.value = formula.format(r=r); cel.border = BORD; cel.font = F_OUT; cel.alignment = CTR
-    ws_pai["B%d" % r].number_format = "0.0%"
-    for col in ("C", "E", "G", "H"):
-        ws_pai[col + str(r)].number_format = "0"
-    for col in ("D", "F"):
-        ws_pai[col + str(r)].alignment = LFT
-
-# --- bloco 4: equipe hoje
-EQH_R1 = JOG_R1 + N_POS + 2
-sec(ws_pai, EQH_R1 - 2, "4. EQUIPE HOJE — quem está disponível e onde está")
-head(ws_pai, EQH_R1 - 1, ["Técnico", "", "Situação", "Ausente até", "Escalado em",
-                          "Nº de especialidades", "", "", "", "", ""], height=24)
-ws_pai.merge_cells(start_row=EQH_R1 - 1, start_column=1, end_row=EQH_R1 - 1, end_column=2)
+# --- bloco 3: equipe hoje
+EQH_R1 = PAI_R2 + 4
+sec(ws_pai, EQH_R1 - 2, "3. EQUIPE HOJE — quem está disponível e onde está")
+head(ws_pai, EQH_R1 - 1, ["Técnico", "Situação", "Ausente até", "Escalado em",
+                          "Nº de especialidades", "", "", "", "", "", "", ""], height=24)
 for i in range(N_EQ):
     r, er = EQH_R1 + i, EQ_R1 + i
     f = {
         "A": '=IF(%s="","",%s)' % (R(S_EQP, "$B$%d" % er), R(S_EQP, "$B$%d" % er)),
-        "C": '=IF($A{r}="","",%s)' % R(S_EQP, "$E$%d" % er),
-        "D": '=IF($A{r}="","",%s)' % R(S_EQP, "$F$%d" % er),
-        "E": ('=IF($A{r}="","",IFERROR(INDEX($A$%d:$A$%d,MATCH($A{r},$G$%d:$G$%d,0)),'
-              'IFERROR(INDEX($A$%d:$A$%d,MATCH($A{r},$H$%d:$H$%d,0)),"—")))'
+        "B": '=IF($A{r}="","",%s)' % R(S_EQP, "$E$%d" % er),
+        "C": '=IF($A{r}="","",%s)' % R(S_EQP, "$F$%d" % er),
+        "D": ('=IF($A{r}="","",IFERROR(INDEX($A$%d:$A$%d,MATCH($A{r},$C$%d:$C$%d,0)),'
+              'IFERROR(INDEX($A$%d:$A$%d,MATCH($A{r},$D$%d:$D$%d,0)),"—")))'
               % (PAI_R1, PAI_R2, PAI_R1, PAI_R2, PAI_R1, PAI_R2, PAI_R1, PAI_R2)),
-        "F": '=IF($A{r}="","",%s)' % R(S_EQP, "$%s$%d" % (get_column_letter(XC2 + 1), er)),
+        "E": '=IF($A{r}="","",%s)' % R(S_EQP, "$%s$%d" % (get_column_letter(XC2 + 1), er)),
     }
     for col, formula in f.items():
         cel = ws_pai[col + str(r)]
         cel.value = formula.format(r=r); cel.border = BORD; cel.font = F_OUT; cel.alignment = CTR
-    ws_pai.merge_cells(start_row=r, start_column=1, end_row=r, end_column=2)
     ws_pai["A%d" % r].alignment = LFT
-    ws_pai["D%d" % r].number_format = "DD/MM"
-    ws_pai["F%d" % r].number_format = "0"
+    ws_pai["C%d" % r].number_format = "DD/MM"
+    ws_pai["E%d" % r].number_format = "0"
 
-# --- bloco 5: verificações
+# --- bloco 4: verificações
 CHK_R1 = EQH_R1 + N_EQ + 2
-sec(ws_pai, CHK_R1 - 2, "5. VERIFICAÇÕES")
-head(ws_pai, CHK_R1 - 1, ["Verificação", "", "Resultado", "", "", "", "", "", "", "", ""], height=20)
+sec(ws_pai, CHK_R1 - 2, "4. VERIFICAÇÕES")
+head(ws_pai, CHK_R1 - 1, ["Verificação", "Resultado", "", "", "", "", "", "", "", "", "", ""],
+     height=20)
 CHECKS = [
     ("Habilidades marcadas na aba Equipe",
      '=IF(COUNTIF(Equipe_X,"X")=0,"PENDENTE: marque o X de cada técnico na aba Equipe","OK")'),
-    ("Postos sem equipe", '=COUNTIF($I$%d:$I$%d,"SEM EQUIPE")' % (PAI_R1, PAI_R2)),
-    ("Postos com equipe incompleta", '=COUNTIF($I$%d:$I$%d,"INCOMPLETO")' % (PAI_R1, PAI_R2)),
+    ("Postos sem equipe", '=COUNTIF($E$%d:$E$%d,"SEM EQUIPE")' % (PAI_R1, PAI_R2)),
+    ("Postos com equipe incompleta", '=COUNTIF($E$%d:$E$%d,"INCOMPLETO")' % (PAI_R1, PAI_R2)),
     ("Postos com especialidade sem ninguém que faça",
-     '=COUNTIF($I$%d:$I$%d,"FALTA HABILIDADE")' % (PAI_R1, PAI_R2)),
+     '=COUNTIF($E$%d:$E$%d,"FALTA HABILIDADE")' % (PAI_R1, PAI_R2)),
     ("Técnicos escalados em mais de um posto",
      '=SUMPRODUCT((Pai_Tec1<>"")*(COUNTIF(Pai_Tec1,Pai_Tec1)+COUNTIF(Pai_Tec2,Pai_Tec1)>1))'),
     ("Cirurgias com alerta no mapa", '=SUMPRODUCT((Mapa_Alerta<>"OK")*(Mapa_Alerta<>""))'),
@@ -971,8 +928,7 @@ for i, (lbl, f) in enumerate(CHECKS):
     r = CHK_R1 + i
     c1 = ws_pai.cell(row=r, column=1, value=lbl)
     c1.border = BORD; c1.alignment = LFT; c1.font = F_OUT
-    ws_pai.merge_cells(start_row=r, start_column=1, end_row=r, end_column=2)
-    c2 = ws_pai.cell(row=r, column=3, value=f)
+    c2 = ws_pai.cell(row=r, column=2, value=f)
     c2.border = BORD; c2.font = F_OUT
     c2.alignment = Alignment(horizontal="left", vertical="center", indent=1)
 CHK_R2 = CHK_R1 + len(CHECKS) - 1
@@ -981,14 +937,24 @@ CHK_R2 = CHK_R1 + len(CHECKS) - 1
 GUIA_R = CHK_R2 + 3
 sec(ws_pai, GUIA_R - 1, "COMO USAR")
 GUIA = [
-    ("1. Data", "Troque a DATA DA ESCALA acima. Os ausentes do dia, as vagas necessárias e o mapa se ajustam sozinhos."),
-    ("2. Agenda", "Lance as cirurgias do dia na aba Mapa_Cirurgico — ou importe o PDF da agenda do hospital com o importar_agenda.py. A coluna Alerta aponta sobreposição de horário, sala errada, duração inválida, cirurgia fora do plantão e emenda sem os minutos de limpeza."),
-    ("Cirurgião", "A agenda do hospital não traz a especialidade, traz o cirurgião: cadastre a especialidade de cada um na seção 8 da aba Configuração e a importação preenche o Mapa sozinha."),
-    ("3. Escala", "Escolha TÉCNICO 1 e TÉCNICO 2 de cada posto nas células azuis. A coluna Situação diz se a dupla cobre as especialidades do dia; a última coluna sugere quem ainda está livre e cobre mais."),
-    ("4. Encaixe", "O bloco Jogo de sala mostra o maior intervalo vago de cada sala, com horário e de quanto cabe uma cirurgia (já descontada a limpeza)."),
-    ("5. Ausências", "Férias, folgas e atestados vão para a aba Ausencias, por período. O calendário ao lado dela mostra o período inteiro e quantos faltam em cada dia."),
-    ("Habilidade", "Na aba Equipe, marque X na especialidade que o técnico faz. Sem X marcado, a Situação do posto fica SEM AVALIAÇÃO."),
-    ("Situação do posto", "OK = os dois cobrem tudo · ATENÇÃO = alguma especialidade coberta por um só · FALTA HABILIDADE = alguma especialidade sem ninguém · INCOMPLETO = falta técnico · SEM EQUIPE = ninguém escalado · NÃO OPERA = posto fechado nesse dia."),
+    ("O mapa já vem pronto", "A importação da agenda distribui os técnicos pelos ambientes: "
+     "quem está disponível no dia, respeitando o X de habilidade e a prioridade de cada posto. "
+     "A dupla fica o turno inteiro no mesmo lugar."),
+    ("Para trocar alguém", "Escolha outro nome nas células azuis (TÉCNICO 1 / TÉCNICO 2). "
+     "A coluna Situação e a coluna Alertas reagem na hora; a última coluna mostra quem está "
+     "livre e cobre mais aquele ambiente."),
+    ("Jogo de sala", "Sala vaga mostra o maior intervalo livre da sala com horário, e Cabe até "
+     "diz de quanto cabe um encaixe já descontada a limpeza."),
+    ("Trocar a data", "Troque a DATA aqui em cima: ausentes, vagas necessárias e agenda do dia "
+     "se ajustam sozinhos. A distribuição dos técnicos, não — para redistribuir, importe a "
+     "agenda de novo."),
+    ("Habilidade", "Na aba Equipe, marque X na especialidade que a técnica faz. Sem X marcado, "
+     "a Situação fica SEM AVALIAÇÃO."),
+    ("Folgas e férias", "Vão para a aba Ausencias, por período. O calendário ao lado mostra o "
+     "período inteiro e quantos faltam em cada dia."),
+    ("Situação", "OK = os dois cobrem tudo · ATENÇÃO = alguma especialidade coberta por um só · "
+     "FALTA HABILIDADE = alguma especialidade sem ninguém · INCOMPLETO = falta técnico · "
+     "SEM EQUIPE = ninguém escalado · NÃO OPERA = ambiente fechado nesse dia."),
 ]
 for i, (a, b) in enumerate(GUIA):
     r = GUIA_R + i
@@ -996,9 +962,10 @@ for i, (a, b) in enumerate(GUIA):
     ca.font = Font(name="Calibri", size=10, bold=True); ca.alignment = Alignment(vertical="top")
     cb = ws_pai.cell(row=r, column=2, value=b)
     cb.font = F_NOTA; cb.alignment = Alignment(vertical="top", wrap_text=True)
-    ws_pai.merge_cells(start_row=r, start_column=2, end_row=r, end_column=11)
+    ws_pai.merge_cells(start_row=r, start_column=2, end_row=r, end_column=12)
     ws_pai.row_dimensions[r].height = 26 if len(b) < 150 else 40
-ws_pai.freeze_panes = "A10"
+
+ws_pai.freeze_panes = "B10"
 
 # ---------------------------------------------------------------- VALIDAÇÕES
 def add_dv(ws, formula, ranges, kind="list", **kw):
@@ -1031,7 +998,7 @@ add_dv(ws_map, "=Lista_StatusCir", ["H%d:H%d" % (MP_R1, MP_R2)])
 dvt = add_dv(ws_map, "TIME(0,0,0)", ["C%d:D%d" % (MP_R1, MP_R2)], kind="time",
              operator="between", formula2="TIME(23,59,0)")
 dvt.errorTitle = "Horário inválido"; dvt.error = "Informe um horário no formato HH:MM."
-dve = add_dv(ws_pai, "=Lista_Tecnicos", ["G%d:G%d" % (PAI_R1, PAI_R2), "H%d:H%d" % (PAI_R1, PAI_R2)])
+dve = add_dv(ws_pai, "=Lista_Tecnicos", ["C%d:C%d" % (PAI_R1, PAI_R2), "D%d:D%d" % (PAI_R1, PAI_R2)])
 dve.errorTitle = "Técnico não cadastrado"; dve.error = "Escolha um técnico da aba Equipe."
 
 # ---------------------------------------------------------------- FORMATAÇÃO CONDICIONAL
@@ -1040,7 +1007,7 @@ fa, fat = PatternFill("solid", fgColor=AMAR), Font(color=AMAR_T, bold=True)
 fr, frt = PatternFill("solid", fgColor=VERM), Font(color=VERM_T, bold=True)
 fc = PatternFill("solid", fgColor=CINZA)
 
-sit = "I%d:I%d" % (PAI_R1, PAI_R2)
+sit = "E%d:E%d" % (PAI_R1, PAI_R2)
 for txt, fill, font in (("OK", fv, fvt), ("ATENÇÃO", fa, fat), ("FALTA HABILIDADE", fr, frt),
                         ("SEM EQUIPE", fr, frt), ("INCOMPLETO", fa, fat), ("EXTRA", fa, fat),
                         ("SEM AVALIAÇÃO", fa, fat)):
@@ -1048,26 +1015,25 @@ for txt, fill, font in (("OK", fv, fvt), ("ATENÇÃO", fa, fat), ("FALTA HABILID
                                                       fill=fill, font=font))
 ws_pai.conditional_formatting.add(sit, CellIsRule(operator="equal", formula=['"NÃO OPERA"'],
                                                   fill=fc, font=Font(color="808080", italic=True)))
-ws_pai.conditional_formatting.add("J%d:J%d" % (PAI_R1, PAI_R2),
-    FormulaRule(formula=['AND($J%d<>"",$J%d<>"OK")' % (PAI_R1, PAI_R1)], fill=fr, font=frt))
-ws_pai.conditional_formatting.add("E%d:E%d" % (PAI_R1, PAI_R2),
-    FormulaRule(formula=['AND($E%d<>"",$E%d>1)' % (PAI_R1, PAI_R1)], fill=fr, font=frt))
+ws_pai.conditional_formatting.add("F%d:F%d" % (PAI_R1, PAI_R2),
+    FormulaRule(formula=['AND($F%d<>"",$F%d<>"OK")' % (PAI_R1, PAI_R1)], fill=fr, font=frt))
+ws_pai.conditional_formatting.add("H%d:H%d" % (PAI_R1, PAI_R2),
+    FormulaRule(formula=['AND($H%d<>"",$H%d>1)' % (PAI_R1, PAI_R1)], fill=fr, font=frt))
+ws_pai.conditional_formatting.add("I%d:I%d" % (PAI_R1, PAI_R2),
+    FormulaRule(formula=['AND($I%d<>"",$I%d<>"—")' % (PAI_R1, PAI_R1)], fill=fv, font=fvt))
+ws_pai.conditional_formatting.add("G6", FormulaRule(formula=['$G$6>0'], fill=fr, font=frt))
 ws_pai.conditional_formatting.add("H6", FormulaRule(formula=['$H$6>0'], fill=fr, font=frt))
-ws_pai.conditional_formatting.add("I6", FormulaRule(formula=['$I$6>0'], fill=fr, font=frt))
-ws_pai.conditional_formatting.add("J6", FormulaRule(formula=['$J$6>0'], fill=fa, font=fat))
-ws_pai.conditional_formatting.add("F6", FormulaRule(formula=['$F$6>=$G$6'], fill=fv, font=fvt))
-ws_pai.conditional_formatting.add("D%d:D%d" % (JOG_R1, JOG_R1 + N_POS - 1),
-    FormulaRule(formula=['AND($D%d<>"",$D%d<>"—")' % (JOG_R1, JOG_R1)], fill=fv, font=fvt))
-ws_pai.conditional_formatting.add("C%d:C%d" % (EQH_R1, EQH_R1 + N_EQ - 1),
+ws_pai.conditional_formatting.add("E6", FormulaRule(formula=['$E$6>=$F$6'], fill=fv, font=fvt))
+ws_pai.conditional_formatting.add("B%d:B%d" % (EQH_R1, EQH_R1 + N_EQ - 1),
     CellIsRule(operator="equal", formula=['"Disponível"'], fill=fv, font=fvt))
-ws_pai.conditional_formatting.add("C%d:C%d" % (EQH_R1, EQH_R1 + N_EQ - 1),
-    FormulaRule(formula=['AND($C%d<>"",$C%d<>"Disponível")' % (EQH_R1, EQH_R1)], fill=fa, font=fat))
-ws_pai.conditional_formatting.add("E%d:E%d" % (EQH_R1, EQH_R1 + N_EQ - 1),
+ws_pai.conditional_formatting.add("B%d:B%d" % (EQH_R1, EQH_R1 + N_EQ - 1),
+    FormulaRule(formula=['AND($B%d<>"",$B%d<>"Disponível")' % (EQH_R1, EQH_R1)], fill=fa, font=fat))
+ws_pai.conditional_formatting.add("D%d:D%d" % (EQH_R1, EQH_R1 + N_EQ - 1),
     CellIsRule(operator="equal", formula=['"—"'], fill=fc, font=Font(color="808080")))
-ws_pai.conditional_formatting.add("C%d:C%d" % (CHK_R1, CHK_R2),
-    FormulaRule(formula=['OR(LEFT($C%d,4)="ERRO",LEFT($C%d,8)="PENDENTE")' % (CHK_R1, CHK_R1)],
+ws_pai.conditional_formatting.add("B%d:B%d" % (CHK_R1, CHK_R2),
+    FormulaRule(formula=['OR(LEFT($B%d,4)="ERRO",LEFT($B%d,8)="PENDENTE")' % (CHK_R1, CHK_R1)],
                 fill=fr, font=frt))
-ws_pai.conditional_formatting.add("C%d:C%d" % (CHK_R1, CHK_R2),
+ws_pai.conditional_formatting.add("B%d:B%d" % (CHK_R1, CHK_R2),
     CellIsRule(operator="equal", formula=['"OK"'], fill=fv, font=fvt))
 ws_eqp.conditional_formatting.add("%s%d:%s%d" % (XL1, EQ_R1, XL2, EQ_R2),
     CellIsRule(operator="equal", formula=['"X"'], fill=fv, font=Font(color=VERDE_T, bold=True)))
@@ -1105,7 +1071,7 @@ ws_aus.conditional_formatting.add("%s%d:%s%d" % (get_column_letter(D1C), CAL_R2 
 ws_pai.page_setup.orientation = "landscape"
 ws_pai.page_setup.fitToWidth = 1; ws_pai.page_setup.fitToHeight = 0
 ws_pai.sheet_properties.pageSetUpPr.fitToPage = True
-ws_pai.print_area = "A1:K%d" % (CHK_R2 + 1)
+ws_pai.print_area = "A1:L%d" % (CHK_R2 + 1)
 for ws, area in ((ws_map, "A1:N%d" % (MP_R1 + max(1, len(MAPA)) - 1)),
                  (ws_eqp, "A1:%s%d" % (get_column_letter(XC2 + 1), EQ_R2))):
     ws.page_setup.orientation = "landscape"
@@ -1118,10 +1084,10 @@ print("salvo:", OUT)
 
 import os as _o
 if _o.environ.get("VISUAL") == "1":
-    for nome, area in {S_PAI: "A1:K%d" % (CHK_R2 + 1),
+    for nome, area in {S_PAI: "A1:L%d" % (CHK_R2 + 1),
                        S_MAP: "A1:N24", S_EQP: "A1:%s28" % get_column_letter(XC2 + 1),
                        S_AUS: "A1:%s%d" % (get_column_letter(D2C + 4), CAL_R2 + 4),
-                       S_CFG: "A1:J%d" % (AUS_T2 + 1)}.items():
+                       S_CFG: "A1:J%d" % (CIR_R1 + 12)}.items():
         w = wb[nome]
         w.page_setup.orientation = "landscape"
         w.page_setup.fitToWidth = 1; w.page_setup.fitToHeight = 1

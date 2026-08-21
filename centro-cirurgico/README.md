@@ -1,8 +1,8 @@
 # Centro Cirúrgico — Escala Diária
 
-Planilha operacional da coordenação de enfermagem. **Tudo do dia acontece no Painel**: a data,
-os indicadores, a escala dos técnicos por posto, o jogo de sala e quem está disponível. As outras
-abas são cadastro.
+Planilha operacional da coordenação de enfermagem. **Tudo do dia acontece na aba Mapa do Dia**,
+e ela já chega preenchida: cada ambiente com a sua dupla, as especialidades que passam ali, a
+ocupação e o tempo em que a sala fica vaga. As outras abas são cadastro.
 
 **Arquivo:** `Centro_Cirurgico_Escala.xlsx` (demonstração) · `..._REAL.xlsx` quando há cadastro real.
 
@@ -38,17 +38,36 @@ escalados e devolve a **Situação** do posto:
 | **NÃO OPERA** | posto fechado nesse dia da semana |
 | **SEM AVALIAÇÃO** | algum técnico escalado ainda não tem X marcado |
 
+## Distribuição automática dos técnicos
+
+A importação da agenda também distribui a equipe (`alocacao.py`), e o resultado já vem escrito nas
+colunas TÉCNICO 1 e TÉCNICO 2 — que continuam sendo células comuns, com lista suspensa, para a
+coordenação trocar quem quiser. As regras, nesta ordem:
+
+1. só entra quem está disponível (ativo e sem folga, férias ou atestado na data);
+2. ninguém em dois lugares — a dupla fica o turno inteiro no mesmo ambiente;
+3. déficit é a regra: primeiro cada posto recebe o **mínimo aceitável**, na ordem de prioridade, e
+   só depois os que sobram completam as duplas;
+4. dentro do posto, prefere quem marca **X** nas especialidades que passam ali no dia;
+5. no empate, prefere quem tem menos habilidades, guardando os polivalentes para os postos
+   seguintes.
+
+Depois roda um passe de trocas: qualquer troca entre dois postos que aumente a cobertura total é
+aceita, até não haver mais ganho. Com a matriz de habilidades ainda em branco a distribuição
+acontece do mesmo jeito, e a Situação de cada posto fica em SEM AVALIAÇÃO até o X ser marcado.
+
+Trocar a data na planilha **não** redistribui — para redistribuir, importe a agenda de novo.
+
 ## Jogo de sala
 
-O bloco 3 do Painel mostra, para cada sala: ocupação, total de minutos livres, a **maior janela
-livre com horário** ("11:05 → 13:00 (115 min)"), de quanto cabe um encaixe já descontada a limpeza,
-a segunda maior janela e quantas janelas passam do mínimo. O `Mapa_Cirurgico` traz o mesmo em linha,
-cirurgia a cirurgia.
+Na mesma linha de cada ambiente: ocupação, a **maior janela livre com horário**
+("11:20 → 13:00 (100 min)"), de quanto cabe um encaixe já descontada a limpeza, e quantas outras
+janelas passam do mínimo. A aba `Agenda do Dia` traz o mesmo cirurgia a cirurgia.
 
 ## Importar a agenda do hospital
 
 A agenda diária chega em PDF (mapa do centro cirúrgico do sistema do hospital). O
-`importar_agenda.py` lê esse PDF e escreve as cirurgias direto no `Mapa_Cirurgico`:
+`importar_agenda.py` lê esse PDF e escreve as cirurgias direto na aba `Agenda do Dia`:
 
 ```bash
 pip install openpyxl "pypdf[crypto]"
@@ -78,9 +97,9 @@ Especialidade sozinha; todo cirurgião novo é acrescentado ali em branco para a
 classificar.
 
 A importação substitui apenas as linhas da data importada — outras datas no mapa ficam intactas —
-e aponta a DATA DA ESCALA do Painel para o dia importado.
+e aponta a DATA do Mapa do Dia para o dia importado.
 
-Duas coisas que a agenda do hospital costuma trazer e a planilha sinaliza no `Mapa_Cirurgico`:
+Duas coisas que a agenda do hospital costuma trazer e a planilha sinaliza na aba `Agenda do Dia`:
 
 * **Fora da janela do plantão** — cirurgia que começa ou termina depois das 13:00. Ela entra no
   mapa, mas só os minutos dentro do plantão contam na ocupação.
@@ -88,7 +107,7 @@ Duas coisas que a agenda do hospital costuma trazer e a planilha sinaliza no `Ma
 
 ## Ausências
 
-A aba **Ausencias** guarda os períodos (folga, férias, atestado, licença, treinamento e os códigos
+A aba **Folgas e Férias** guarda os períodos (folga, férias, atestado, licença, treinamento e os códigos
 próprios do serviço). Ao lado dos registros fica o calendário do período (16 a 15), com o rodapé
 **funcionários na data · vagas necessárias · déficit** dia a dia.
 
@@ -96,10 +115,10 @@ próprios do serviço). Ao lado dos registros fica o calendário do período (16
 
 | Aba | Para quê |
 |---|---|
-| `Painel` | o dia inteiro: indicadores, escala, jogo de sala, equipe de hoje, verificações |
-| `Mapa_Cirurgico` | a agenda que chega todo dia |
+| `Mapa do Dia` | o dia inteiro numa tabela: ambiente, dupla, situação, ocupação, sala vaga |
+| `Agenda do Dia` | as cirurgias, vindas do PDF do hospital |
 | `Equipe` | cadastro + o X de habilidade por especialidade |
-| `Ausencias` | períodos de ausência + calendário do período |
+| `Folgas e Férias` | períodos de ausência + calendário do período |
 | `Configuração` | plantão, especialidades, postos, feriados, cirurgiões |
 | `Calc`, `Calc_Salas` | ocultas — só cálculo |
 
@@ -115,16 +134,18 @@ SAIDA=/tmp python3 testes/t3_expansao.py
 SAIDA=/tmp python3 testes/t4_degenerado.py
 SAIDA=/tmp python3 testes/t5_sensibilidade.py
 SAIDA=/tmp python3 testes/t6_agenda.py
+python3 testes/t7_distribuicao.py
 ```
 
 | Teste | Resultado |
 |---|---|
 | Recálculo (LibreOffice) | 0 erros de fórmula |
-| Reconciliação independente | 246 verificações, 0 divergências |
-| Expansão (+1 especialidade, +1 sala, +2 técnicos, +30 cirurgias, +5 ausências) | 0 erros · 289 verificações, 0 divergências |
+| Reconciliação independente | 244 verificações, 0 divergências |
+| Expansão (+1 especialidade, +1 sala, +2 técnicos, +30 cirurgias, +5 ausências) | 0 erros · 287 verificações, 0 divergências |
 | Entradas degeneradas (9 no mapa, 3 em ausências, 4 na escala) | todas tratadas, 0 erros |
 | Sensibilidade (domingo, feriado, limpeza, janela mínima) | aprovado, original inalterado |
 | Importação da agenda (leitura, gravação, ocupação, janelas, alertas) | 16 verificações, 0 divergências |
+| Distribuição (regras da alocação + conferência no arquivo) | 15 verificações, 0 divergências |
 
 ## Cadastro real
 
