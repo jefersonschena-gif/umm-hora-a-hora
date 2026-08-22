@@ -1,0 +1,87 @@
+{
+  "titulo": "O imposto não toca nesses dois investimentos. Onde está a troca?",
+  "canal": "Explainer",
+  "idioma": "pt-BR",
+  "aspect": "16:9",
+  "blocks": [
+    {
+      "n": 1,
+      "vo_line": "Existe um grupo de aplicações em que o imposto de renda simplesmente não aparece no resgate. Nada de desconto na fonte, nada de come-cotas. E quase ninguém entende onde está a troca.",
+      "visual_proposition": "moedas caem de uma torneira dentro de um pote lacrado enquanto uma mão grande passa por cima e vai embora sem levar nada",
+      "key_visual": "pote de moedas intocado, mão se afastando"
+    },
+    {
+      "n": 2,
+      "vo_line": "A primeira é a Letra de Crédito Imobiliário. Você empresta dinheiro ao banco, o banco usa esse dinheiro para financiar imóveis, e devolve com juros combinados no vencimento.",
+      "visual_proposition": "moedas entram pela base de uma construção e viram tijolos que sobem formando um prédio, e um fio de juros volta pelo caminho contrário",
+      "key_visual": "prédio se erguendo sobre uma esteira de moedas"
+    },
+    {
+      "n": 3,
+      "vo_line": "A segunda é a Letra de Crédito do Agronegócio. Mesma mecânica, lastro diferente: o dinheiro captado precisa financiar a produção rural, da semente ao maquinário da colheita.",
+      "visual_proposition": "a mesma esteira de moedas se desvia do prédio e alimenta um campo lavrado onde brota lavoura e um trator começa a andar",
+      "key_visual": "esteira de moedas virando lavoura e trator"
+    },
+    {
+      "n": 4,
+      "vo_line": "A isenção não é bondade, é política. O governo abre mão do imposto para baratear crédito em dois setores estratégicos: moradia e comida na mesa do brasileiro.",
+      "visual_proposition": "uma balança tem peso retirado de dois pratos, uma casa pequena num prato e um prato de comida no outro, e os dois sobem",
+      "key_visual": "balança aliviando casa e prato de comida"
+    },
+    {
+      "n": 5,
+      "vo_line": "Num certificado de depósito bancário comum, o imposto morde o lucro. A mordida vai de vinte e dois e meio a quinze por cento, conforme o tempo que o dinheiro fica aplicado.",
+      "visual_proposition": "uma fatia é cortada e retirada de um disco de lucro, e a fatia cortada encolhe conforme uma ampulheta ao lado esvazia",
+      "key_visual": "disco de lucro com fatia removida ao lado de ampulheta"
+    },
+    {
+      "n": 6,
+      "vo_line": "Por isso a comparação direta engana. Noventa por cento do índice de referência da renda fixa, sem imposto, pode render mais que cem por cento do mesmo índice, tributado.",
+      "visual_proposition": "duas colunas de moedas, a mais alta perde um bloco do topo e fica menor que a coluna baixa que permaneceu inteira",
+      "key_visual": "coluna baixa superando a alta depois do corte"
+    },
+    {
+      "n": 7,
+      "vo_line": "A conta que importa é a líquida. Pegue o rendimento de cada lado, tire o imposto, e só então compare. Bruto contra bruto é comparação de vitrine.",
+      "visual_proposition": "uma etiqueta enorme numa vitrine é levantada e revela outra etiqueta bem menor colada atrás dela",
+      "key_visual": "etiqueta grande escondendo a etiqueta real"
+    },
+    {
+      "n": 8,
+      "vo_line": "O preço da isenção aparece no prazo. Desde as mudanças do Conselho Monetário Nacional, esses papéis têm carência mínima de seis meses, e doze quando corrigidos por índice de preços.",
+      "visual_proposition": "um cofre se fecha com um cadeado e um calendário ao lado vira folhas sozinho enquanto a chave fica pendurada fora do alcance",
+      "key_visual": "cofre trancado e calendário virando folhas"
+    },
+    {
+      "n": 9,
+      "vo_line": "Carência significa dinheiro travado. Precisou do dinheiro antes do prazo, a única saída é vender o título para outro investidor, quase sempre aceitando um desconto no preço.",
+      "visual_proposition": "um papel de título passa de uma mão para outra e no caminho um pedaço se solta e cai no chão",
+      "key_visual": "título trocando de mãos e perdendo um pedaço"
+    },
+    {
+      "n": 10,
+      "vo_line": "E tem um detalhe que muita gente inverte: quem deve o dinheiro é o banco emissor, não o imóvel nem a fazenda. Banco quebrou, o problema é seu.",
+      "visual_proposition": "o prédio do banco está em primeiro plano segurando um contrato, e o imóvel e a fazenda aparecem pequenos e desfocados atrás dele",
+      "key_visual": "banco em primeiro plano com o contrato na mão"
+    },
+    {
+      "n": 11,
+      "vo_line": "Contra isso existe o Fundo Garantidor de Créditos: duzentos e cinquenta mil reais por instituição e por pessoa, com teto de um milhão a cada quatro anos.",
+      "visual_proposition": "um guarda-chuva cobre pilhas de moedas até uma certa altura e as moedas que passam dessa altura ficam expostas à chuva",
+      "key_visual": "guarda-chuva que só cobre até certa altura"
+    },
+    {
+      "n": 12,
+      "vo_line": "Isenção não é sinônimo de rendimento maior. O que decide é o trio prazo, taxa líquida e solidez de quem emitiu. Sem isso, é só uma sigla bonita.",
+      "visual_proposition": "três engrenagens de tamanhos diferentes se encaixam e giram juntas movendo um ponteiro que sobe numa escala",
+      "key_visual": "três engrenagens girando juntas"
+    }
+  ],
+  "sources": [
+    "https://www.gov.br/fazenda/pt-br/assuntos/noticias/2024/fevereiro/cmn-ajusta-lastros-elegiveis-e-prazos-de-vencimento-dos-titulos-incentivados",
+    "https://www.bcb.gov.br/",
+    "https://www.anbima.com.br/pt_br/informar/regulacao/informe-de-legislacao/novidades-nas-regras-de-lci-lca-e-de-direcionamento-de-recursos-captados-em-depositos.htm",
+    "https://www.infomoney.com.br/mercados/cmn-reduz-de-nove-para-seis-meses-o-prazo-minimo-de-vencimento-de-lca-e-lci/",
+    "https://borainvestir.b3.com.br/tipos-de-investimentos/renda-fixa/lci-lca-e-lc/investimentos-isentos-como-declarar-lci-e-lca-corretamente-no-imposto-de-renda-2026/"
+  ]
+}
