@@ -20,6 +20,19 @@ Todo vídeo produzido aqui tem que passar em três leituras independentes:
 | **SILENCIOSO** | imagem + legenda | o argumento inteiro |
 | **CEGO** | só o áudio | o argumento inteiro, sem depender de nada na tela |
 
+**Atenção à armadilha das três leituras:** a legenda é a fala palavra por
+palavra, então "só lendo a legenda" e "só escutando" são a MESMA informação —
+passam ou falham juntas. Isso dá duas camadas, não três. **A terceira camada é a
+imagem, e ela é a que quase sempre falha**, porque metáfora visual carrega clima
+e arco, nunca fato: "guarda-chuva sobre moedas" não comunica *teto de duzentos e
+cinquenta mil reais*.
+
+Por isso todo bloco carrega um **rótulo de tela** (`screen_label`): o fato do
+bloco em até seis palavras, **composto** com `scripts/screen_labels.sh` e nunca
+gerado pelo modelo de imagem. Rótulo no terço superior, legenda nos doze por
+cento de baixo — nunca se encontram. Ler os doze rótulos em sequência, sem som e
+sem legenda, tem que contar o vídeo inteiro; é isso que o QC mede.
+
 Consequências que valem como regra dura, não como conselho:
 
 - **A narração nunca aponta para a imagem.** Nada de "como você pode ver", "aqui
@@ -97,9 +110,20 @@ demais para o TTS respirar, acento perdido.
    (`create_voice`) — ofereça quando o usuário reclamar do sotaque das vozes
    prontas.
 
-### 4. Produção e montagem
-Fases 1→7 do workflow, sem desvio. Legenda: `--subs clean` (ou `paper` em conto
-de fadas), sempre com `--script script_manifest.json` e `--language pt`.
+### 4. Produção, rótulos e montagem
+Fases 1→7 do workflow, sem desvio, com **um passo desta skill no meio**: depois
+que os clipes voltam e **antes** de montar, aplique o rótulo de cada bloco no
+clipe dele (é o que fecha a leitura muda):
+
+```bash
+bash qc/screen_labels.sh --in work/blocks/block08.mp4 \
+  --out work/blocks/block08_lab.mp4 --text 'CARÊNCIA MÍNIMA: 6 MESES'
+```
+
+O manifesto de montagem passa a apontar para os `*_lab.mp4`. Instale o script
+junto com o trabalho, num comando só (`push_scripts.py --pacote labels`).
+Legenda: `--subs clean` (ou `paper` em conto de fadas), sempre com
+`--script script_manifest.json` e `--language pt`.
 
 ### 5. Thumbnail — PORTA T
 `references/thumbnail.md`. Regra que não se negocia: **o texto da thumbnail é
@@ -119,6 +143,7 @@ python3 .claude/skills/montagem-video-higgsfield/scripts/push_scripts.py \
   --sidecar work/output/final.mp4.assembly.json --srt work/output/final.srt \
   --script script_manifest.json --voice-dir work/voices \
   --thumb work/output/thumb.jpg --thumb-text 'TEXTO DA CAPA' \
+  --labels-dir work/blocks \
   --aspect 16:9 --json work/output/qc_report.json; cat work/output/final.srt"
 ```
 
@@ -168,6 +193,10 @@ verificar. Nunca apresente arquivo parcial nem remendado como resultado.
 | Legenda | ortografia | zero erros no lint |
 | Tri-modal | dêixis visual na narração | nenhuma |
 | Tri-modal | `visual_proposition` | em todos os blocos |
+| Tri-modal | `screen_label` | em todos os blocos, ≤ 6 palavras |
+| Tri-modal | rótulo repetindo o anterior | nenhum |
+| Tri-modal | ortografia do rótulo | zero erros |
+| Tri-modal | rótulo composto (não gerado) | recibo `.label.json` presente |
 | Thumbnail | texto | ≤ 5 palavras, composto no sandbox |
 | Thumbnail | contraste texto/fundo | ≥ 4,5:1 |
 | Thumbnail | altura do texto | ≥ 9% do quadro |
@@ -182,6 +211,7 @@ verificar. Nunca apresente arquivo parcial nem remendado como resultado.
 - `scripts/ptbr_lint.py` — lint pt-BR (roda local e no sandbox)
 - `scripts/qc_video.py` — medição do vídeo final (roda no sandbox)
 - `scripts/thumb_text.sh` — texto da thumbnail por composição
+- `scripts/screen_labels.sh` — rótulo de tela por composição (camada muda)
 - `scripts/push_scripts.py` — empacota os scripts num único comando de sandbox
 - `scripts/selftest_sandbox.sh` — autoteste do QC com vídeo sintético
 
@@ -193,6 +223,9 @@ verificar. Nunca apresente arquivo parcial nem remendado como resultado.
   com ffmpeg próprio.
 - Acelerar/desacelerar áudio (`atempo`), cortar silêncio dentro da tomada, ou
   encurtar o vídeo para caber num áudio curto — reescreva a linha e regenere.
-- Deixar o modelo de imagem escrever texto na thumbnail ou nos quadros.
+- Deixar o modelo de imagem escrever texto na thumbnail ou nos quadros — o texto
+  que aparece na tela é sempre composto (`thumb_text.sh`, `screen_labels.sh`).
+- Aplicar rótulo no `final.mp4`: o rótulo entra no CLIPE, antes da montagem, para
+  não encostar no montador nem no passo de legenda.
 - Expor mecânica ao usuário: nome de modelo, nome de fase, id de job, caminho de
   sandbox, URL pré-assinada.

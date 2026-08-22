@@ -15,6 +15,7 @@ Pacotes:
     qc     qc_video.py    (medicao do video no sandbox)   ~12 000 caracteres
     lint   ptbr_lint.py   (ortografia/TTS; roda local tambem) ~7 200
     thumb  thumb_text.sh  (texto da thumbnail via ImageMagick) ~2 300
+    labels screen_labels.sh (rotulo de tela sobre o clipe)   ~2 400
 
 O empacotamento e' tar + lzma + base64 e a descompactacao usa o proprio python3
 do sandbox (nao depende do binario xz).
@@ -35,7 +36,8 @@ PACOTES = {
     "qc": ["qc_video.py"],
     "lint": ["ptbr_lint.py"],
     "thumb": ["thumb_text.sh"],
-    "tudo": ["qc_video.py", "ptbr_lint.py", "thumb_text.sh"],
+    "labels": ["screen_labels.sh"],
+    "tudo": ["qc_video.py", "ptbr_lint.py", "thumb_text.sh", "screen_labels.sh"],
 }
 
 

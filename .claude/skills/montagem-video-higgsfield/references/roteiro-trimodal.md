@@ -66,6 +66,32 @@ Regras da camada visual:
 - Máximo ~20 s (2 blocos) no mesmo cenário/distância; depois troque cenário,
   ângulo ou escala.
 
+## 4b. O rótulo de tela: o que salva a leitura muda
+
+Metáfora não carrega fato. Quem assiste sem som entende *"é sobre dinheiro,
+prazo e proteção"* e sai sem saber o número que importa. Então cada bloco declara
+um `screen_label`: o fato daquele bloco, em até seis palavras, que aparece na
+tela.
+
+- **Composto, nunca gerado.** `scripts/screen_labels.sh` renderiza o texto com a
+  fonte da casa e sobrepõe no clipe. Modelo de imagem erra letra; composição não.
+- **No clipe, antes da montagem.** Nunca no `final.mp4` — assim o montador e o
+  passo de legenda continuam intocados.
+- **Terço superior.** A legenda ocupa os doze por cento de baixo. Nunca colidem.
+- **Progride.** Rótulo que repete o do bloco anterior trava a leitura muda e é
+  reprovação.
+- **Sigla vive aqui.** O que o TTS soletraria errado ("LCI", "FGC", "CDB") tem
+  lugar na tela, não na fala.
+
+O teste é ler os rótulos em sequência, sem áudio e sem legenda:
+
+> IMPOSTO ZERO → CRÉDITO IMOBILIÁRIO → CRÉDITO DO AGRONEGÓCIO → POR QUE O GOVERNO
+> ISENTA → CDB: 22,5% A 15% DE IR → 90% ISENTO VENCE 100% TRIBUTADO → COMPARE
+> SEMPRE O LÍQUIDO → CARÊNCIA MÍNIMA: 6 MESES → SAIR ANTES CUSTA DESÁGIO → QUEM
+> DEVE É O BANCO → FGC: R$ 250 MIL POR CPF → PRAZO + TAXA LÍQUIDA + BANCO
+
+Se essa sequência sozinha não conta o vídeo, a camada muda não está pronta.
+
 ## 5. `script_manifest.json`
 
 O manifesto é lido pelo montador, pelo passo de legenda e pelo QC. O nome dos
@@ -79,7 +105,8 @@ dependem dele. Os campos desta skill entram junto:
       "n": 1,
       "vo_line": "Existe um relógio parado no centro da cidade, e ninguém lembra quem cuidava dele.",
       "visual_proposition": "o relógio da torre parado às três e sete enquanto a rua se move embaixo",
-      "key_visual": "torre do relógio, ponteiros congelados"
+      "key_visual": "torre do relógio, ponteiros congelados",
+      "screen_label": "O RELÓGIO PAROU"
     }
   ],
   "sources": ["https://..."]
@@ -87,6 +114,7 @@ dependem dele. Os campos desta skill entram junto:
 ```
 
 - `visual_proposition` — obrigatório em todos os blocos (o QC reprova se faltar).
+- `screen_label` — obrigatório, até seis palavras, sem repetir o bloco anterior.
 - `key_visual` — a imagem que resume o bloco; vira insumo de thumbnail.
 - `sources` — obrigatório em vídeo factual (explicativo, história). Pesquisa
   serve ao **tema**, nunca vai colada para dentro da narração.

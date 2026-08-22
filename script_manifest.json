@@ -7,74 +7,86 @@
     {
       "n": 1,
       "vo_line": "Existe um grupo de aplicações em que o imposto de renda simplesmente não aparece no resgate. Nada de desconto na fonte, nada de come-cotas. E quase ninguém entende onde está a troca.",
-      "visual_proposition": "moedas caem de uma torneira dentro de um pote lacrado enquanto uma mão grande passa por cima e vai embora sem levar nada",
-      "key_visual": "pote de moedas intocado, mão se afastando"
+      "visual_proposition": "uma nota de imposto desce sobre um pote de moedas, bate num escudo transparente e desliza para fora sem tirar nenhuma moeda",
+      "key_visual": "pote de moedas intocado, mão se afastando",
+      "screen_label": "IMPOSTO ZERO"
     },
     {
       "n": 2,
       "vo_line": "A primeira é a Letra de Crédito Imobiliário. Você empresta dinheiro ao banco, o banco usa esse dinheiro para financiar imóveis, e devolve com juros combinados no vencimento.",
-      "visual_proposition": "moedas entram pela base de uma construção e viram tijolos que sobem formando um prédio, e um fio de juros volta pelo caminho contrário",
-      "key_visual": "prédio se erguendo sobre uma esteira de moedas"
+      "visual_proposition": "moedas entram pela base de uma obra e sobem virando tijolos de um prédio, e um fio dourado de juros volta da obra para o pote de origem",
+      "key_visual": "prédio se erguendo sobre uma esteira de moedas",
+      "screen_label": "CRÉDITO IMOBILIÁRIO"
     },
     {
       "n": 3,
       "vo_line": "A segunda é a Letra de Crédito do Agronegócio. Mesma mecânica, lastro diferente: o dinheiro captado precisa financiar a produção rural, da semente ao maquinário da colheita.",
-      "visual_proposition": "a mesma esteira de moedas se desvia do prédio e alimenta um campo lavrado onde brota lavoura e um trator começa a andar",
-      "key_visual": "esteira de moedas virando lavoura e trator"
+      "visual_proposition": "a mesma corrente de moedas se bifurca do prédio para uma lavoura, onde vira semente, planta e um trator que começa a colher",
+      "key_visual": "esteira de moedas virando lavoura e trator",
+      "screen_label": "CRÉDITO DO AGRONEGÓCIO"
     },
     {
       "n": 4,
       "vo_line": "A isenção não é bondade, é política. O governo abre mão do imposto para baratear crédito em dois setores estratégicos: moradia e comida na mesa do brasileiro.",
-      "visual_proposition": "uma balança tem peso retirado de dois pratos, uma casa pequena num prato e um prato de comida no outro, e os dois sobem",
-      "key_visual": "balança aliviando casa e prato de comida"
+      "visual_proposition": "um carimbo do estado retira um bloco de peso de cima de uma casa e de um prato de comida, e os dois objetos sobem visivelmente",
+      "key_visual": "balança aliviando casa e prato de comida",
+      "screen_label": "POR QUE O GOVERNO ISENTA"
     },
     {
       "n": 5,
       "vo_line": "Num certificado de depósito bancário comum, o imposto morde o lucro. A mordida vai de vinte e dois e meio a quinze por cento, conforme o tempo que o dinheiro fica aplicado.",
-      "visual_proposition": "uma fatia é cortada e retirada de um disco de lucro, e a fatia cortada encolhe conforme uma ampulheta ao lado esvazia",
-      "key_visual": "disco de lucro com fatia removida ao lado de ampulheta"
+      "visual_proposition": "um disco de lucro tem uma fatia cortada e levada embora, e a fatia encolhe passo a passo conforme uma ampulheta ao lado vai esvaziando",
+      "key_visual": "disco de lucro com fatia removida ao lado de ampulheta",
+      "screen_label": "CDB: 22,5% A 15% DE IR"
     },
     {
       "n": 6,
       "vo_line": "Por isso a comparação direta engana. Noventa por cento do índice de referência da renda fixa, sem imposto, pode render mais que cem por cento do mesmo índice, tributado.",
-      "visual_proposition": "duas colunas de moedas, a mais alta perde um bloco do topo e fica menor que a coluna baixa que permaneceu inteira",
-      "key_visual": "coluna baixa superando a alta depois do corte"
+      "visual_proposition": "duas colunas de moedas lado a lado, a mais alta perde um bloco do topo e termina mais baixa que a coluna menor que ficou intacta",
+      "key_visual": "coluna baixa superando a alta depois do corte",
+      "screen_label": "90% ISENTO VENCE 100% TRIBUTADO"
     },
     {
       "n": 7,
       "vo_line": "A conta que importa é a líquida. Pegue o rendimento de cada lado, tire o imposto, e só então compare. Bruto contra bruto é comparação de vitrine.",
-      "visual_proposition": "uma etiqueta enorme numa vitrine é levantada e revela outra etiqueta bem menor colada atrás dela",
-      "key_visual": "etiqueta grande escondendo a etiqueta real"
+      "visual_proposition": "uma etiqueta grande de vitrine é erguida e revela atrás dela uma etiqueta bem menor, que é a que vai para a mão do comprador",
+      "key_visual": "etiqueta grande escondendo a etiqueta real",
+      "screen_label": "COMPARE SEMPRE O LÍQUIDO"
     },
     {
       "n": 8,
       "vo_line": "O preço da isenção aparece no prazo. Desde as mudanças do Conselho Monetário Nacional, esses papéis têm carência mínima de seis meses, e doze quando corrigidos por índice de preços.",
-      "visual_proposition": "um cofre se fecha com um cadeado e um calendário ao lado vira folhas sozinho enquanto a chave fica pendurada fora do alcance",
-      "key_visual": "cofre trancado e calendário virando folhas"
+      "visual_proposition": "um cofre se fecha e um calendário ao lado vira seis folhas sozinho enquanto a chave fica pendurada longe, fora do alcance da mão",
+      "key_visual": "cofre trancado e calendário virando folhas",
+      "screen_label": "CARÊNCIA MÍNIMA: 6 MESES"
     },
     {
       "n": 9,
       "vo_line": "Carência significa dinheiro travado. Precisou do dinheiro antes do prazo, a única saída é vender o título para outro investidor, quase sempre aceitando um desconto no preço.",
-      "visual_proposition": "um papel de título passa de uma mão para outra e no caminho um pedaço se solta e cai no chão",
-      "key_visual": "título trocando de mãos e perdendo um pedaço"
+      "visual_proposition": "um título passa de uma mão para outra e no meio do caminho um pedaço se desprende da folha e cai, ficando menor do que era",
+      "key_visual": "título trocando de mãos e perdendo um pedaço",
+      "screen_label": "SAIR ANTES CUSTA DESÁGIO"
     },
     {
       "n": 10,
       "vo_line": "E tem um detalhe que muita gente inverte: quem deve o dinheiro é o banco emissor, não o imóvel nem a fazenda. Banco quebrou, o problema é seu.",
-      "visual_proposition": "o prédio do banco está em primeiro plano segurando um contrato, e o imóvel e a fazenda aparecem pequenos e desfocados atrás dele",
-      "key_visual": "banco em primeiro plano com o contrato na mão"
+      "visual_proposition": "o prédio do banco segura o contrato em primeiro plano, e o imóvel e a lavoura aparecem pequenos e desfocados atrás, sem segurar nada",
+      "key_visual": "banco em primeiro plano com o contrato na mão",
+      "screen_label": "QUEM DEVE É O BANCO"
     },
     {
       "n": 11,
       "vo_line": "Contra isso existe o Fundo Garantidor de Créditos: duzentos e cinquenta mil reais por instituição e por pessoa, com teto de um milhão a cada quatro anos.",
-      "visual_proposition": "um guarda-chuva cobre pilhas de moedas até uma certa altura e as moedas que passam dessa altura ficam expostas à chuva",
-      "key_visual": "guarda-chuva que só cobre até certa altura"
+      "visual_proposition": "um guarda-chuva cobre pilhas de moedas até uma altura marcada, e as moedas empilhadas acima dessa linha ficam recebendo chuva",
+      "key_visual": "guarda-chuva que só cobre até certa altura",
+      "screen_label": "FGC: R$ 250 MIL POR CPF"
     },
     {
       "n": 12,
       "vo_line": "Isenção não é sinônimo de rendimento maior. O que decide é o trio prazo, taxa líquida e solidez de quem emitiu. Sem isso, é só uma sigla bonita.",
-      "visual_proposition": "três engrenagens de tamanhos diferentes se encaixam e giram juntas movendo um ponteiro que sobe numa escala",
-      "key_visual": "três engrenagens girando juntas"
+      "visual_proposition": "três engrenagens de tamanhos diferentes se encaixam e giram juntas, movendo um ponteiro que sobe numa escala até travar no alto",
+      "key_visual": "três engrenagens girando juntas",
+      "screen_label": "PRAZO + TAXA LÍQUIDA + BANCO"
     }
   ],
   "sources": [
@@ -83,5 +95,10 @@
     "https://www.anbima.com.br/pt_br/informar/regulacao/informe-de-legislacao/novidades-nas-regras-de-lci-lca-e-de-direcionamento-de-recursos-captados-em-depositos.htm",
     "https://www.infomoney.com.br/mercados/cmn-reduz-de-nove-para-seis-meses-o-prazo-minimo-de-vencimento-de-lca-e-lci/",
     "https://borainvestir.b3.com.br/tipos-de-investimentos/renda-fixa/lci-lca-e-lc/investimentos-isentos-como-declarar-lci-e-lca-corretamente-no-imposto-de-renda-2026/"
-  ]
+  ],
+  "camada_visual": {
+    "rotulos": "compostos no sandbox com fonte propria (grafia garantida), NUNCA gerados pelo modelo de imagem",
+    "posicao": "terco superior do quadro; a legenda ocupa os 12% de baixo — as duas camadas nunca se sobrepoem",
+    "regra": "cada bloco afirma um fato na imagem; metafora sozinha nao passa na leitura muda"
+  }
 }

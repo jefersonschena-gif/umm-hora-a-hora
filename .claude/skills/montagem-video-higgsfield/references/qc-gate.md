@@ -36,7 +36,7 @@ rápido), `--rapido` (pula análise de quadros e contagem de cortes),
 | **ÁUDIO** | faixa presente, paridade vídeo×áudio, −16 LUFS, pico real, faixa dinâmica, silêncio interno longo |
 | **NARRAÇÃO** | fala em todos os blocos, janela por bloco, ritmo em palavras/s, pausas internas, o que foi dito × roteiro (Whisper pt), indício de sotaque |
 | **LEGENDA** | sintaxe SRT, sobreposição, duração, velocidade de leitura, formato de linha, fidelidade ao roteiro, cobertura, palavra estranha, sincronia, deriva, sincronia interna, ortografia |
-| **TRI-MODAL** | dêixis visual, texto pronto para TTS, proposição visual por bloco, variedade visual, gancho, fechamento, legenda desde o início |
+| **TRI-MODAL** | dêixis visual, texto pronto para TTS, proposição visual por bloco, variedade visual, gancho, fechamento, legenda desde o início, **rótulo de tela** (presente, ≤6 palavras, progride, ortografia, composto e legível) |
 | **THUMBNAIL** | dimensão, proporção, peso, texto (≤5 palavras, ortografia), contraste WCAG, legibilidade a 168 px, contraste global |
 
 Saída: tabela por eixo + `qc_report.json`. **Código de saída 1 = reprovado.**
@@ -62,9 +62,13 @@ python3 scripts/ptbr_lint.py --mode legenda --srt final.srt
 Escreva o veredito de cada uma, em uma frase. "Passou" sem frase não conta.
 
 ### Leitura MUDA (só imagem)
-Percorra os blocos pela `visual_proposition` do manifesto e pelos quadros do
-vídeo. Pergunta: *um espectador sem som e sem legenda sai sabendo do que se
-trata, qual é a virada e como termina?*
+**Primeiro o teste barato:** leia os `screen_label` em sequência, sem áudio e sem
+legenda. Se essa lista sozinha não conta o vídeo — assunto, virada e desfecho —
+a camada muda está reprovada, e nenhuma imagem bonita conserta.
+
+Depois percorra os blocos pela `visual_proposition` e pelos quadros. Pergunta:
+*um espectador sem som e sem legenda sai sabendo do que se trata, qual é a virada
+e como termina?*
 
 Leitor independente, quando disponível — é o mais próximo de um olho de fora:
 

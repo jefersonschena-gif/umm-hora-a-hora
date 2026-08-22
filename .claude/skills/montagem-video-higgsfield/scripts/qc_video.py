@@ -482,7 +482,7 @@ def check_legenda(srt, sidecar, script_rows, vdur):
 
 
 # -------------------------------------------------------------- TRIMODAL ---
-def check_trimodal(script_path, script_rows, cues_srt, vdur):
+def check_trimodal(script_path, script_rows, cues_srt, vdur, labels_dir=None):
     # 1) so escutando: narracao autonoma
     if ptbr_check and script_rows:
         iss = []
@@ -519,9 +519,61 @@ def check_trimodal(script_path, script_rows, cues_srt, vdur):
                   if not (r.get("key_visual") or r.get("visual_proposition"))]
         if semkey:
             add("TRIMODAL", "QUADRO_CHAVE", WARN, f"blocos sem key_visual: {semkey}")
+
+        # 2b) A LEITURA MUDA SO' FECHA COM O ROTULO DE TELA.
+        # Metafora carrega clima e arco; fato (isencao, prazo, teto) so' chega
+        # em quem assiste sem som atraves de texto — e esse texto tem que ser
+        # COMPOSTO, nunca gerado pelo modelo de imagem.
+        rotulos = [(r.get("screen_label") or "").strip() for r in rows]
+        sem_rotulo = [i + 1 for i, s in enumerate(rotulos) if not s]
+        add("TRIMODAL", "ROTULO_DE_TELA", OK if not sem_rotulo else FAIL,
+            "todo bloco tem rotulo de tela" if not sem_rotulo
+            else f"blocos sem screen_label — a leitura muda nao fecha: {sem_rotulo}")
+        if not sem_rotulo:
+            longos = [i + 1 for i, s in enumerate(rotulos) if len(s.split()) > 6]
+            add("TRIMODAL", "ROTULO_CURTO", OK if not longos else FAIL,
+                "todo rotulo cabe num relance (<=6 palavras)" if not longos
+                else f"rotulos longos demais para leitura de relance: {longos}")
+            repetidos = [i + 1 for i in range(1, len(rotulos))
+                         if sim(rotulos[i], rotulos[i - 1]) > 0.85]
+            add("TRIMODAL", "ROTULO_PROGRIDE", OK if not repetidos else FAIL,
+                "os rotulos avancam a cada bloco" if not repetidos
+                else f"rotulos que repetem o anterior (a leitura muda trava): {repetidos}",
+                None, "cada rotulo acrescenta informacao")
+            if ptbr_check:
+                ruins = []
+                for i, s in enumerate(rotulos, 1):
+                    ruins += [f'bloco {i}: "{x["term"]}"'
+                              for x in ptbr_check(s, "thumb", i) if x["severity"] == "erro"]
+                add("TRIMODAL", "ROTULO_ORTOGRAFIA", OK if not ruins else FAIL,
+                    "rotulos sem erro de grafia" if not ruins
+                    else "; ".join(ruins[:6]))
     else:
         add("TRIMODAL", "PROPOSICAO_VISUAL", SKIP,
             "manifesto sem blocks/beats — nao da para auditar a camada visual")
+
+    # 2c) prova de que o rotulo foi COMPOSTO (receipt do screen_labels.sh)
+    if labels_dir and os.path.isdir(labels_dir):
+        import glob
+        recibos = sorted(glob.glob(os.path.join(labels_dir, "*.label.json")))
+        if not recibos:
+            add("TRIMODAL", "ROTULO_COMPOSTO", WARN,
+                "nenhum recibo de rotulo encontrado — se o texto na tela veio do "
+                "modelo de imagem, refaca com screen_labels.sh")
+        else:
+            baixos, fracos = [], []
+            for r in recibos:
+                d = json.load(open(r, encoding="utf-8"))
+                if float(d.get("altura_texto_pct") or 0) < 0.045:
+                    baixos.append(os.path.basename(r))
+                if not d.get("composto"):
+                    fracos.append(os.path.basename(r))
+            add("TRIMODAL", "ROTULO_COMPOSTO", OK if not fracos else FAIL,
+                f"{len(recibos)} rotulos compostos com grafia garantida" if not fracos
+                else f"rotulos sem prova de composicao: {fracos[:5]}")
+            add("TRIMODAL", "ROTULO_LEGIVEL", OK if not baixos else FAIL,
+                "rotulos com altura legivel no celular" if not baixos
+                else f"rotulos pequenos demais (<4,5% do quadro): {baixos[:5]}")
 
     # 3) so lendo: gancho e fechamento presentes no texto
     if script_rows:
@@ -619,6 +671,7 @@ def main():
     ap.add_argument("--voice-dir")
     ap.add_argument("--thumb")
     ap.add_argument("--thumb-text")
+    ap.add_argument("--labels-dir", help="pasta com os recibos *.label.json dos rotulos de tela")
     ap.add_argument("--aspect", default="16:9", choices=["16:9", "9:16", "1:1"])
     ap.add_argument("--sem-whisper", action="store_true")
     ap.add_argument("--rapido", action="store_true", help="pula analise de quadros e cortes")
@@ -654,7 +707,7 @@ def main():
     check_narracao(sidecar, script_rows, a.voice_dir, not a.sem_whisper)
     check_legenda(a.srt, sidecar, script_rows, vdur)
     cues = parse_srt(a.srt) if (a.srt and os.path.exists(a.srt)) else []
-    check_trimodal(a.script, script_rows, cues, vdur)
+    check_trimodal(a.script, script_rows, cues, vdur, a.labels_dir)
     check_thumb(a.thumb, a.thumb_text, a.aspect)
 
     reprovas = [r for r in R if r["status"] == FAIL]
