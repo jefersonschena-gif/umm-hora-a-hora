@@ -20,7 +20,7 @@ Abas: Mapa do Dia (trabalho do dia) · Agenda do Dia · Equipe · Folgas e Féri
 """
 import random
 from datetime import date, time, timedelta
-from abas import ABA_AGENDA, ABA_CFG, ABA_EQUIPE, ABA_FOLGAS, ABA_MAPA, ABA_PAINEL
+from abas import ABA_AGENDA, ABA_CFG, ABA_EQUIPE, ABA_FOLGAS, ABA_MAPA, ABA_PAINEL, sem_texto_vazio
 from alocacao import alocar
 from openpyxl import Workbook
 from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
@@ -1550,6 +1550,7 @@ for ws, area in ((ws_map, "A1:N%d" % (MP_R1 + max(1, len(MAPA)) - 1)),
     ws.sheet_properties.pageSetUpPr.fitToPage = True
     ws.print_title_rows = "1:1"; ws.print_area = area
 
+sem_texto_vazio(wb)
 wb.save(OUT)
 print("salvo:", OUT)
 
@@ -1564,5 +1565,6 @@ if _o.environ.get("VISUAL") == "1":
         w.page_setup.fitToWidth = 1; w.page_setup.fitToHeight = 1
         w.sheet_properties.pageSetUpPr.fitToPage = True
         w.print_area = area
+    sem_texto_vazio(wb)
     wb.save(OUT.replace(".xlsx", "_VISUAL.xlsx"))
     print("visual:", OUT.replace(".xlsx", "_VISUAL.xlsx"))

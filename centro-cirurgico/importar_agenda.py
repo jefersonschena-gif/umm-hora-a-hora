@@ -31,7 +31,7 @@ from datetime import date, datetime, time
 
 from openpyxl import load_workbook
 
-from abas import ABA_AGENDA, ABA_CFG, ABA_EQUIPE, ABA_MAPA
+from abas import ABA_AGENDA, ABA_CFG, ABA_EQUIPE, ABA_MAPA, sem_texto_vazio
 from alocacao import alocar
 
 RE_HORA = re.compile(r"(\d{2}/\d{2}/\d{2})\s+(\d{2}:\d{2})\s*-\s*(\d{2}/\d{2}/\d{2})\s+(\d{2}:\d{2})")
@@ -316,6 +316,7 @@ def importar(pdf, entrada, saida=None, cirs=None):
             v += 1
     if os.path.abspath(saida) == os.path.abspath(entrada):
         sys.exit("A saída não pode ser o arquivo de entrada.")
+    sem_texto_vazio(wb)
     wb.save(saida)
 
     turno_fim = cfg["B12"].value

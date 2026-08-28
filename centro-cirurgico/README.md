@@ -241,6 +241,7 @@ python3 testes/t8_painel.py /tmp/rc/Centro_Cirurgico_Escala.xlsx
 python3 testes/t9_estilo.py
 python3 testes/t10_afinidade.py
 python3 testes/t11_folgas.py
+python3 testes/t12_excel.py Centro_Cirurgico_Escala.xlsx
 ```
 
 | Teste | Resultado |
@@ -256,6 +257,24 @@ python3 testes/t11_folgas.py
 | Estilo (o XML que o Excel lê) | 6 verificações, 0 divergências |
 | Afinidade (matriz da aba Equipe, leitura, distribuição e fórmula) | 19 verificações, 0 divergências |
 | Troca da escala de folgas (folga após a importação, redistribuição, período) | 13 verificações, 0 divergências |
+| O arquivo como o Excel vê (XML de dentro do .xlsx) | 6 arquivos, 0 desvios |
+
+## O arquivo como o Excel vê
+
+O LibreOffice — que é quem recalcula a planilha nos testes — abre coisa que o Excel recusa. Quando
+o `.xlsx` foge do formato, o Excel não diz onde está o erro: abre perguntando *"encontramos um
+problema em um conteúdo, quer que tentemos recuperar?"*. Nenhum dos outros testes pega isso, porque
+para o LibreOffice o arquivo está bom.
+
+Foi o que aconteceu com uma célula de texto vazio: `ws.cell(..., value="")` vira, no XML,
+`<c t="inlineStr"/>` — uma célula que se declara texto e não traz texto nenhum, o que o formato não
+permite. `sem_texto_vazio(wb)` (em `abas.py`) troca esses `""` por célula vazia antes de cada
+gravação, tanto no gerador quanto na importação da agenda.
+
+O `testes/t12_excel.py` varre o XML de dentro do arquivo atrás desses desvios — texto vazio,
+elementos fora da ordem exigida, merges sobrepostos, prioridades repetidas, `dxfId` e `numFmt`
+apontando para o vazio, células fora de ordem, fórmula longa ou aninhada além do limite do Excel.
+Rode contra todo `.xlsx` que for entregue.
 
 ## Cadastro real
 
