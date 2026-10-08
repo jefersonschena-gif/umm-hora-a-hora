@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Estudo — Bebê e Salsicha no Parque</title>
+<style>
+html,body{margin:0;height:100%;background:#9fd0f0;overflow:hidden}
+canvas{display:block;width:100%;height:100%}
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<script type="importmap">
+{"imports":{
+  "three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+  "three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+}}
+</script>
+<script type="module">
+/* =====================================================================
+   Estudo de recriação, 100% procedural (nenhuma imagem, modelo ou textura
+   externa): bebê + cachorro salsicha num parque de arbustos topiados.
+   Técnicas: esculpir por deformação de icosfera (lóbulos gaussianos),
+   decalques projetados na superfície (boca, dentes, língua), olhos com
+   textura pintada em canvas, pálpebras, grama instanciada, material
+   aveludado (sheen), sombras VSM, GTAO e desfoque de profundidade.
+   ===================================================================== */
+import * as THREE from 'three';
+import { mergeVertices, mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { GTAOPass } from 'three/addons/postprocessing/GTAOPass.js';
+import { BokehPass } from 'three/addons/postprocessing/BokehPass.js';
+import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+
+const V = (x, y, z) => new THREE.Vector3(x, y, z);
+const col = h => new THREE.Color(h);
+function rng(seed) { return () => { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+// ruído de valor 3D suave
+function hash3(x, y, z) { const s = Math.sin(x * 127.1 + y * 311.7 + z * 74.7) * 43758.5453; return s - Math.floor(s); }
+function vnoise(x, y, z) {
+  const X = Math.floor(x), Y = Math.floor(y), Z = Math.floor(z), fx = x - X, fy = y - Y, fz = z - Z;
+  const u = fx * fx * (3 - 2 * fx), v = fy * fy * (3 - 2 * fy), w = fz * fz * (3 - 2 * fz);
+  const L = (a, b, t) => a + (b - a) * t;
+  return L(L(L(hash3(X, Y, Z), hash3(X + 1, Y, Z), u), L(hash3(X, Y + 1, Z), hash3(X + 1, Y + 1, Z), u), v),
+           L(L(hash3(X, Y, Z + 1), hash3(X + 1, Y, Z + 1), u), L(hash3(X, Y + 1, Z + 1), hash3(X + 1, Y + 1, Z + 1), u), v), w) * 2 - 1;
+}
+const fbm = (x, y, z) => vnoise(x, y, z) * .6 + vnoise(x * 2.1, y * 2.1, z * 2.1) * .28 + vnoise(x * 4.3, y * 4.3, z * 4.3) * .12;
+
+/* ---------- escultura: icosfera deformada ---------- */
+// lobes: [{c:dir, a:amplitude, s:largura}] ; scale: elipsoide base
+function sculptFn(lobes, noise = 0, nf = 2) {
+  const d = new THREE.Vector3();
+  return dir => {
+    d.copy(dir).normalize();
+    let k = 1;
+    for (const L of lobes) k += L.a * Math.exp(-d.distanceToSquared(L.c) / (L.s * L.s));
+    if (noise) k += noise * fbm(d.x * nf + 3.1, d.y * nf + 1.7, d.z * nf + 5.3);
+    return k;
+  };
+}
+function sculpt(fn, detail = 40, paint) {
+  let g = new THREE.IcosahedronGeometry(1, detail);
+  g.deleteAttribute('normal'); g.deleteAttribute('uv');
+  g = mergeVertices(g);
+  const p = g.attributes.position, v = new THREE.Vector3();
+  for (let i = 0; i < p.count; i++) { v.fromBufferAttribute(p, i).normalize(); v.multiplyScalar(fn(v)); p.setXYZ(i, v.x, v.y, v.z); }
+  g.computeVertexNormals();
+  if (paint) {
+    const c = new Float32Array(p.count * 3), cc = new THREE.Color();
+    for (let i = 0; i < p.count; i++) { v.fromBufferAttribute(p, i); paint(v, cc); c[i * 3] = cc.r; c[i * 3 + 1] = cc.g; c[i * 3 + 2] = cc.b; }
+    g.setAttribute('color', new THREE.BufferAttribute(c, 3));
+  }
+  return g;
+}
+// decalque: Shape 2D (no plano XY, face +Z) projetado sobre a superfície esculpida
+function decal(shape, fn, lift, segs = 28) {
+  const g = new THREE.ShapeGeometry(shape, segs);
+  // subdivide para acompanhar a curvatura
+  const sub = g.toNonIndexed(); const src = sub.attributes.position.array; const out = [];
+  const mid = (a, b) => [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2];
+  const tri = (a, b, c, n) => { if (!n) { out.push(...a, 0, ...b, 0, ...c, 0); return; } const ab = mid(a, b), bc = mid(b, c), ca = mid(c, a); tri(a, ab, ca, n - 1); tri(ab, b, bc, n - 1); tri(ca, bc, c, n - 1); tri(ab, bc, ca, n - 1); };
+  for (let i = 0; i < src.length; i += 9) tri([src[i], src[i + 1]], [src[i + 3], src[i + 4]], [src[i + 6], src[i + 7]], 2);
+  const d = new THREE.Vector3();
+  for (let i = 0; i < out.length; i += 3) {
+    const x = out[i], y = out[i + 1];
+    d.set(x, y, Math.sqrt(Math.max(0, 1 - x * x - y * y))).normalize();
+    d.multiplyScalar(fn(d) + lift);
+    out[i] = d.x; out[i + 1] = d.y; out[i + 2] = d.z;
+  }
+  const r = new THREE.BufferGeometry(); r.setAttribute('position', new THREE.Float32BufferAttribute(out, 3)); r.computeVertexNormals();
+  return r;
+}
+// tubo afunilado ao longo de uma curva
+function taperTube(points, r0, r1, seg = 48, radial = 20) {
+  const curve = new THREE.CatmullRomCurve3(points);
+  const g = new THREE.TubeGeometry(curve, seg, 1, radial, false);
+  const p = g.attributes.position, v = new THREE.Vector3(), c = new THREE.Vector3();
+  for (let i = 0; i <= seg; i++) {
+    const u = i / seg, r = THREE.MathUtils.lerp(r0, r1, u) * (u > .92 ? Math.sqrt(1 - Math.pow((u - .92) / .08, 2) * .85) : 1);
+    curve.getPointAt(u, c);
+    for (let j = 0; j <= radial; j++) { const k = i * (radial + 1) + j; v.fromBufferAttribute(p, k).sub(c).multiplyScalar(r).add(c); p.setXYZ(k, v.x, v.y, v.z); }
+  }
+  g.computeVertexNormals();
+  return g;
+}
+const capsule = (r, len, cs = 12, rs = 32) => new THREE.CapsuleGeometry(r, len, cs, rs);
+function mesh(g, m, parent, pos, rot, scl) {
+  const o = new THREE.Mesh(g, m); o.castShadow = true; o.receiveShadow = true;
+  if (pos) o.position.copy(pos); if (rot) o.rotation.set(...rot); if (scl) o.scale.set(...(Array.isArray(scl) ? scl : [scl, scl, scl]));
+  parent.add(o); return o;
+}
+function between(g, m, parent, a, b, stretch = false) { // cápsula/cilindro orientado de a para b
+  const o = mesh(g, m, parent); o.position.copy(a).add(b).multiplyScalar(.5);
+  if (stretch) o.scale.y = a.distanceTo(b);
+  o.quaternion.setFromUnitVectors(V(0, 1, 0), b.clone().sub(a).normalize()); return o;
+}
+
+/* ---------- renderer ---------- */
+const canvas = document.getElementById('c');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, preserveDrawingBuffer: true });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.12;
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.VSMShadowMap;
+const scene = new THREE.Scene();
+
+/* ---------- céu + iluminação por imagem gerada ---------- */
+const skyMat = new THREE.ShaderMaterial({
+  side: THREE.BackSide, depthWrite: false, fog: false,
+  uniforms: { top: { value: col(0x2f7fe0) }, mid: { value: col(0x6fb2ef) }, hor: { value: col(0xc9e6f8) }, ground: { value: col(0x7fb24a) } },
+  vertexShader: `varying vec3 vD; void main(){ vD=normalize(position); gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.); }`,
+  fragmentShader: `uniform vec3 top,mid,hor,ground; varying vec3 vD; void main(){ float y=vD.y;
+    vec3 c= y>0. ? mix(hor, mix(mid, top, smoothstep(.25,.9,y)), smoothstep(0.,.25,y)) : mix(hor*.9+ground*.1, ground, smoothstep(0.,-.15,y));
+    gl_FragColor=vec4(c,1.); }`
+});
+const sky = new THREE.Mesh(new THREE.SphereGeometry(400, 64, 32), skyMat); scene.add(sky);
+{
+  const envScene = new THREE.Scene();
+  envScene.add(new THREE.Mesh(new THREE.SphereGeometry(10, 64, 32), skyMat.clone()));
+  const sun = new THREE.Mesh(new THREE.SphereGeometry(1.4, 16, 8), new THREE.MeshBasicMaterial({ color: new THREE.Color(1, .97, .9).multiplyScalar(18) }));
+  sun.position.set(-4.5, 7, 4.5); envScene.add(sun);
+  const pm = new THREE.PMREMGenerator(renderer);
+  scene.environment = pm.fromScene(envScene, 0.02).texture;
+}
+scene.fog = new THREE.Fog(0xcbe5f6, 22, 95);
+
+const sunL = new THREE.DirectionalLight(0xfff3e2, 2.7);
+sunL.position.set(-6, 10, 7);
+sunL.castShadow = true;
+sunL.shadow.mapSize.set(4096, 4096);
+Object.assign(sunL.shadow.camera, { left: -9, right: 9, top: 9, bottom: -9, near: 1, far: 40 });
+sunL.shadow.radius = 9; sunL.shadow.blurSamples = 20; sunL.shadow.bias = -.0004;
+scene.add(sunL);
+scene.add(new THREE.HemisphereLight(0xcfe8ff, 0x6f9c3c, .55));
+const fill = new THREE.DirectionalLight(0xdcefff, .55); fill.position.set(6, 4, 8); scene.add(fill);
+
+/* ---------- materiais ---------- */
+const M = {
+  skin: new THREE.MeshPhysicalMaterial({ vertexColors: true, roughness: .5, sheen: .25, sheenColor: col(0xff9a70), sheenRoughness: .45, clearcoat: .06, emissive: col(0x5a1e0a), emissiveIntensity: .3, envMapIntensity: .8 }),
+  skinFlat: new THREE.MeshPhysicalMaterial({ color: 0xf4a276, roughness: .5, sheen: .25, sheenColor: col(0xff9a70), sheenRoughness: .45, emissive: col(0x5a1e0a), emissiveIntensity: .3, envMapIntensity: .8 }),
+  hair: new THREE.MeshPhysicalMaterial({ vertexColors: true, roughness: .62, sheen: .8, sheenColor: col(0xb88458), sheenRoughness: .35, envMapIntensity: .7 }),
+  hairFlat: new THREE.MeshPhysicalMaterial({ color: 0x5a3720, roughness: .62, sheen: .8, sheenColor: col(0xb88458), sheenRoughness: .35, envMapIntensity: .7 }),
+  brow: new THREE.MeshStandardMaterial({ color: 0x6b4426, roughness: .8 }),
+  sweater: new THREE.MeshPhysicalMaterial({ color: 0x2fb3b4, roughness: .9, sheen: 1, sheenColor: col(0x9ff0ea), sheenRoughness: .55, envMapIntensity: .7 }),
+  sweaterDk: new THREE.MeshPhysicalMaterial({ color: 0x219a9c, roughness: .9, sheen: 1, sheenColor: col(0x8fe6df), sheenRoughness: .55 }),
+  pants: new THREE.MeshPhysicalMaterial({ color: 0x26282d, roughness: .85, sheen: .6, sheenColor: col(0x6a6f7a), sheenRoughness: .5 }),
+  shoe: new THREE.MeshPhysicalMaterial({ color: 0xf4f5f8, roughness: .42, clearcoat: .3, envMapIntensity: .9 }),
+  sole: new THREE.MeshStandardMaterial({ color: 0xd8dbe2, roughness: .6 }),
+  mouth: new THREE.MeshStandardMaterial({ color: 0x5a1712, roughness: .6, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 }),
+  teeth: new THREE.MeshPhysicalMaterial({ color: 0xfbf8f2, roughness: .25, clearcoat: .5, polygonOffset: true, polygonOffsetFactor: -4, polygonOffsetUnits: -4 }),
+  tongue: new THREE.MeshPhysicalMaterial({ color: 0xe0626a, roughness: .35, clearcoat: .6, polygonOffset: true, polygonOffsetFactor: -4, polygonOffsetUnits: -4 }),
+  fur: new THREE.MeshPhysicalMaterial({ vertexColors: true, roughness: .6, sheen: .45, sheenColor: col(0xe39a5c), sheenRoughness: .4, envMapIntensity: .75 }),
+  furFlat: new THREE.MeshPhysicalMaterial({ color: 0xa9501c, roughness: .6, sheen: .45, sheenColor: col(0xe39a5c), sheenRoughness: .4 }),
+  furDark: new THREE.MeshPhysicalMaterial({ color: 0x8f4519, roughness: .65, sheen: .9, sheenColor: col(0xc77a42), sheenRoughness: .4 }),
+  nose: new THREE.MeshPhysicalMaterial({ color: 0x141012, roughness: .25, clearcoat: 1, clearcoatRoughness: .15 }),
+  collar: new THREE.MeshPhysicalMaterial({ color: 0x1fa3a6, roughness: .45, clearcoat: .4 }),
+  gold: new THREE.MeshPhysicalMaterial({ color: 0xe0b23c, metalness: 1, roughness: .28, clearcoat: .5 }),
+  dogMouth: new THREE.MeshStandardMaterial({ color: 0x4a1210, roughness: .6 }),
+  dogTongue: new THREE.MeshPhysicalMaterial({ color: 0xe36a6e, roughness: .35, clearcoat: .7 }),
+  trunk: new THREE.MeshStandardMaterial({ color: 0x8a5a3a, roughness: .9 }),
+  bush: new THREE.MeshPhysicalMaterial({ vertexColors: true, roughness: .95, sheen: 1, sheenColor: col(0xc8f08a), sheenRoughness: .6, envMapIntensity: .6 }),
+};
+
+/* ---------- olhos ---------- */
+function eyeTexture(iris, irisDark, irisR) {
+  const W = 1024, H = 512, c = document.createElement('canvas'); c.width = W; c.height = H;
+  const x = c.getContext('2d');
+  x.fillStyle = '#fbfbfa'; x.fillRect(0, 0, W, H);
+  const cx = W * .25, cy = H * .5;
+  let g = x.createRadialGradient(cx, cy, irisR * .2, cx, cy, irisR);
+  g.addColorStop(0, iris); g.addColorStop(.75, irisDark); g.addColorStop(.93, '#140a06'); g.addColorStop(1, '#0d0705');
+  x.fillStyle = g; x.beginPath(); x.arc(cx, cy, irisR, 0, Math.PI * 2); x.fill();
+  // fibras da íris
+  x.globalAlpha = .18; x.strokeStyle = '#000';
+  for (let i = 0; i < 90; i++) { const a = i / 90 * Math.PI * 2; x.beginPath(); x.moveTo(cx + Math.cos(a) * irisR * .52, cy + Math.sin(a) * irisR * .52); x.lineTo(cx + Math.cos(a) * irisR * .9, cy + Math.sin(a) * irisR * .9); x.stroke(); }
+  x.globalAlpha = 1;
+  x.fillStyle = '#050303'; x.beginPath(); x.arc(cx, cy, irisR * .5, 0, Math.PI * 2); x.fill();
+  // sombra da pálpebra no topo do globo
+  g = x.createLinearGradient(0, 0, 0, H * .5); g.addColorStop(0, 'rgba(90,60,50,.55)'); g.addColorStop(1, 'rgba(90,60,50,0)');
+  x.fillStyle = g; x.fillRect(0, 0, W, H * .5);
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8;
+  return t;
+}
+const babyEyeTex = eyeTexture('#5e3418', '#2a1408', 104);
+const dogEyeTex = eyeTexture('#3e2210', '#1a0c06', 138);
+function makeEye(parent, pos, r, tex, lookAt, lid = { tilt: .18, cover: 1.05 }) {
+  const g = new THREE.Group(); g.position.copy(pos); parent.add(g);
+  const ball = mesh(new THREE.SphereGeometry(r, 64, 32), new THREE.MeshPhysicalMaterial({ map: tex, roughness: .15, clearcoat: .6, clearcoatRoughness: .05, envMapIntensity: .3 }), g);
+  ball.castShadow = false;
+  ball.updateWorldMatrix(true, false);
+  ball.lookAt(lookAt);
+  // reflexos (catchlights) fixos em relação à luz
+  const hl = new THREE.MeshBasicMaterial({ color: 0xffffff });
+  const wq = new THREE.Quaternion(); g.getWorldQuaternion(wq);
+  const toLocal = v => v.applyQuaternion(wq.clone().invert());
+  const hdir = toLocal(V(-.42, .5, .78).normalize());
+  const h1 = mesh(new THREE.SphereGeometry(r * .17, 16, 8), hl, g, hdir.clone().multiplyScalar(r * .9)); h1.castShadow = false;
+  const h2 = mesh(new THREE.SphereGeometry(r * .09, 12, 6), hl, g, toLocal(V(.32, -.28, .9).normalize()).multiplyScalar(r * .95)); h2.castShadow = false;
+  // pálpebra superior (casca de esfera) + linha dos cílios
+  const L = new THREE.Group(); g.add(L);
+  if (lid.follow) L.quaternion.copy(ball.quaternion);
+  const lidG = new THREE.Group(); L.add(lidG); lidG.rotation.x = lid.tilt;
+  const th = lid.cover;
+  mesh(new THREE.SphereGeometry(r * 1.05, 64, 24, 0, Math.PI * 2, 0, th), lid.mat || M.skinFlat, lidG);
+  const lash = mesh(new THREE.TorusGeometry(r * 1.05 * Math.sin(th), r * .045, 8, 48, Math.PI), new THREE.MeshStandardMaterial({ color: 0x2a1610, roughness: .6 }), lidG, V(0, r * 1.05 * Math.cos(th), 0), [Math.PI / 2, 0, 0]);
+  lash.scale.z = .6;
+  if (lid.lower) mesh(new THREE.SphereGeometry(r * 1.04, 48, 12, 0, Math.PI * 2, Math.PI - lid.lower, lid.lower), lid.mat || M.skinFlat, L);
+  return g;
+}
+
+/* =====================================================================
+   BEBÊ
+   ===================================================================== */
+const baby = new THREE.Group(); scene.add(baby);
+baby.position.set(1.35, 0, .15);
+baby.rotation.y = -.22;
+const babyHeadWorld = V();
+{
+  // cabeça
+  const head = new THREE.Group(); baby.add(head);
+  head.position.set(-.02, 2.42, .04);
+  head.rotation.set(.05, -.1, .08);
+  const HS = .74;
+  head.scale.setScalar(HS);
+  const headFn = sculptFn([
+    { c: V(.6, -.28, .74).normalize(), a: .1, s: .38 },   // bochechas
+    { c: V(-.6, -.28, .74).normalize(), a: .1, s: .38 },
+    { c: V(0, -.62, .78).normalize(), a: .05, s: .35 },     // queixo
+    { c: V(0, -1, 0), a: -.18, s: .75 },                     // base mais estreita
+    { c: V(0, .35, .94).normalize(), a: .04, s: .5 },       // testa
+    { c: V(0, .1, -1), a: .06, s: .8 },                     // nuca
+    { c: V(1, 0, 0), a: -.06, s: .7 }, { c: V(-1, 0, 0), a: -.06, s: .7 },
+  ]);
+  const skinBase = col(0xf4a276), blush = col(0xec765a), shadowTone = col(0xd9805a);
+  const cheekL = V(.55, -.3, .78).normalize(), cheekR = V(-.55, -.3, .78).normalize();
+  const paintSkin = (v, c) => {
+    const d = v.clone().normalize();
+    const b = Math.max(Math.exp(-d.distanceToSquared(cheekL) / .09), Math.exp(-d.distanceToSquared(cheekR) / .09));
+    c.copy(skinBase).lerp(blush, b * .55).lerp(shadowTone, THREE.MathUtils.smoothstep(-d.y, .55, 1) * .4);
+  };
+  const skull = mesh(sculpt(headFn, 48, paintSkin), M.skin, head, null, null, [1, 1.02, .97]);
+  const SK = new THREE.Group(); SK.scale.set(1, 1.02, .97); head.add(SK); // espaço da superfície do crânio
+  // orelhas
+  for (const s of [-1, 1]) {
+    const ear = mesh(sculpt(sculptFn([{ c: V(0, 0, 1), a: -.35, s: .5 }]), 20), M.skinFlat, SK, V(s * .93, -.04, -.08), [0, s * .3, 0], [.14, .24, .2]);
+    mesh(new THREE.SphereGeometry(1, 24, 12), new THREE.MeshStandardMaterial({ color: 0xe39a80, roughness: .6 }), ear, V(0, 0, .55), null, [.55, .6, .35]);
+  }
+  // nariz
+  const noseDir = V(0, -.16, 1).normalize();
+  mesh(sculpt(() => 1, 16, (v, c) => c.copy(col(0xea8f66))), M.skin, SK, noseDir.clone().multiplyScalar(headFn(noseDir) - .035), null, [.11, .08, .09]);
+  // olhos (globos ligeiramente afundados na face)
+  const target = V(-1.0, 1.55, 6.7);
+  for (const s of [-1, 1]) {
+    const dir = V(s * .37, .03, .93).normalize();
+    makeEye(SK, dir.clone().multiplyScalar(headFn(dir) * .8), .26, babyEyeTex, target, { tilt: 0, cover: .98, lower: .3 });
+  }
+  // sobrancelhas
+  for (const s of [-1, 1]) {
+    const pts = [-.2, -.05, .1, .2].map((t, i) => { const d = V(s * (.37 + t * .95), .4 + (i === 1 || i === 2 ? .05 : 0) - Math.abs(t) * .1, .85).normalize(); return d.multiplyScalar(headFn(d) + .012); });
+    mesh(taperTube(pts, .03, .018, 24, 10), M.brow, SK);
+  }
+  // boca aberta: sorriso em "D"
+  const ms = new THREE.Shape();
+  ms.moveTo(-.29, -.34);
+  ms.bezierCurveTo(-.14, -.41, .14, -.41, .29, -.34);    // lábio superior (cantos para cima)
+  ms.bezierCurveTo(.25, -.6, -.25, -.6, -.29, -.34);     // arco inferior
+  mesh(decal(ms, headFn, .004), M.mouth, SK).castShadow = false;
+  const ts = new THREE.Shape();
+  ts.moveTo(-.22, -.37); ts.bezierCurveTo(-.09, -.415, .09, -.415, .22, -.37); ts.lineTo(.2, -.405); ts.bezierCurveTo(.09, -.445, -.09, -.445, -.2, -.405); ts.closePath();
+  mesh(decal(ts, headFn, .007), M.teeth, SK).castShadow = false;
+  const tg = new THREE.Shape(); tg.absellipse(0, -.515, .16, .06, 0, Math.PI * 2);
+  mesh(decal(tg, headFn, .007), M.tongue, SK).castShadow = false;
+  // lábio inferior/sombra sob a boca
+  const lip = new THREE.Shape(); lip.absellipse(0, -.625, .11, .022, 0, Math.PI * 2);
+  mesh(decal(lip, headFn, .003), new THREE.MeshStandardMaterial({ color: 0xe7957e, roughness: .55, polygonOffset: true, polygonOffsetFactor: -2 }), SK).castShadow = false;
+  // cabelo: calota esculpida com mechas + franja
+  const hairFn = sculptFn([{ c: V(.2, .6, .78).normalize(), a: .06, s: .35 }, { c: V(0, 1, 0), a: .04, s: .6 }, { c: V(0, -.5, -.85).normalize(), a: -.04, s: .5 }], .018, 6);
+  const hairBase = col(0x4a2c17), hairHi = col(0x7a4e2c);
+  const hairG = sculpt(hairFn, 56, (v, c) => { const n = fbm(v.x * 7, v.y * 7, v.z * 7); c.copy(hairBase).lerp(hairHi, THREE.MathUtils.clamp(.45 + n * .9 + v.y * .25, 0, 1)); });
+  const hairM = mesh(hairG, M.hair, SK, V(0, .14, -.1), [.12, 0, -.06], [1.0, 1.0, 1.02]);
+
+  // mechas da franja varrendo para o lado
+  const r = rng(3);
+  for (let i = 0; i < 11; i++) {
+    const x0 = -.56 + i * .085 + (r() - .5) * .04;
+    const p0 = V(x0 * .9, .86, .5).normalize(); p0.multiplyScalar(headFn(p0) * 1.07);
+    const p1 = V(x0 + .12, .74 - r() * .03, .68).normalize(); p1.multiplyScalar(headFn(p1) * 1.06);
+    const p2 = V(x0 + .24, .62 - r() * .05 + Math.abs(x0) * .06, .78).normalize(); p2.multiplyScalar(headFn(p2) * 1.025);
+    mesh(taperTube([p0, p1, p2], .095, .02, 20, 12), M.hairFlat, SK);
+  }
+  head.updateWorldMatrix(true, true); head.getWorldPosition(babyHeadWorld);
+
+  // pescoço + tronco (suéter)
+  mesh(new THREE.CylinderGeometry(.14, .16, .25, 32), M.skinFlat, baby, V(0, 1.82, 0));
+  const prof = [[0, 0], [.4, 0], [.5, .05], [.53, .2], [.52, .45], [.49, .65], [.44, .78], [.32, .87], [.16, .9], [0, .9]].map(([x, y]) => new THREE.Vector2(x, y));
+  const torso = mesh(new THREE.LatheGeometry(new THREE.SplineCurve(prof).getPoints(40), 64), M.sweater, baby, V(0, 1.0, 0), null, [1, .88, .8]);
+  mesh(new THREE.TorusGeometry(.5, .055, 16, 64), M.sweaterDk, baby, V(0, 1.04, 0), [Math.PI / 2, 0, 0], [1, .82, 1]);
+  mesh(new THREE.TorusGeometry(.17, .04, 12, 48), M.sweaterDk, baby, V(0, 1.78, 0), [Math.PI / 2, 0, 0]);
+  // braços: do ombro às mãos que batem palmas à frente do peito
+  for (const s of [-1, 1]) {
+    const sh = V(s * .42, 1.64, 0), el = V(s * .58, 1.24, .3), wr = V(s * .2, 1.44, .62);
+    mesh(taperTube([sh, V(s * .55, 1.44, .08), el, V(s * .42, 1.33, .5), wr], .15, .12, 48, 24), M.sweater, baby);
+    mesh(new THREE.SphereGeometry(.16, 32, 16), M.sweater, baby, sh);
+    const cuff = mesh(new THREE.TorusGeometry(.115, .035, 12, 32), M.sweaterDk, baby, wr.clone().lerp(V(s * .42, 1.33, .5), .08));
+    cuff.quaternion.setFromUnitVectors(V(0, 0, 1), wr.clone().sub(V(s * .42, 1.33, .5)).normalize());
+    // mão
+    const hand = new THREE.Group(); baby.add(hand);
+    hand.position.copy(wr).add(V(-s * .06, .1, .06));
+    hand.rotation.set(-.2, s * .25, s * -.45);
+    mesh(new THREE.SphereGeometry(.13, 32, 16), M.skinFlat, hand, V(0, .02, 0), null, [.62, 1, .95]);
+    for (let f = 0; f < 4; f++) {
+      const fz = -.065 + f * .044;
+      const a = V(0, .09, fz), b = V(-s * .02, .19 - Math.abs(f - 1.4) * .02, fz + .01);
+      between(capsule(.03, b.distanceTo(a) * .8, 6, 12), M.skinFlat, hand, a, b);
+    }
+    between(capsule(.03, .07, 6, 12), M.skinFlat, hand, V(-s * .04, -.01, .08), V(-s * .07, .07, .13));
+  }
+  // calça
+  mesh(new THREE.SphereGeometry(.47, 48, 24), M.pants, baby, V(0, .96, 0), null, [1, .5, .78]);
+  for (const s of [-1, 1]) {
+    between(capsule(.2, .48, 12, 32), M.pants, baby, V(s * .22, .92, 0), V(s * .25, .3, .02));
+    mesh(new THREE.TorusGeometry(.19, .04, 12, 40), M.pants, baby, V(s * .25, .26, .02), [Math.PI / 2, 0, 0]);
+    // tênis
+    const shoe = new THREE.Group(); shoe.position.set(s * .26, .13, .1); shoe.rotation.y = s * .12; baby.add(shoe);
+    mesh(capsule(.14, .22, 12, 32), M.shoe, shoe, V(0, .03, 0), [Math.PI / 2, 0, 0], [1.05, 1, .85]);
+    mesh(new THREE.CylinderGeometry(.19, .2, .06, 40), M.sole, shoe, V(0, -.08, .02), null, [.8, 1, 1.45]);
+    mesh(new THREE.SphereGeometry(.13, 24, 12), M.shoe, shoe, V(0, .12, -.08), null, [1, .8, 1]);
+  }
+}
+
+/* =====================================================================
+   CACHORRO SALSICHA
+   ===================================================================== */
+const dog = new THREE.Group(); scene.add(dog);
+dog.position.set(-.78, 0, .9);
+dog.rotation.y = -.3;
+dog.scale.setScalar(.9);
+{
+  const furBase = col(0xa9501c), furTop = col(0x8a3c14), furBelly = col(0xc87038);
+  const paintFur = (v, c) => { const t = THREE.MathUtils.clamp(v.y * .5 + .5, 0, 1); c.copy(furBelly).lerp(furBase, THREE.MathUtils.smoothstep(t, .05, .55)).lerp(furTop, THREE.MathUtils.smoothstep(t, .6, 1) * .6); };
+  // corpo longo
+  const bodyFn = sculptFn([{ c: V(1, -.3, 0).normalize(), a: .12, s: .5 }, { c: V(0, -1, 0), a: -.06, s: .8 }]);
+  const body = mesh(sculpt(bodyFn, 40, paintFur), M.fur, dog, V(0, .74, 0), null, [.86, .38, .36]);
+  // peito
+  mesh(sculpt(() => 1, 24, paintFur), M.fur, dog, V(.6, .66, 0), null, [.42, .44, .37]);
+  // pernas curtas
+  const legs = [[.62, .15], [.62, -.15], [-.62, .14], [-.62, -.14]];
+  for (const [x, z] of legs) {
+    between(capsule(.1, .42, 8, 20), M.furFlat, dog, V(x, .62, z), V(x + (x > 0 ? .04 : -.02), .1, z));
+    mesh(new THREE.SphereGeometry(.11, 24, 12), M.furFlat, dog, V(x + (x > 0 ? .09 : .03), .06, z), null, [1.35, .62, 1.05]);
+  }
+  // coxas traseiras
+  for (const z of [.18, -.18]) mesh(new THREE.SphereGeometry(.2, 24, 12), M.furFlat, dog, V(-.62, .6, z), null, [1.1, 1.2, .55]);
+  // cauda
+  const tailPts = [V(-.85, .8, 0), V(-1.15, .88, 0), V(-1.38, 1.05, .02), V(-1.5, 1.25, .04)];
+  mesh(taperTube(tailPts, .07, .02, 40, 14), M.furFlat, dog);
+  // pescoço
+  const neckA = V(.72, .86, 0), neckB = V(.95, 1.24, 0);
+  between(capsule(.2, .3, 10, 28), M.furFlat, dog, neckA, neckB);
+  // coleira + medalha
+  const col1 = mesh(new THREE.TorusGeometry(.215, .045, 14, 48), M.collar, dog, V(.88, 1.1, 0));
+  col1.quaternion.setFromUnitVectors(V(0, 0, 1), neckB.clone().sub(neckA).normalize());
+  mesh(new THREE.CylinderGeometry(.075, .075, .02, 32), M.gold, dog, V(1.1, .9, .03), [0, 0, Math.PI / 2 - .5]);
+  mesh(new THREE.TorusGeometry(.02, .007, 8, 16), M.gold, dog, V(1.08, .98, .03));
+  // cabeça (olha para o bebê, em 3/4 para a câmera)
+  const head = new THREE.Group(); dog.add(head);
+  head.position.set(.98, 1.36, 0);
+  head.updateWorldMatrix(true, false);
+  head.lookAt(V(3.4, 2.5, 3.6));
+  head.scale.setScalar(.42);
+  const headFn = sculptFn([
+    { c: V(0, -.3, 1).normalize(), a: .52, s: .44 },        // focinho
+    { c: V(0, -.12, 1).normalize(), a: .2, s: .55 },
+    { c: V(.6, -.2, .7).normalize(), a: .1, s: .4 }, { c: V(-.6, -.2, .7).normalize(), a: .1, s: .4 },
+    { c: V(.45, .45, .7).normalize(), a: .1, s: .3 }, { c: V(-.45, .45, .7).normalize(), a: .1, s: .3 }, // arcos das sobrancelhas
+    { c: V(0, .2, -1), a: .15, s: .7 }, { c: V(0, .8, .4).normalize(), a: .1, s: .6 },
+  ]);
+  const paintHead = (v, c) => { const d = v.clone().normalize(); c.copy(furBase).lerp(furTop, THREE.MathUtils.smoothstep(d.y, .3, .9) * .7).lerp(furBelly, THREE.MathUtils.smoothstep(-d.y, .1, .6) * .6); };
+  const H = new THREE.Group(); H.scale.set(.95, .92, 1); head.add(H);
+  mesh(sculpt(headFn, 48, paintHead), M.fur, H);
+  const tip = V(0, -.3, 1).normalize(); const tipP = tip.clone().multiplyScalar(headFn(tip));
+  // trufa
+  mesh(sculpt(sculptFn([{ c: V(0, -1, .3).normalize(), a: -.15, s: .6 }]), 24), M.nose, H, tipP.clone().add(V(0, .12, -.06)), [-.3, 0, 0], [.32, .24, .24]);
+  // boca aberta: interior escuro + mandíbula + língua
+  mesh(new THREE.SphereGeometry(1, 32, 16), M.dogMouth, H, V(0, -.62, .92), [.2, 0, 0], [.4, .17, .55]);
+  const jaw = mesh(sculpt(() => 1, 24, (v, c) => c.copy(furBelly)), M.fur, H, V(0, -.8, .6), [.3, 0, 0], [.3, .12, .4]);
+  mesh(new THREE.SphereGeometry(1, 32, 16), M.dogTongue, H, V(0, -.7, .98), [.3, 0, 0], [.25, .08, .36]);
+  // olhos grandes de desenho animado
+  for (const s of [-1, 1]) {
+    const d = V(s * .42, .24, .87).normalize();
+    makeEye(H, d.clone().multiplyScalar(headFn(d) * .84), .34, dogEyeTex, babyHeadWorld.clone().add(V(.4, -.7, 2.2)), { tilt: 0, cover: .6, mat: M.furFlat });
+    const bd = V(s * .44, .58, .76).normalize();
+    mesh(new THREE.SphereGeometry(1, 24, 12), M.furDark, H, bd.multiplyScalar(headFn(bd) - .02), [0, 0, s * -.35], [.22, .08, .12]);
+  }
+  // orelhas longas e caídas
+  for (const s of [-1, 1]) {
+    const ear = new THREE.Group(); H.add(ear);
+    ear.position.set(s * .78, .28, -.1); ear.rotation.set(.15, 0, s * .22);
+    mesh(sculpt(sculptFn([{ c: V(0, -1, 0), a: .25, s: .7 }], .02, 3), 32), M.furDark, ear, V(0, -.62, 0), null, [.16, .85, .5]);
+  }
+}
+
+/* =====================================================================
+   CENÁRIO
+   ===================================================================== */
+// chão
+const ground = mesh(new THREE.PlaneGeometry(220, 220), new THREE.MeshStandardMaterial({ color: 0x74b141, roughness: 1 }), scene, V(0, 0, -40), [-Math.PI / 2, 0, 0]);
+ground.castShadow = false;
+// grama instanciada
+{
+  const segs = 4, pos = [], colA = [], idx = [];
+  for (let i = 0; i <= segs; i++) {
+    const t = i / segs, w = .022 * (1 - t * .92), z = .05 * t * t;
+    pos.push(-w, t, z, w, t, z);
+    const sh = .45 + .55 * t; colA.push(sh, sh, sh, sh, sh, sh);
+    if (i < segs) { const a = i * 2; idx.push(a, a + 1, a + 2, a + 1, a + 3, a + 2); }
+  }
+  const blade = new THREE.BufferGeometry();
+  blade.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  blade.setAttribute('color', new THREE.Float32BufferAttribute(colA, 3));
+  blade.setIndex(idx); blade.computeVertexNormals();
+  const N = 160000;
+  const im = new THREE.InstancedMesh(blade, new THREE.MeshStandardMaterial({ vertexColors: true, roughness: .8, side: THREE.DoubleSide }), N);
+  im.receiveShadow = true;
+  const r = rng(42), o = new THREE.Object3D(), c = new THREE.Color(), g1 = col(0x4f8f26), g2 = col(0x8fca4c), g3 = col(0xa8d65a);
+  for (let i = 0; i < N; i++) {
+    const near = i < N * .7;
+    const x = (r() - .5) * (near ? 13 : 30), z = near ? 4.2 - r() * 8 : 1 - r() * 16;
+    o.position.set(x, 0, z);
+    o.rotation.set((r() - .5) * .3, r() * Math.PI * 2, (r() - .5) * .3);
+    const h = .07 + r() * .09 + (fbm(x * .4, 0, z * .4) + .5) * .04;
+    o.scale.set(1 + r() * .6, h, 1);
+    o.updateMatrix(); im.setMatrixAt(i, o.matrix);
+    const n = fbm(x * .35, 1, z * .35);
+    c.copy(g1).lerp(g2, THREE.MathUtils.clamp(.55 + n + (r() - .5) * .4, 0, 1)); if (r() < .08) c.lerp(g3, .6);
+    im.setColorAt(i, c);
+  }
+  scene.add(im);
+}
+// arbustos e árvores topiadas (veludo)
+function bushGeo(seed, lumps = 6) {
+  const r = rng(seed), L = [];
+  for (let i = 0; i < lumps; i++) { const d = V(r() - .5, r() * .9 - .1, r() - .5).normalize(); L.push({ c: d, a: .03 + r() * .04, s: .4 + r() * .3 }); }
+  const g1 = col(0x3c7420), g2 = col(0x86c442), g3 = col(0xa6d856);
+  return sculpt(sculptFn(L, .01, 3), 32, (v, c) => { const d = v.clone().normalize(); const n = fbm(d.x * 3 + seed, d.y * 3, d.z * 3); c.copy(g1).lerp(g2, THREE.MathUtils.smoothstep(d.y + n * .15, -.6, .45)).lerp(g3, THREE.MathUtils.smoothstep(d.y, .55, 1) * .5); });
+}
+function tree(x, z, h, cr, seed, crowns = 1) {
+  const g = new THREE.Group(); g.position.set(x, 0, z); scene.add(g);
+  between(new THREE.CylinderGeometry(cr * .08, cr * .13, 1, 16), M.trunk, g, V(0, 0, 0), V(0, h, 0), true);
+  const r = rng(seed);
+  for (let i = 0; i < crowns; i++) {
+    mesh(bushGeo(seed + i * 7, 7), M.bush, g, V((r() - .5) * cr * .8, h + (i ? -cr * .35 : 0) + r() * cr * .2, (r() - .5) * cr * .5), null, [cr * (1 - i * .2), cr * .85 * (1 - i * .2), cr * (1 - i * .2)]);
+  }
+  if (crowns > 1) between(new THREE.CylinderGeometry(cr * .04, cr * .06, 1, 10), M.trunk, g, V(0, h * .7, 0), V(cr * .5, h + cr * .1, 0), true);
+  return g;
+}
+function bush(x, z, rx, ry, seed) { return mesh(bushGeo(seed), M.bush, scene, V(x, ry * .55, z), null, [rx, ry, rx * .9]); }
+// primeiro plano (moldura)
+tree(-4.9, -.6, 3.2, 1.9, 11, 1);
+tree(4.95, -.4, 3.5, 2.0, 12, 1);
+bush(-4.6, 1.6, 1.4, 1.35, 13);
+bush(4.9, 1.0, 1.25, 1.2, 14);
+bush(-3.2, -1.2, 1.2, 1.1, 15);
+bush(3.8, -2.2, 1.0, .95, 16);
+// plano médio
+tree(-2.9, -6.5, 2.9, 1.45, 21, 2);
+tree(-6.5, -5.5, 3.4, 1.9, 22, 1);
+tree(3.3, -7.5, 2.7, 1.4, 23, 2);
+tree(6.5, -4.2, 3.6, 2.0, 24, 1);
+bush(-1.6, -4.2, .75, .62, 25); bush(1.4, -4.8, .7, .58, 26); bush(.1, -8.5, 1.0, .75, 27);
+bush(-4.6, -3.0, 1.0, .95, 28); bush(4.8, -2.6, 1.0, .95, 29);
+// fundo
+{
+  const r = rng(77);
+  for (let i = 0; i < 26; i++) {
+    const x = -16 + i * 1.3 + (r() - .5), z = -10 - r() * 9;
+    if (r() < .55 && (x < -3.5 || x > 4.5)) tree(x, z, 2.4 + r() * 2.2, 1.3 + r() * .9, 100 + i, r() < .4 ? 2 : 1);
+    else bush(x, z, 1 + r() * .8, .8 + r() * .7, 200 + i);
+  }
+}
+// margaridas
+function daisy(x, z, s, seed) {
+  const g = new THREE.Group(); g.position.set(x, 0, z); g.scale.setScalar(s); scene.add(g);
+  const r = rng(seed);
+  const h = .38 + r() * .1, top = V((r() - .5) * .05, h, (r() - .5) * .05);
+  mesh(taperTube([V(0, 0, 0), V(.01, h * .5, 0), top], .012, .009, 12, 6), new THREE.MeshStandardMaterial({ color: 0x5b9a2c, roughness: .7 }), g);
+  const head = new THREE.Group(); head.position.copy(top); head.rotation.set(-.7 + (r() - .5) * .3, (r() - .5) * .6, 0); g.add(head);
+  const petal = new THREE.SphereGeometry(1, 16, 8);
+  const pm = new THREE.MeshPhysicalMaterial({ color: 0xffffff, roughness: .5, sheen: .5, sheenColor: col(0xffffff) });
+  for (let i = 0; i < 18; i++) { const a = i / 18 * Math.PI * 2; const p = mesh(petal, pm, head, V(Math.cos(a) * .075, Math.sin(a) * .075, 0), [0, 0, a], [.07, .02, .008]); p.castShadow = false; }
+  mesh(new THREE.SphereGeometry(.035, 20, 10), new THREE.MeshStandardMaterial({ color: 0xf2c21a, roughness: .7 }), head, V(0, 0, .01), null, [1, 1, .55]);
+  for (let i = 0; i < 2; i++) { const a = r() * Math.PI * 2; mesh(new THREE.SphereGeometry(1, 12, 6), new THREE.MeshStandardMaterial({ color: 0x5ea02e, roughness: .7 }), g, V(Math.cos(a) * .06, .05, Math.sin(a) * .06), [0, a, .6], [.09, .015, .03]); }
+}
+daisy(-3.55, 2.9, 1.5, 1); daisy(-3.85, 3.1, 1.3, 2); daisy(-3.35, 2.55, 1.1, 3);
+daisy(3.25, 2.4, 1.6, 4); daisy(3.6, 2.7, 1.25, 5); daisy(3.05, 2.1, 1.0, 6);
+// florzinhas amarelas espalhadas ao fundo
+{
+  const r = rng(9), im = new THREE.InstancedMesh(new THREE.SphereGeometry(.04, 8, 4), new THREE.MeshStandardMaterial({ color: 0xf2d24a, roughness: .7 }), 140), o = new THREE.Object3D();
+  for (let i = 0; i < 140; i++) { o.position.set((r() - .5) * 14, .1, -1 - r() * 10); o.scale.set(1, .5, 1); o.updateMatrix(); im.setMatrixAt(i, o.matrix); }
+  scene.add(im);
+}
+
+/* =====================================================================
+   CÂMERA + PÓS
+   ===================================================================== */
+const camera = new THREE.PerspectiveCamera(32, 1, .1, 500);
+camera.position.set(.25, 1.45, 6.8);
+const focusPt = V(.25, 1.62, .45);
+camera.lookAt(focusPt);
+const composer = new EffectComposer(renderer);
+composer.addPass(new RenderPass(scene, camera));
+const gtao = new GTAOPass(scene, camera, 1, 1, null, { radius: .35, distanceExponent: 1.4, thickness: 1, scale: 1.1, samples: 16 }, { radius: 8, samples: 16 });
+gtao.blendIntensity = .9;
+composer.addPass(gtao);
+const bokeh = new BokehPass(scene, camera, { focus: camera.position.distanceTo(focusPt), aperture: .0016, maxblur: .006 });
+composer.addPass(bokeh);
+composer.addPass(new OutputPass());
+
+function resize() {
+  const w = innerWidth, h = innerHeight;
+  renderer.setSize(w, h, false); composer.setSize(w, h); gtao.setSize(w * renderer.getPixelRatio(), h * renderer.getPixelRatio());
+  camera.aspect = w / h; camera.updateProjectionMatrix();
+}
+addEventListener('resize', () => { resize(); composer.render(); });
+resize();
+composer.render();
+window.__ready = true;
+</script>
+</body>
+</html>
